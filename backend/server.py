@@ -41,7 +41,9 @@ class UserCreate(BaseModel):
     email: str
     password: str
     name: str
-    role: str = "user"
+    role: str = "viewer"
+    location: Optional[str] = None
+    department: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: str
