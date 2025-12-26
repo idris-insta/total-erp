@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { Plus, Users, FileText, Package as PackageIcon, Beaker } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Plus, Search, Edit, Trash2, Eye, FileText, Package as PackageIcon, Beaker, Users as UsersIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
@@ -12,16 +12,110 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import api from '../lib/api';
 import { toast } from 'sonner';
 
+const CRMOverview = () => {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    leads: 0,
+    accounts: 0,
+    quotations: 0,
+    samples: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const [leadsRes, accountsRes, quotesRes, samplesRes] = await Promise.all([
+        api.get('/crm/leads'),
+        api.get('/crm/accounts'),
+        api.get('/crm/quotations'),
+        api.get('/crm/samples')
+      ]);
+      setStats({
+        leads: leadsRes.data.length,
+        accounts: accountsRes.data.length,
+        quotations: quotesRes.data.length,
+        samples: samplesRes.data.length
+      });
+    } catch (error) {
+      console.error('Failed to load stats', error);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 font-manrope">CRM Overview</h2>
+        <p className="text-slate-600 mt-1 font-inter">Manage your customer relationships</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/leads')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <UsersIcon className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-base font-manrope">Leads</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600 font-manrope">{stats.leads}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/accounts')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <UsersIcon className="h-5 w-5 text-green-600" />
+              <CardTitle className="text-base font-manrope">Accounts</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600 font-manrope">{stats.accounts}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/quotations')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-base font-manrope">Quotations</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-600 font-manrope">{stats.quotations}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/samples')}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Beaker className="h-5 w-5 text-orange-600" />
+              <CardTitle className="text-base font-manrope">Samples</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-600 font-manrope">{stats.samples}</div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 const LeadsList = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     company_name: '',
     contact_person: '',
     email: '',
     phone: '',
-    source: '',
+    source: 'IndiaMART',
     product_interest: '',
     notes: ''
   });
@@ -44,35 +138,64 @@ const LeadsList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/crm/leads', formData);
-      toast.success('Lead created successfully');
+      if (editingLead) {
+        await api.put(`/crm/leads/${editingLead.id}`, formData);
+        toast.success('Lead updated successfully');
+      } else {
+        await api.post('/crm/leads', formData);
+        toast.success('Lead created successfully');
+      }
       setOpen(false);
+      setEditingLead(null);
       fetchLeads();
-      setFormData({ company_name: '', contact_person: '', email: '', phone: '', source: '', product_interest: '', notes: '' });
+      resetForm();
     } catch (error) {
-      toast.error('Failed to create lead');
+      toast.error('Failed to save lead');
     }
   };
 
-  const getSourceBadge = (source) => {
-    const colors = {
-      'IndiaMART': 'bg-blue-100 text-blue-800',
-      'Google': 'bg-green-100 text-green-800',
-      'Exhibition': 'bg-purple-100 text-purple-800',
-      'Referral': 'bg-orange-100 text-orange-800'
-    };
-    return colors[source] || 'bg-gray-100 text-gray-800';
+  const handleEdit = (lead) => {
+    setEditingLead(lead);
+    setFormData({
+      company_name: lead.company_name,
+      contact_person: lead.contact_person,
+      email: lead.email,
+      phone: lead.phone,
+      source: lead.source,
+      product_interest: lead.product_interest || '',
+      notes: lead.notes || ''
+    });
+    setOpen(true);
   };
 
-  const getStatusBadge = (status) => {
-    const colors = {
-      'new': 'bg-blue-100 text-blue-800',
-      'contacted': 'bg-yellow-100 text-yellow-800',
-      'qualified': 'bg-green-100 text-green-800',
-      'converted': 'bg-purple-100 text-purple-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+  const handleDelete = async (leadId) => {
+    if (!confirm('Are you sure you want to delete this lead?')) return;
+    try {
+      await api.delete(`/crm/leads/${leadId}`);
+      toast.success('Lead deleted');
+      fetchLeads();
+    } catch (error) {
+      toast.error('Failed to delete lead');
+    }
   };
+
+  const resetForm = () => {
+    setFormData({
+      company_name: '',
+      contact_person: '',
+      email: '',
+      phone: '',
+      source: 'IndiaMART',
+      product_interest: '',
+      notes: ''
+    });
+  };
+
+  const filteredLeads = leads.filter(lead => 
+    lead.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lead.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lead.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return <div className="flex items-center justify-center h-96"><div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div></div>;
@@ -82,68 +205,83 @@ const LeadsList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 font-manrope" data-testid="leads-title">Leads Management</h2>
-          <p className="text-slate-600 mt-1 font-inter">Track and manage your sales leads</p>
+          <h2 className="text-2xl font-bold text-slate-900 font-manrope">Leads Management</h2>
+          <p className="text-slate-600 mt-1 font-inter">{leads.length} total leads</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) { setEditingLead(null); resetForm(); } }}>
           <DialogTrigger asChild>
             <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-lead-button">
               <Plus className="h-4 w-4 mr-2" />
               Add Lead
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-manrope">Create New Lead</DialogTitle>
+              <DialogTitle className="font-manrope">{editingLead ? 'Edit Lead' : 'Create New Lead'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company_name" className="font-inter">Company Name</Label>
-                  <Input id="company_name" value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} required data-testid="company-name-input" />
+                  <Label htmlFor="company_name" className="font-inter">Company Name *</Label>
+                  <Input id="company_name" value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contact_person" className="font-inter">Contact Person</Label>
+                  <Label htmlFor="contact_person" className="font-inter">Contact Person *</Label>
                   <Input id="contact_person" value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="font-inter">Email</Label>
+                  <Label htmlFor="email" className="font-inter">Email *</Label>
                   <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="font-inter">Phone</Label>
+                  <Label htmlFor="phone" className="font-inter">Phone *</Label>
                   <Input id="phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="source" className="font-inter">Source</Label>
+                  <Label htmlFor="source" className="font-inter">Source *</Label>
                   <Select value={formData.source} onValueChange={(value) => setFormData({...formData, source: value})} required>
-                    <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="IndiaMART">IndiaMART</SelectItem>
-                      <SelectItem value="Google">Google</SelectItem>
+                      <SelectItem value="TradeIndia">TradeIndia</SelectItem>
+                      <SelectItem value="Alibaba">Alibaba</SelectItem>
+                      <SelectItem value="Google">Google Search</SelectItem>
                       <SelectItem value="Exhibition">Exhibition</SelectItem>
                       <SelectItem value="Cold Call">Cold Call</SelectItem>
                       <SelectItem value="Referral">Referral</SelectItem>
                       <SelectItem value="Website">Website</SelectItem>
+                      <SelectItem value="LinkedIn">LinkedIn</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="product_interest" className="font-inter">Product Interest</Label>
-                  <Input id="product_interest" value={formData.product_interest} onChange={(e) => setFormData({...formData, product_interest: e.target.value})} />
+                  <Input id="product_interest" value={formData.product_interest} onChange={(e) => setFormData({...formData, product_interest: e.target.value})} placeholder="BOPP Tape, Masking Tape, etc." />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes" className="font-inter">Notes</Label>
-                <textarea id="notes" className="w-full min-h-[80px] px-3 py-2 border border-slate-200 rounded-md" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} />
+                <textarea id="notes" className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md font-inter" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} placeholder="Additional information..." />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="submit-lead-button">Create Lead</Button>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => { setOpen(false); setEditingLead(null); resetForm(); }}>Cancel</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90">{editingLead ? 'Update' : 'Create'} Lead</Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search leads by company, name, or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       <Card className="border-slate-200 shadow-sm">
@@ -158,33 +296,57 @@ const LeadsList = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider font-inter">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider font-inter">Product Interest</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider font-inter">Created</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider font-inter">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-50 transition-colors" data-testid="lead-row">
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="font-semibold text-slate-900 font-inter">{lead.company_name}</div>
-                        <div className="text-sm text-slate-500 font-inter">{lead.email}</div>
-                      </div>
+                {filteredLeads.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-4 py-12 text-center text-slate-500 font-inter">
+                      {searchTerm ? 'No leads found matching your search' : 'No leads yet. Click "Add Lead" to create your first lead.'}
                     </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="text-sm text-slate-900 font-inter">{lead.contact_person}</div>
-                        <div className="text-sm text-slate-500 font-mono">{lead.phone}</div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge className={`${getSourceBadge(lead.source)} font-inter`}>{lead.source}</Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge className={`${getStatusBadge(lead.status)} font-inter`}>{lead.status}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600 font-inter">{lead.product_interest || '-'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-500 font-mono">{new Date(lead.created_at).toLocaleDateString()}</td>
                   </tr>
-                ))}
+                ) : (
+                  filteredLeads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div>
+                          <div className="font-semibold text-slate-900 font-inter">{lead.company_name}</div>
+                          <div className="text-sm text-slate-500 font-inter">{lead.email}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <div className="text-sm text-slate-900 font-inter">{lead.contact_person}</div>
+                          <div className="text-sm text-slate-500 font-mono">{lead.phone}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge className="bg-blue-100 text-blue-800 font-inter">{lead.source}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge className={`font-inter ${
+                          lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                          lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                          lead.status === 'qualified' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>{lead.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600 font-inter">{lead.product_interest || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-500 font-mono">{new Date(lead.created_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(lead.id)} className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -196,12 +358,13 @@ const LeadsList = () => {
 
 const CRM = () => {
   return (
-    <div className="space-y-6">
-      <Routes>
-        <Route index element={<LeadsList />} />
-        <Route path="leads" element={<LeadsList />} />
-      </Routes>
-    </div>
+    <Routes>
+      <Route index element={<CRMOverview />} />
+      <Route path="leads" element={<LeadsList />} />
+      <Route path="accounts" element={<div className="p-6 text-center text-slate-600">Accounts module - Coming in next update</div>} />
+      <Route path="quotations" element={<div className="p-6 text-center text-slate-600">Quotations module - Coming in next update</div>} />
+      <Route path="samples" element={<div className="p-6 text-center text-slate-600">Samples module - Coming in next update</div>} />
+    </Routes>
   );
 };
 
