@@ -19,6 +19,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Accounts', href: '/accounts', icon: Calculator },
     { name: 'HRMS', href: '/hrms', icon: Users },
     { name: 'Quality', href: '/quality', icon: Shield },
+    { name: 'Customization', href: '/customization', icon: Wand2 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
