@@ -139,6 +139,28 @@ async def get_lead(lead_id: str, current_user: dict = Depends(get_current_user))
         raise HTTPException(status_code=404, detail="Lead not found")
     return Lead(**lead)
 
+@router.put("/leads/{lead_id}", response_model=Lead)
+async def update_lead(lead_id: str, lead_data: LeadCreate, current_user: dict = Depends(get_current_user)):
+    result = await db.leads.update_one(
+        {'id': lead_id},
+        {'$set': {**lead_data.model_dump(), 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
+    return Lead(**lead)
+
+@router.delete("/leads/{lead_id}")
+async def delete_lead(lead_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.leads.delete_one({'id': lead_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    return {'message': 'Lead deleted successfully'}
+
 @router.put("/leads/{lead_id}/convert")
 async def convert_lead_to_account(lead_id: str, account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
     lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
