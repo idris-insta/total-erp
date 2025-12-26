@@ -205,6 +205,28 @@ async def get_account(account_id: str, current_user: dict = Depends(get_current_
         raise HTTPException(status_code=404, detail="Account not found")
     return Account(**account)
 
+@router.put("/accounts/{account_id}", response_model=Account)
+async def update_account(account_id: str, account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
+    result = await db.accounts.update_one(
+        {'id': account_id},
+        {'$set': {**account_data.model_dump(), 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail=\"Account not found\")
+    
+    account = await db.accounts.find_one({'id': account_id}, {'_id': 0})
+    return Account(**account)
+
+@router.delete("/accounts/{account_id}")
+async def delete_account(account_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.accounts.delete_one({'id': account_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    return {'message': 'Account deleted successfully'}
+
 
 @router.post("/quotations", response_model=Quotation)
 async def create_quotation(quote_data: QuotationCreate, current_user: dict = Depends(get_current_user)):
