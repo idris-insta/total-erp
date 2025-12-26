@@ -12,6 +12,7 @@ import Procurement from './pages/Procurement';
 import Accounts from './pages/Accounts';
 import HRMS from './pages/HRMS';
 import Quality from './pages/Quality';
+import Settings from './pages/Settings';
 import Customization from './pages/Customization';
 
 const PrivateRoute = ({ children }) => {
