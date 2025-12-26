@@ -121,7 +121,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     )
 
 
-from routes import crm, inventory, production, procurement, accounts, hrms, quality, dashboard
+from routes import crm, inventory, production, procurement, accounts, hrms, quality, dashboard, settings
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
@@ -131,6 +131,7 @@ api_router.include_router(accounts.router, prefix="/accounts", tags=["Accounts"]
 api_router.include_router(hrms.router, prefix="/hrms", tags=["HRMS"])
 api_router.include_router(quality.router, prefix="/quality", tags=["Quality"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
+api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 
 app.include_router(api_router)
 
