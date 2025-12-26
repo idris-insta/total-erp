@@ -85,6 +85,8 @@ async def register(user_data: UserCreate):
         'password': hashed_password.decode('utf-8'),
         'name': user_data.name,
         'role': user_data.role,
+        'location': user_data.location,
+        'department': user_data.department,
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)
