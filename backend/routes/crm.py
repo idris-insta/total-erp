@@ -213,7 +213,7 @@ async def update_account(account_id: str, account_data: AccountCreate, current_u
     )
     
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail=\"Account not found\")
+        raise HTTPException(status_code=404, detail="Account not found")
     
     account = await db.accounts.find_one({'id': account_id}, {'_id': 0})
     return Account(**account)
