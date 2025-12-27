@@ -190,6 +190,7 @@ class AccountCreate(BaseModel):
     industry: Optional[str] = None
     website: Optional[str] = None
     agent_id: Optional[str] = None
+    salesperson_id: Optional[str] = None
     location: Optional[str] = None
     notes: Optional[str] = None
 
@@ -211,6 +212,7 @@ class AccountUpdate(BaseModel):
     industry: Optional[str] = None
     website: Optional[str] = None
     agent_id: Optional[str] = None
+    salesperson_id: Optional[str] = None
     location: Optional[str] = None
     notes: Optional[str] = None
     is_active: Optional[bool] = None
@@ -234,11 +236,18 @@ class Account(BaseModel):
     industry: Optional[str] = None
     website: Optional[str] = None
     agent_id: Optional[str] = None
+    salesperson_id: Optional[str] = None
+    salesperson_name: Optional[str] = None
     location: Optional[str] = None
     notes: Optional[str] = None
     is_active: bool = True
     total_outstanding: float = 0
+    receivable_amount: float = 0
+    payable_amount: float = 0
+    avg_payment_days: float = 0
     lead_id: Optional[str] = None
+    created_by: Optional[str] = None
+    assigned_to: Optional[str] = None
     created_at: str
     updated_at: Optional[str] = None
 
