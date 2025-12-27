@@ -117,11 +117,24 @@ async def get_item(item_id: str, current_user: dict = Depends(get_current_user))
 @router.put("/items/{item_id}", response_model=Item)
 async def update_item(item_id: str, item_data: ItemCreate, current_user: dict = Depends(get_current_user)):
     result = await db.items.update_one(
-        {'id': item_id},\n        {'$set': {**item_data.model_dump(), 'updated_at': datetime.now(timezone.utc).isoformat()}}\n    )\n    \n    if result.matched_count == 0:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    \n    item = await db.items.find_one({'id': item_id}, {'_id': 0})\n    return Item(**item)
+        {'id': item_id},
+        {'$set': {**item_data.model_dump(), 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item = await db.items.find_one({'id': item_id}, {'_id': 0})
+    return Item(**item)
 
 @router.delete("/items/{item_id}")
 async def delete_item(item_id: str, current_user: dict = Depends(get_current_user)):
-    result = await db.items.delete_one({'id': item_id})\n    \n    if result.deleted_count == 0:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    \n    return {'message': 'Item deleted successfully'}
+    result = await db.items.delete_one({'id': item_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    return {'message': 'Item deleted successfully'}
 
 
 @router.post("/stock")
