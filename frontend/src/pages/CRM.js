@@ -1,57 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, Eye, FileText, Package as PackageIcon, Beaker, Users as UsersIcon, Building2, CheckCircle, Send } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
+import { 
+  Plus, Search, Edit, Trash2, Eye, FileText, Package as PackageIcon, 
+  Beaker, Users as UsersIcon, Building2, CheckCircle, Send, Phone, 
+  Mail, MapPin, Calendar, ArrowRight, TrendingUp, Clock, Filter,
+  MoreVertical, RefreshCw, Download, ChevronDown, X, Check
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Textarea } from '../components/ui/textarea';
 import api from '../lib/api';
 import { toast } from 'sonner';
 
+// ==================== CRM OVERVIEW ====================
 const CRMOverview = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ leads: 0, accounts: 0, quotations: 0, samples: 0 });
+  const [stats, setStats] = useState({ 
+    leads: 0, accounts: 0, quotations: 0, samples: 0,
+    pending_quotations: 0, pending_samples: 0, quote_conversion_rate: 0 
+  });
+  const [loading, setLoading] = useState(true);
+  const [recentLeads, setRecentLeads] = useState([]);
+  const [recentQuotes, setRecentQuotes] = useState([]);
 
   useEffect(() => {
-    fetchStats();
+    fetchData();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchData = async () => {
     try {
-      const [leadsRes, accountsRes, quotesRes, samplesRes] = await Promise.all([
+      const [statsRes, leadsRes, quotesRes] = await Promise.all([
+        api.get('/crm/stats/overview'),
         api.get('/crm/leads'),
-        api.get('/crm/accounts'),
-        api.get('/crm/quotations'),
-        api.get('/crm/samples')
+        api.get('/crm/quotations')
       ]);
-      setStats({
-        leads: leadsRes.data.length,
-        accounts: accountsRes.data.length,
-        quotations: quotesRes.data.length,
-        samples: samplesRes.data.length
-      });
+      setStats(statsRes.data);
+      setRecentLeads(leadsRes.data.slice(0, 5));
+      setRecentQuotes(quotesRes.data.slice(0, 5));
     } catch (error) {
-      console.error('Failed to load stats', error);
+      toast.error('Failed to load CRM data');
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-900 font-manrope">CRM Overview</h2>
-        <p className="text-slate-600 mt-1 font-inter">Complete sales pipeline management</p>
+    <div className="space-y-6" data-testid="crm-overview">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 font-manrope">CRM Dashboard</h2>
+          <p className="text-slate-600 mt-1 font-inter">Complete sales pipeline management</p>
+        </div>
+        <Button onClick={fetchData} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/leads')}>
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/leads')} data-testid="leads-card">
           <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <UsersIcon className="h-5 w-5 text-blue-600" />
-              <CardTitle className="text-base font-manrope">Leads</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <UsersIcon className="h-5 w-5 text-blue-600" />
+                </div>
+                <CardTitle className="text-base font-manrope">Leads</CardTitle>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400" />
             </div>
           </CardHeader>
           <CardContent>
@@ -60,11 +91,16 @@ const CRMOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/accounts')}>
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/accounts')} data-testid="accounts-card">
           <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-green-600" />
-              <CardTitle className="text-base font-manrope">Accounts</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-green-600" />
+                </div>
+                <CardTitle className="text-base font-manrope">Accounts</CardTitle>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400" />
             </div>
           </CardHeader>
           <CardContent>
@@ -73,79 +109,159 @@ const CRMOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/quotations')}>
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/quotations')} data-testid="quotations-card">
           <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-purple-600" />
-              <CardTitle className="text-base font-manrope">Quotations</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                </div>
+                <CardTitle className="text-base font-manrope">Quotations</CardTitle>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-purple-600 font-manrope">{stats.quotations}</div>
-            <p className="text-sm text-slate-500 mt-1 font-inter">Quotes sent</p>
+            <p className="text-sm text-slate-500 mt-1 font-inter">{stats.pending_quotations} pending</p>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/samples')}>
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/samples')} data-testid="samples-card">
           <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Beaker className="h-5 w-5 text-orange-600" />
-              <CardTitle className="text-base font-manrope">Samples</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <Beaker className="h-5 w-5 text-orange-600" />
+                </div>
+                <CardTitle className="text-base font-manrope">Samples</CardTitle>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-600 font-manrope">{stats.samples}</div>
-            <p className="text-sm text-slate-500 mt-1 font-inter">Samples sent</p>
+            <p className="text-sm text-slate-500 mt-1 font-inter">{stats.pending_samples} awaiting feedback</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Conversion Rate */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-manrope flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            Quote Conversion Rate
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="text-4xl font-bold text-green-600 font-manrope">{stats.quote_conversion_rate}%</div>
+            <div className="flex-1">
+              <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-green-500 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.quote_conversion_rate}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-manrope">Recent Leads</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/crm/leads')}>
+                View All <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentLeads.length === 0 ? (
+              <p className="text-slate-500 text-center py-4">No leads yet</p>
+            ) : (
+              <div className="space-y-3">
+                {recentLeads.map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold text-slate-900 font-inter">{lead.company_name}</p>
+                      <p className="text-sm text-slate-500">{lead.contact_person}</p>
+                    </div>
+                    <Badge className={`font-inter ${
+                      lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                      lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                      lead.status === 'qualified' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'
+                    }`}>{lead.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="font-manrope">Recent Quotations</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/crm/quotations')}>
+                View All <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentQuotes.length === 0 ? (
+              <p className="text-slate-500 text-center py-4">No quotations yet</p>
+            ) : (
+              <div className="space-y-3">
+                {recentQuotes.map((quote) => (
+                  <div key={quote.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold text-slate-900 font-inter">{quote.quote_number}</p>
+                      <p className="text-sm text-slate-500">{quote.account_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-slate-900 font-mono">₹{quote.grand_total?.toLocaleString('en-IN')}</p>
+                      <Badge className={`font-inter ${
+                        quote.status === 'draft' ? 'bg-slate-100 text-slate-800' :
+                        quote.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                        quote.status === 'accepted' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>{quote.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sales Pipeline */}
       <Card className="border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle className="font-manrope">Sales Pipeline</CardTitle>
+          <CardDescription>Track your sales process from lead to order</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">1</div>
-                <div>
-                  <p className="font-semibold text-slate-900 font-inter">Lead Generation</p>
-                  <p className="text-sm text-slate-600 font-inter">IndiaMART, TradeIndia, Website, etc.</p>
+          <div className="flex items-center justify-between gap-4">
+            {[
+              { label: 'Lead', icon: UsersIcon, count: stats.leads, color: 'blue' },
+              { label: 'Account', icon: Building2, count: stats.accounts, color: 'green' },
+              { label: 'Quotation', icon: FileText, count: stats.quotations, color: 'purple' },
+              { label: 'Sample', icon: Beaker, count: stats.samples, color: 'orange' },
+            ].map((step, idx) => (
+              <React.Fragment key={step.label}>
+                <div className={`flex-1 text-center p-4 bg-${step.color}-50 rounded-lg`}>
+                  <step.icon className={`h-8 w-8 mx-auto text-${step.color}-600 mb-2`} />
+                  <p className="font-semibold text-slate-900">{step.label}</p>
+                  <p className={`text-2xl font-bold text-${step.color}-600`}>{step.count}</p>
                 </div>
-              </div>
-              <div className="text-2xl font-bold text-blue-600 font-manrope">{stats.leads}</div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">2</div>
-                <div>
-                  <p className="font-semibold text-slate-900 font-inter">Qualified Accounts</p>
-                  <p className="text-sm text-slate-600 font-inter">Converted customers with GSTIN</p>
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-green-600 font-manrope">{stats.accounts}</div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">3</div>
-                <div>
-                  <p className="font-semibold text-slate-900 font-inter">Quotations Sent</p>
-                  <p className="text-sm text-slate-600 font-inter">Pricing proposals with terms</p>
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-purple-600 font-manrope">{stats.quotations}</div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold">4</div>
-                <div>
-                  <p className="font-semibold text-slate-900 font-inter">Samples Dispatched</p>
-                  <p className="text-sm text-slate-600 font-inter">Physical samples for approval</p>
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-orange-600 font-manrope">{stats.samples}</div>
-            </div>
+                {idx < 3 && <ArrowRight className="h-6 w-6 text-slate-300 flex-shrink-0" />}
+              </React.Fragment>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -153,15 +269,20 @@ const CRMOverview = () => {
   );
 };
 
+// ==================== LEADS LIST ====================
 const LeadsList = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
   const [formData, setFormData] = useState({
-    company_name: '', contact_person: '', email: '', phone: '',
-    source: 'IndiaMART', product_interest: '', notes: ''
+    company_name: '', contact_person: '', email: '', phone: '', mobile: '',
+    address: '', city: '', state: '', pincode: '',
+    source: 'IndiaMART', industry: '', product_interest: '', 
+    estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
   });
 
   useEffect(() => { fetchLeads(); }, []);
@@ -180,11 +301,16 @@ const LeadsList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null
+      };
+      
       if (editingLead) {
-        await api.put(`/crm/leads/${editingLead.id}`, formData);
+        await api.put(`/crm/leads/${editingLead.id}`, payload);
         toast.success('Lead updated successfully');
       } else {
-        await api.post('/crm/leads', formData);
+        await api.post('/crm/leads', payload);
         toast.success('Lead created successfully');
       }
       setOpen(false);
@@ -192,26 +318,35 @@ const LeadsList = () => {
       fetchLeads();
       resetForm();
     } catch (error) {
-      toast.error('Failed to save lead');
+      toast.error(error.response?.data?.detail || 'Failed to save lead');
     }
   };
 
   const handleEdit = (lead) => {
     setEditingLead(lead);
     setFormData({
-      company_name: lead.company_name,
-      contact_person: lead.contact_person,
-      email: lead.email,
-      phone: lead.phone,
-      source: lead.source,
+      company_name: lead.company_name || '',
+      contact_person: lead.contact_person || '',
+      email: lead.email || '',
+      phone: lead.phone || '',
+      mobile: lead.mobile || '',
+      address: lead.address || '',
+      city: lead.city || '',
+      state: lead.state || '',
+      pincode: lead.pincode || '',
+      source: lead.source || 'IndiaMART',
+      industry: lead.industry || '',
       product_interest: lead.product_interest || '',
-      notes: lead.notes || ''
+      estimated_value: lead.estimated_value || '',
+      notes: lead.notes || '',
+      next_followup_date: lead.next_followup_date || '',
+      followup_activity: lead.followup_activity || ''
     });
     setOpen(true);
   };
 
   const handleDelete = async (leadId) => {
-    if (!confirm('Are you sure you want to delete this lead?')) return;
+    if (!window.confirm('Are you sure you want to delete this lead?')) return;
     try {
       await api.delete(`/crm/leads/${leadId}`);
       toast.success('Lead deleted');
@@ -221,20 +356,38 @@ const LeadsList = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({ company_name: '', contact_person: '', email: '', phone: '', source: 'IndiaMART', product_interest: '', notes: '' });
+  const handleStatusChange = async (leadId, newStatus) => {
+    try {
+      await api.put(`/crm/leads/${leadId}`, { status: newStatus });
+      toast.success('Status updated');
+      fetchLeads();
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
   };
 
-  const filteredLeads = leads.filter(lead => 
-    lead.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const resetForm = () => {
+    setFormData({
+      company_name: '', contact_person: '', email: '', phone: '', mobile: '',
+      address: '', city: '', state: '', pincode: '',
+      source: 'IndiaMART', industry: '', product_interest: '',
+      estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
+    });
+  };
+
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
+    const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter;
+    return matchesSearch && matchesStatus && matchesSource;
+  });
 
   if (loading) return <div className="flex items-center justify-center h-96"><div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="leads-list">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 font-manrope">Leads Management</h2>
@@ -246,31 +399,35 @@ const LeadsList = () => {
               <Plus className="h-4 w-4 mr-2" />Add Lead
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-manrope">{editingLead ? 'Edit Lead' : 'Create New Lead'}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company_name" className="font-inter">Company Name *</Label>
-                  <Input id="company_name" value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} required />
+                  <Label className="font-inter">Company Name *</Label>
+                  <Input value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} required data-testid="lead-company-name" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contact_person" className="font-inter">Contact Person *</Label>
-                  <Input id="contact_person" value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} required />
+                  <Label className="font-inter">Contact Person *</Label>
+                  <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} required data-testid="lead-contact-person" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="font-inter">Email *</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+                  <Label className="font-inter">Email *</Label>
+                  <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required data-testid="lead-email" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="font-inter">Phone *</Label>
-                  <Input id="phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
+                  <Label className="font-inter">Phone *</Label>
+                  <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required data-testid="lead-phone" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="source" className="font-inter">Source *</Label>
-                  <Select value={formData.source} onValueChange={(value) => setFormData({...formData, source: value})} required>
+                  <Label className="font-inter">Mobile</Label>
+                  <Input value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Source *</Label>
+                  <Select value={formData.source} onValueChange={(value) => setFormData({...formData, source: value})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="IndiaMART">IndiaMART</SelectItem>
@@ -282,32 +439,121 @@ const LeadsList = () => {
                       <SelectItem value="Referral">Referral</SelectItem>
                       <SelectItem value="Website">Website</SelectItem>
                       <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-inter">Address</Label>
+                  <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">City</Label>
+                  <Input value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">State</Label>
+                  <Input value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Pincode</Label>
+                  <Input value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-inter">Industry</Label>
+                  <Select value={formData.industry} onValueChange={(value) => setFormData({...formData, industry: value})}>
+                    <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="Packaging">Packaging</SelectItem>
+                      <SelectItem value="Construction">Construction</SelectItem>
+                      <SelectItem value="Automotive">Automotive</SelectItem>
+                      <SelectItem value="Electronics">Electronics</SelectItem>
+                      <SelectItem value="FMCG">FMCG</SelectItem>
+                      <SelectItem value="Pharmaceutical">Pharmaceutical</SelectItem>
+                      <SelectItem value="Textile">Textile</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="product_interest" className="font-inter">Product Interest</Label>
-                  <Input id="product_interest" value={formData.product_interest} onChange={(e) => setFormData({...formData, product_interest: e.target.value})} placeholder="BOPP Tape, Masking Tape, etc." />
+                  <Label className="font-inter">Product Interest</Label>
+                  <Input value={formData.product_interest} onChange={(e) => setFormData({...formData, product_interest: e.target.value})} placeholder="BOPP Tape, Masking Tape, etc." />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Estimated Value (₹)</Label>
+                  <Input type="number" value={formData.estimated_value} onChange={(e) => setFormData({...formData, estimated_value: e.target.value})} placeholder="50000" />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-inter">Next Follow-up Date</Label>
+                  <Input type="date" value={formData.next_followup_date} onChange={(e) => setFormData({...formData, next_followup_date: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Follow-up Activity</Label>
+                  <Select value={formData.followup_activity} onValueChange={(value) => setFormData({...formData, followup_activity: value})}>
+                    <SelectTrigger><SelectValue placeholder="Select activity" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Call">Call</SelectItem>
+                      <SelectItem value="Email">Email</SelectItem>
+                      <SelectItem value="Meeting">Meeting</SelectItem>
+                      <SelectItem value="Visit">Site Visit</SelectItem>
+                      <SelectItem value="Sample">Send Sample</SelectItem>
+                      <SelectItem value="Quote">Send Quote</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="notes" className="font-inter">Notes</Label>
-                <textarea id="notes" className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md font-inter" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} placeholder="Additional information..." />
+                <Label className="font-inter">Notes</Label>
+                <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} placeholder="Additional information..." rows={3} />
               </div>
-              <div className="flex justify-end gap-2 pt-4">
+
+              <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => { setOpen(false); setEditingLead(null); resetForm(); }}>Cancel</Button>
-                <Button type="submit" className="bg-accent hover:bg-accent/90">{editingLead ? 'Update' : 'Create'} Lead</Button>
-              </div>
+                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="lead-submit-button">{editingLead ? 'Update' : 'Create'} Lead</Button>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input placeholder="Search leads..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          <Input placeholder="Search leads..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" data-testid="lead-search" />
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="contacted">Contacted</SelectItem>
+            <SelectItem value="qualified">Qualified</SelectItem>
+            <SelectItem value="converted">Converted</SelectItem>
+            <SelectItem value="lost">Lost</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Source" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="IndiaMART">IndiaMART</SelectItem>
+            <SelectItem value="TradeIndia">TradeIndia</SelectItem>
+            <SelectItem value="Alibaba">Alibaba</SelectItem>
+            <SelectItem value="Website">Website</SelectItem>
+            <SelectItem value="Referral">Referral</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card className="border-slate-200 shadow-sm">
@@ -320,19 +566,19 @@ const LeadsList = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Contact</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Source</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Product</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Created</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Est. Value</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Next Follow-up</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredLeads.length === 0 ? (
                   <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500 font-inter">
-                    {searchTerm ? 'No leads found' : 'No leads yet. Click "Add Lead" to create your first lead.'}
+                    {searchTerm || statusFilter !== 'all' || sourceFilter !== 'all' ? 'No leads found matching filters' : 'No leads yet. Click "Add Lead" to create your first lead.'}
                   </td></tr>
                 ) : (
                   filteredLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={lead.id} className="hover:bg-slate-50 transition-colors" data-testid={`lead-row-${lead.id}`}>
                       <td className="px-4 py-3">
                         <div className="font-semibold text-slate-900 font-inter">{lead.company_name}</div>
                         <div className="text-sm text-slate-500 font-inter">{lead.email}</div>
@@ -342,17 +588,44 @@ const LeadsList = () => {
                         <div className="text-sm text-slate-500 font-mono">{lead.phone}</div>
                       </td>
                       <td className="px-4 py-3"><Badge className="bg-blue-100 text-blue-800 font-inter">{lead.source}</Badge></td>
-                      <td className="px-4 py-3"><Badge className={`font-inter ${
-                        lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                        lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
-                        lead.status === 'qualified' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'
-                      }`}>{lead.status}</Badge></td>
-                      <td className="px-4 py-3 text-sm text-slate-600 font-inter">{lead.product_interest || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-slate-500 font-mono">{new Date(lead.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(lead.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        <Select value={lead.status} onValueChange={(val) => handleStatusChange(lead.id, val)}>
+                          <SelectTrigger className="w-[120px] h-8">
+                            <Badge className={`font-inter ${
+                              lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                              lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                              lead.status === 'qualified' ? 'bg-green-100 text-green-800' :
+                              lead.status === 'converted' ? 'bg-purple-100 text-purple-800' : 'bg-red-100 text-red-800'
+                            }`}>{lead.status}</Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="qualified">Qualified</SelectItem>
+                            <SelectItem value="converted">Converted</SelectItem>
+                            <SelectItem value="lost">Lost</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-4 py-3 text-sm font-mono text-slate-900">
+                        {lead.estimated_value ? `₹${lead.estimated_value.toLocaleString('en-IN')}` : '-'}
+                      </td>
+                      <td className="px-4 py-3">
+                        {lead.next_followup_date ? (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-3 w-3 text-slate-400" />
+                            <span className="text-slate-600">{new Date(lead.next_followup_date).toLocaleDateString()}</span>
+                          </div>
+                        ) : <span className="text-slate-400">-</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)} data-testid={`edit-lead-${lead.id}`}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(lead.id)} className="text-destructive" data-testid={`delete-lead-${lead.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -367,6 +640,7 @@ const LeadsList = () => {
   );
 };
 
+// ==================== ACCOUNTS LIST ====================
 const AccountsList = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -374,9 +648,12 @@ const AccountsList = () => {
   const [editingAccount, setEditingAccount] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
-    customer_name: '', gstin: '', billing_address: '',
-    shipping_addresses: [{ address: '', city: '', state: '', pincode: '' }],
-    credit_limit: '', payment_terms: '30 days', contact_person: '', email: '', phone: ''
+    customer_name: '', account_type: 'Customer', gstin: '', pan: '',
+    billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
+    shipping_addresses: [{ label: 'Default', address: '', city: '', state: '', pincode: '', country: 'India' }],
+    contacts: [{ name: '', designation: '', email: '', phone: '', mobile: '', is_primary: true }],
+    credit_limit: '', credit_days: '30', credit_control: 'Warn',
+    payment_terms: '30 days', industry: '', website: '', location: '', notes: ''
   });
 
   useEffect(() => { fetchAccounts(); }, []);
@@ -395,31 +672,90 @@ const AccountsList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        credit_limit: formData.credit_limit ? parseFloat(formData.credit_limit) : 0,
+        credit_days: parseInt(formData.credit_days) || 30
+      };
+      
       if (editingAccount) {
-        await api.put(`/crm/accounts/${editingAccount.id}`, formData);
-        toast.success('Account updated');
+        await api.put(`/crm/accounts/${editingAccount.id}`, payload);
+        toast.success('Account updated successfully');
       } else {
-        await api.post('/crm/accounts', formData);
-        toast.success('Account created');
+        await api.post('/crm/accounts', payload);
+        toast.success('Account created successfully');
       }
       setOpen(false);
       setEditingAccount(null);
       fetchAccounts();
       resetForm();
     } catch (error) {
-      toast.error('Failed to save account');
+      toast.error(error.response?.data?.detail || 'Failed to save account');
+    }
+  };
+
+  const handleEdit = (account) => {
+    setEditingAccount(account);
+    setFormData({
+      customer_name: account.customer_name || '',
+      account_type: account.account_type || 'Customer',
+      gstin: account.gstin || '',
+      pan: account.pan || '',
+      billing_address: account.billing_address || '',
+      billing_city: account.billing_city || '',
+      billing_state: account.billing_state || '',
+      billing_pincode: account.billing_pincode || '',
+      shipping_addresses: account.shipping_addresses?.length > 0 ? account.shipping_addresses : [{ label: 'Default', address: '', city: '', state: '', pincode: '', country: 'India' }],
+      contacts: account.contacts?.length > 0 ? account.contacts : [{ name: '', designation: '', email: '', phone: '', mobile: '', is_primary: true }],
+      credit_limit: account.credit_limit || '',
+      credit_days: account.credit_days?.toString() || '30',
+      credit_control: account.credit_control || 'Warn',
+      payment_terms: account.payment_terms || '30 days',
+      industry: account.industry || '',
+      website: account.website || '',
+      location: account.location || '',
+      notes: account.notes || ''
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = async (accountId) => {
+    if (!window.confirm('Are you sure you want to deactivate this account?')) return;
+    try {
+      await api.delete(`/crm/accounts/${accountId}`);
+      toast.success('Account deactivated');
+      fetchAccounts();
+    } catch (error) {
+      toast.error('Failed to deactivate account');
     }
   };
 
   const resetForm = () => {
     setFormData({
-      customer_name: '', gstin: '', billing_address: '',
-      shipping_addresses: [{ address: '', city: '', state: '', pincode: '' }],
-      credit_limit: '', payment_terms: '30 days', contact_person: '', email: '', phone: ''
+      customer_name: '', account_type: 'Customer', gstin: '', pan: '',
+      billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
+      shipping_addresses: [{ label: 'Default', address: '', city: '', state: '', pincode: '', country: 'India' }],
+      contacts: [{ name: '', designation: '', email: '', phone: '', mobile: '', is_primary: true }],
+      credit_limit: '', credit_days: '30', credit_control: 'Warn',
+      payment_terms: '30 days', industry: '', website: '', location: '', notes: ''
     });
   };
 
-  const filteredAccounts = accounts.filter(acc => 
+  const addShippingAddress = () => {
+    setFormData({
+      ...formData,
+      shipping_addresses: [...formData.shipping_addresses, { label: '', address: '', city: '', state: '', pincode: '', country: 'India' }]
+    });
+  };
+
+  const addContact = () => {
+    setFormData({
+      ...formData,
+      contacts: [...formData.contacts, { name: '', designation: '', email: '', phone: '', mobile: '', is_primary: false }]
+    });
+  };
+
+  const filteredAccounts = accounts.filter(acc =>
     acc.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     acc.gstin.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -427,68 +763,297 @@ const AccountsList = () => {
   if (loading) return <div className="flex items-center justify-center h-96"><div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="accounts-list">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 font-manrope">Customer Accounts</h2>
           <p className="text-slate-600 mt-1 font-inter">{accounts.length} total accounts</p>
         </div>
-        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
+        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) { setEditingAccount(null); resetForm(); } }}>
           <DialogTrigger asChild>
-            <Button className="bg-accent hover:bg-accent/90 font-inter"><Plus className="h-4 w-4 mr-2" />Add Account</Button>
+            <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-account-button">
+              <Plus className="h-4 w-4 mr-2" />Add Account
+            </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-manrope">{editingAccount ? 'Edit' : 'Create'} Account</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-inter">Customer Name *</Label>
-                  <Input value={formData.customer_name} onChange={(e) => setFormData({...formData, customer_name: e.target.value})} required />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">GSTIN *</Label>
-                  <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value})} placeholder="27XXXXX0000X1ZX" required />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Contact Person *</Label>
-                  <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} required />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Email *</Label>
-                  <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Phone *</Label>
-                  <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Payment Terms</Label>
-                  <Select value={formData.payment_terms} onValueChange={(value) => setFormData({...formData, payment_terms: value})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15 days">15 Days</SelectItem>
-                      <SelectItem value="30 days">30 Days</SelectItem>
-                      <SelectItem value="45 days">45 Days</SelectItem>
-                      <SelectItem value="60 days">60 Days</SelectItem>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Credit Limit (₹)</Label>
-                  <Input type="number" value={formData.credit_limit} onChange={(e) => setFormData({...formData, credit_limit: e.target.value})} placeholder="100000" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="font-inter">Billing Address *</Label>
-                <textarea className="w-full min-h-[80px] px-3 py-2 border border-slate-200 rounded-md font-inter" value={formData.billing_address} onChange={(e) => setFormData({...formData, billing_address: e.target.value})} required />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm(); }}>Cancel</Button>
-                <Button type="submit" className="bg-accent hover:bg-accent/90">{editingAccount ? 'Update' : 'Create'}</Button>
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="address">Addresses</TabsTrigger>
+                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                  <TabsTrigger value="credit">Credit & Terms</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="font-inter">Customer Name *</Label>
+                      <Input value={formData.customer_name} onChange={(e) => setFormData({...formData, customer_name: e.target.value})} required data-testid="account-customer-name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Account Type</Label>
+                      <Select value={formData.account_type} onValueChange={(value) => setFormData({...formData, account_type: value})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Customer">Customer</SelectItem>
+                          <SelectItem value="Prospect">Prospect</SelectItem>
+                          <SelectItem value="Partner">Partner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Industry</Label>
+                      <Select value={formData.industry} onValueChange={(value) => setFormData({...formData, industry: value})}>
+                        <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                          <SelectItem value="Packaging">Packaging</SelectItem>
+                          <SelectItem value="Construction">Construction</SelectItem>
+                          <SelectItem value="Automotive">Automotive</SelectItem>
+                          <SelectItem value="Electronics">Electronics</SelectItem>
+                          <SelectItem value="FMCG">FMCG</SelectItem>
+                          <SelectItem value="Pharmaceutical">Pharmaceutical</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">GSTIN *</Label>
+                      <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="27XXXXX0000X1ZX" required data-testid="account-gstin" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">PAN</Label>
+                      <Input value={formData.pan} onChange={(e) => setFormData({...formData, pan: e.target.value.toUpperCase()})} placeholder="AAAAA0000A" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Website</Label>
+                      <Input value={formData.website} onChange={(e) => setFormData({...formData, website: e.target.value})} placeholder="https://example.com" />
+                    </div>
+                    <div className="col-span-3 space-y-2">
+                      <Label className="font-inter">Notes</Label>
+                      <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={2} />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="address" className="space-y-4 mt-4">
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-slate-900">Billing Address</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2 space-y-2">
+                        <Label className="font-inter">Address *</Label>
+                        <Textarea value={formData.billing_address} onChange={(e) => setFormData({...formData, billing_address: e.target.value})} required rows={2} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-inter">City</Label>
+                        <Input value={formData.billing_city} onChange={(e) => setFormData({...formData, billing_city: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-inter">State</Label>
+                        <Input value={formData.billing_state} onChange={(e) => setFormData({...formData, billing_state: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-inter">Pincode</Label>
+                        <Input value={formData.billing_pincode} onChange={(e) => setFormData({...formData, billing_pincode: e.target.value})} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-slate-900">Shipping Addresses</h4>
+                      <Button type="button" variant="outline" size="sm" onClick={addShippingAddress}>
+                        <Plus className="h-4 w-4 mr-1" />Add Address
+                      </Button>
+                    </div>
+                    {formData.shipping_addresses.map((addr, idx) => (
+                      <div key={idx} className="p-4 border rounded-lg space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-inter font-semibold">Address {idx + 1}</Label>
+                          {idx > 0 && (
+                            <Button type="button" variant="ghost" size="sm" onClick={() => {
+                              const newAddrs = formData.shipping_addresses.filter((_, i) => i !== idx);
+                              setFormData({...formData, shipping_addresses: newAddrs});
+                            }}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-4 gap-3">
+                          <div className="space-y-2">
+                            <Label className="font-inter text-sm">Label</Label>
+                            <Input value={addr.label} onChange={(e) => {
+                              const newAddrs = [...formData.shipping_addresses];
+                              newAddrs[idx].label = e.target.value;
+                              setFormData({...formData, shipping_addresses: newAddrs});
+                            }} placeholder="Factory, Warehouse..." />
+                          </div>
+                          <div className="col-span-3 space-y-2">
+                            <Label className="font-inter text-sm">Address</Label>
+                            <Input value={addr.address} onChange={(e) => {
+                              const newAddrs = [...formData.shipping_addresses];
+                              newAddrs[idx].address = e.target.value;
+                              setFormData({...formData, shipping_addresses: newAddrs});
+                            }} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-inter text-sm">City</Label>
+                            <Input value={addr.city} onChange={(e) => {
+                              const newAddrs = [...formData.shipping_addresses];
+                              newAddrs[idx].city = e.target.value;
+                              setFormData({...formData, shipping_addresses: newAddrs});
+                            }} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-inter text-sm">State</Label>
+                            <Input value={addr.state} onChange={(e) => {
+                              const newAddrs = [...formData.shipping_addresses];
+                              newAddrs[idx].state = e.target.value;
+                              setFormData({...formData, shipping_addresses: newAddrs});
+                            }} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="font-inter text-sm">Pincode</Label>
+                            <Input value={addr.pincode} onChange={(e) => {
+                              const newAddrs = [...formData.shipping_addresses];
+                              newAddrs[idx].pincode = e.target.value;
+                              setFormData({...formData, shipping_addresses: newAddrs});
+                            }} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="contacts" className="space-y-4 mt-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-slate-900">Contact Persons</h4>
+                    <Button type="button" variant="outline" size="sm" onClick={addContact}>
+                      <Plus className="h-4 w-4 mr-1" />Add Contact
+                    </Button>
+                  </div>
+                  {formData.contacts.map((contact, idx) => (
+                    <div key={idx} className="p-4 border rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-inter font-semibold">Contact {idx + 1}</Label>
+                        <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-2 text-sm">
+                            <input type="checkbox" checked={contact.is_primary} onChange={(e) => {
+                              const newContacts = formData.contacts.map((c, i) => ({...c, is_primary: i === idx ? e.target.checked : false}));
+                              setFormData({...formData, contacts: newContacts});
+                            }} />
+                            Primary
+                          </label>
+                          {idx > 0 && (
+                            <Button type="button" variant="ghost" size="sm" onClick={() => {
+                              const newContacts = formData.contacts.filter((_, i) => i !== idx);
+                              setFormData({...formData, contacts: newContacts});
+                            }}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-2">
+                          <Label className="font-inter text-sm">Name</Label>
+                          <Input value={contact.name} onChange={(e) => {
+                            const newContacts = [...formData.contacts];
+                            newContacts[idx].name = e.target.value;
+                            setFormData({...formData, contacts: newContacts});
+                          }} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-inter text-sm">Designation</Label>
+                          <Input value={contact.designation} onChange={(e) => {
+                            const newContacts = [...formData.contacts];
+                            newContacts[idx].designation = e.target.value;
+                            setFormData({...formData, contacts: newContacts});
+                          }} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-inter text-sm">Email</Label>
+                          <Input type="email" value={contact.email} onChange={(e) => {
+                            const newContacts = [...formData.contacts];
+                            newContacts[idx].email = e.target.value;
+                            setFormData({...formData, contacts: newContacts});
+                          }} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-inter text-sm">Phone</Label>
+                          <Input value={contact.phone} onChange={(e) => {
+                            const newContacts = [...formData.contacts];
+                            newContacts[idx].phone = e.target.value;
+                            setFormData({...formData, contacts: newContacts});
+                          }} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-inter text-sm">Mobile</Label>
+                          <Input value={contact.mobile} onChange={(e) => {
+                            const newContacts = [...formData.contacts];
+                            newContacts[idx].mobile = e.target.value;
+                            setFormData({...formData, contacts: newContacts});
+                          }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </TabsContent>
+
+                <TabsContent value="credit" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="font-inter">Credit Limit (₹)</Label>
+                      <Input type="number" value={formData.credit_limit} onChange={(e) => setFormData({...formData, credit_limit: e.target.value})} placeholder="100000" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Credit Days</Label>
+                      <Input type="number" value={formData.credit_days} onChange={(e) => setFormData({...formData, credit_days: e.target.value})} placeholder="30" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Credit Control</Label>
+                      <Select value={formData.credit_control} onValueChange={(value) => setFormData({...formData, credit_control: value})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ignore">Ignore (No Check)</SelectItem>
+                          <SelectItem value="Warn">Warn (Show Alert)</SelectItem>
+                          <SelectItem value="Block">Block (Prevent Order)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Payment Terms</Label>
+                      <Select value={formData.payment_terms} onValueChange={(value) => setFormData({...formData, payment_terms: value})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Advance">Advance</SelectItem>
+                          <SelectItem value="Cash">Cash</SelectItem>
+                          <SelectItem value="7 days">7 Days</SelectItem>
+                          <SelectItem value="15 days">15 Days</SelectItem>
+                          <SelectItem value="30 days">30 Days</SelectItem>
+                          <SelectItem value="45 days">45 Days</SelectItem>
+                          <SelectItem value="60 days">60 Days</SelectItem>
+                          <SelectItem value="90 days">90 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Location</Label>
+                      <Input value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} placeholder="Mumbai, Delhi..." />
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => { setOpen(false); setEditingAccount(null); resetForm(); }}>Cancel</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="account-submit-button">{editingAccount ? 'Update' : 'Create'}</Button>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
@@ -496,7 +1061,7 @@ const AccountsList = () => {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input placeholder="Search accounts..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+        <Input placeholder="Search by name or GSTIN..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" data-testid="account-search" />
       </div>
 
       <Card className="border-slate-200 shadow-sm">
@@ -510,32 +1075,46 @@ const AccountsList = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Contact</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Credit Limit</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Payment Terms</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredAccounts.length === 0 ? (
-                  <tr><td colSpan="6" className="px-4 py-12 text-center text-slate-500 font-inter">
+                  <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500 font-inter">
                     {searchTerm ? 'No accounts found' : 'No accounts yet. Click "Add Account" to create one.'}
                   </td></tr>
                 ) : (
                   filteredAccounts.map((acc) => (
-                    <tr key={acc.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={acc.id} className="hover:bg-slate-50 transition-colors" data-testid={`account-row-${acc.id}`}>
                       <td className="px-4 py-3">
                         <div className="font-semibold text-slate-900 font-inter">{acc.customer_name}</div>
-                        <div className="text-sm text-slate-500 font-inter">{acc.email}</div>
+                        <div className="text-sm text-slate-500 font-inter">{acc.industry || '-'}</div>
                       </td>
                       <td className="px-4 py-3 font-mono text-sm text-slate-600">{acc.gstin}</td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-slate-900 font-inter">{acc.contact_person}</div>
-                        <div className="text-sm text-slate-500 font-mono">{acc.phone}</div>
+                        {acc.contacts?.length > 0 ? (
+                          <div>
+                            <div className="text-sm text-slate-900 font-inter">{acc.contacts[0].name}</div>
+                            <div className="text-sm text-slate-500 font-mono">{acc.contacts[0].phone || acc.contacts[0].mobile}</div>
+                          </div>
+                        ) : <span className="text-slate-400">-</span>}
                       </td>
-                      <td className="px-4 py-3 font-mono text-sm font-semibold text-slate-900">₹{acc.credit_limit?.toLocaleString('en-IN') || 'N/A'}</td>
+                      <td className="px-4 py-3 font-mono text-sm font-semibold text-slate-900">₹{acc.credit_limit?.toLocaleString('en-IN') || '0'}</td>
                       <td className="px-4 py-3"><Badge className="bg-green-100 text-green-800 font-inter">{acc.payment_terms}</Badge></td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        <Badge className={acc.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                          {acc.is_active !== false ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(acc)} data-testid={`edit-account-${acc.id}`}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(acc.id)} className="text-destructive" data-testid={`delete-account-${acc.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -550,14 +1129,751 @@ const AccountsList = () => {
   );
 };
 
+// ==================== QUOTATIONS LIST ====================
+const QuotationsList = () => {
+  const [quotations, setQuotations] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [formData, setFormData] = useState({
+    account_id: '', contact_person: '', reference: '',
+    valid_until: '', transport: '', delivery_terms: '', payment_terms: '',
+    terms_conditions: '', notes: '', header_discount_percent: 0,
+    items: [{ item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+  });
+
+  useEffect(() => { fetchData(); }, []);
+
+  const fetchData = async () => {
+    try {
+      const [quotesRes, accountsRes] = await Promise.all([
+        api.get('/crm/quotations'),
+        api.get('/crm/accounts')
+      ]);
+      setQuotations(quotesRes.data);
+      setAccounts(accountsRes.data);
+    } catch (error) {
+      toast.error('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        header_discount_percent: parseFloat(formData.header_discount_percent) || 0,
+        items: formData.items.map(item => ({
+          ...item,
+          quantity: parseFloat(item.quantity) || 0,
+          unit_price: parseFloat(item.unit_price) || 0,
+          discount_percent: parseFloat(item.discount_percent) || 0,
+          tax_percent: parseFloat(item.tax_percent) || 18
+        }))
+      };
+      
+      await api.post('/crm/quotations', payload);
+      toast.success('Quotation created successfully');
+      setOpen(false);
+      fetchData();
+      resetForm();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save quotation');
+    }
+  };
+
+  const handleStatusChange = async (quoteId, newStatus) => {
+    try {
+      await api.put(`/crm/quotations/${quoteId}/status?status=${newStatus}`);
+      toast.success('Status updated');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDelete = async (quoteId) => {
+    if (!window.confirm('Are you sure you want to delete this quotation?')) return;
+    try {
+      await api.delete(`/crm/quotations/${quoteId}`);
+      toast.success('Quotation deleted');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete quotation');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      account_id: '', contact_person: '', reference: '',
+      valid_until: '', transport: '', delivery_terms: '', payment_terms: '',
+      terms_conditions: '', notes: '', header_discount_percent: 0,
+      items: [{ item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+    });
+  };
+
+  const addItem = () => {
+    setFormData({
+      ...formData,
+      items: [...formData.items, { item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+    });
+  };
+
+  const removeItem = (idx) => {
+    if (formData.items.length > 1) {
+      setFormData({
+        ...formData,
+        items: formData.items.filter((_, i) => i !== idx)
+      });
+    }
+  };
+
+  const calculateTotals = () => {
+    let subtotal = 0;
+    formData.items.forEach(item => {
+      const lineSubtotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+      subtotal += lineSubtotal;
+    });
+    const headerDiscount = subtotal * ((parseFloat(formData.header_discount_percent) || 0) / 100);
+    const taxable = subtotal - headerDiscount;
+    const tax = taxable * 0.18; // Simplified - actual varies per item
+    return { subtotal, headerDiscount, taxable, tax, total: taxable + tax };
+  };
+
+  const totals = calculateTotals();
+
+  const filteredQuotations = quotations.filter(quote => {
+    const matchesSearch = quote.quote_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.account_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) return <div className="flex items-center justify-center h-96"><div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div></div>;
+
+  return (
+    <div className="space-y-6" data-testid="quotations-list">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 font-manrope">Quotations</h2>
+          <p className="text-slate-600 mt-1 font-inter">{quotations.length} total quotations</p>
+        </div>
+        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-quotation-button">
+              <Plus className="h-4 w-4 mr-2" />New Quotation
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-manrope">Create Quotation</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-inter">Customer *</Label>
+                  <Select value={formData.account_id} onValueChange={(value) => setFormData({...formData, account_id: value})} required>
+                    <SelectTrigger data-testid="quotation-account"><SelectValue placeholder="Select customer" /></SelectTrigger>
+                    <SelectContent>
+                      {accounts.map(acc => (
+                        <SelectItem key={acc.id} value={acc.id}>{acc.customer_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Contact Person</Label>
+                  <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Reference</Label>
+                  <Input value={formData.reference} onChange={(e) => setFormData({...formData, reference: e.target.value})} placeholder="Enquiry ref, PO ref..." />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Valid Until *</Label>
+                  <Input type="date" value={formData.valid_until} onChange={(e) => setFormData({...formData, valid_until: e.target.value})} required data-testid="quotation-valid-until" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-slate-900">Line Items</h4>
+                  <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                    <Plus className="h-4 w-4 mr-1" />Add Item
+                  </Button>
+                </div>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600">Item Name *</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600">HSN</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 w-20">Qty *</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 w-20">Unit</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 w-28">Price *</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 w-20">Disc %</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 w-20">Tax %</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 w-28">Total</th>
+                        <th className="px-3 py-2 w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {formData.items.map((item, idx) => {
+                        const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0) * (1 - (parseFloat(item.discount_percent) || 0) / 100) * (1 + (parseFloat(item.tax_percent) || 0) / 100);
+                        return (
+                          <tr key={idx}>
+                            <td className="px-3 py-2">
+                              <Input value={item.item_name} onChange={(e) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].item_name = e.target.value;
+                                setFormData({...formData, items: newItems});
+                              }} required className="h-8" data-testid={`item-name-${idx}`} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input value={item.hsn_code} onChange={(e) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].hsn_code = e.target.value;
+                                setFormData({...formData, items: newItems});
+                              }} className="h-8" />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input type="number" value={item.quantity} onChange={(e) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].quantity = e.target.value;
+                                setFormData({...formData, items: newItems});
+                              }} required className="h-8" min="0" step="0.01" data-testid={`item-qty-${idx}`} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Select value={item.unit} onValueChange={(value) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].unit = value;
+                                setFormData({...formData, items: newItems});
+                              }}>
+                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Pcs">Pcs</SelectItem>
+                                  <SelectItem value="Box">Box</SelectItem>
+                                  <SelectItem value="Rolls">Rolls</SelectItem>
+                                  <SelectItem value="Kg">Kg</SelectItem>
+                                  <SelectItem value="Mtr">Mtr</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input type="number" value={item.unit_price} onChange={(e) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].unit_price = e.target.value;
+                                setFormData({...formData, items: newItems});
+                              }} required className="h-8" min="0" step="0.01" data-testid={`item-price-${idx}`} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input type="number" value={item.discount_percent} onChange={(e) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].discount_percent = e.target.value;
+                                setFormData({...formData, items: newItems});
+                              }} className="h-8" min="0" max="100" />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Select value={item.tax_percent.toString()} onValueChange={(value) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].tax_percent = parseFloat(value);
+                                setFormData({...formData, items: newItems});
+                              }}>
+                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="0">0%</SelectItem>
+                                  <SelectItem value="5">5%</SelectItem>
+                                  <SelectItem value="12">12%</SelectItem>
+                                  <SelectItem value="18">18%</SelectItem>
+                                  <SelectItem value="28">28%</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="px-3 py-2 font-mono text-sm font-semibold">₹{lineTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                            <td className="px-3 py-2">
+                              {formData.items.length > 1 && (
+                                <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(idx)}>
+                                  <X className="h-4 w-4 text-red-500" />
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="font-inter">Transport</Label>
+                      <Select value={formData.transport} onValueChange={(value) => setFormData({...formData, transport: value})}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ex-Works">Ex-Works</SelectItem>
+                          <SelectItem value="FOR Destination">FOR Destination</SelectItem>
+                          <SelectItem value="CIF">CIF</SelectItem>
+                          <SelectItem value="To Pay">To Pay</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Payment Terms</Label>
+                      <Select value={formData.payment_terms} onValueChange={(value) => setFormData({...formData, payment_terms: value})}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Advance">Advance</SelectItem>
+                          <SelectItem value="30 days">30 Days</SelectItem>
+                          <SelectItem value="45 days">45 Days</SelectItem>
+                          <SelectItem value="60 days">60 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-inter">Terms & Conditions</Label>
+                    <Textarea value={formData.terms_conditions} onChange={(e) => setFormData({...formData, terms_conditions: e.target.value})} rows={3} />
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-lg space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Subtotal:</span>
+                    <span className="font-mono font-semibold">₹{totals.subtotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-600">Discount:</span>
+                      <Input type="number" value={formData.header_discount_percent} onChange={(e) => setFormData({...formData, header_discount_percent: e.target.value})} className="w-16 h-6 text-sm" min="0" max="100" />
+                      <span className="text-slate-600">%</span>
+                    </div>
+                    <span className="font-mono">-₹{totals.headerDiscount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Taxable Amount:</span>
+                    <span className="font-mono">₹{totals.taxable.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">GST:</span>
+                    <span className="font-mono">₹{totals.tax.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold border-t pt-3">
+                    <span>Grand Total:</span>
+                    <span className="font-mono text-green-600">₹{totals.total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm(); }}>Cancel</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="quotation-submit-button">Create Quotation</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input placeholder="Search quotations..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" data-testid="quotation-search" />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="sent">Sent</SelectItem>
+            <SelectItem value="accepted">Accepted</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="expired">Expired</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Quote #</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Customer</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Valid Until</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredQuotations.length === 0 ? (
+                  <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500 font-inter">
+                    {searchTerm || statusFilter !== 'all' ? 'No quotations found' : 'No quotations yet. Click "New Quotation" to create one.'}
+                  </td></tr>
+                ) : (
+                  filteredQuotations.map((quote) => (
+                    <tr key={quote.id} className="hover:bg-slate-50 transition-colors" data-testid={`quotation-row-${quote.id}`}>
+                      <td className="px-4 py-3 font-mono text-sm font-semibold text-blue-600">{quote.quote_number}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-900 font-inter">{quote.account_name}</div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600 font-mono">{new Date(quote.quote_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 font-mono">{new Date(quote.valid_until).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 font-mono font-semibold text-slate-900">₹{quote.grand_total?.toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">
+                        <Select value={quote.status} onValueChange={(val) => handleStatusChange(quote.id, val)}>
+                          <SelectTrigger className="w-[120px] h-8">
+                            <Badge className={`font-inter ${
+                              quote.status === 'draft' ? 'bg-slate-100 text-slate-800' :
+                              quote.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                              quote.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                              quote.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>{quote.status}</Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                            <SelectItem value="expired">Expired</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(quote.id)} className="text-destructive" data-testid={`delete-quotation-${quote.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// ==================== SAMPLES LIST ====================
+const SamplesList = () => {
+  const [samples, setSamples] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [formData, setFormData] = useState({
+    account_id: '', contact_person: '', product_name: '', product_specs: '',
+    quantity: 1, unit: 'Pcs', from_location: '', courier: '', tracking_number: '',
+    expected_delivery: '', feedback_due_date: '', purpose: '', notes: ''
+  });
+
+  useEffect(() => { fetchData(); }, []);
+
+  const fetchData = async () => {
+    try {
+      const [samplesRes, accountsRes] = await Promise.all([
+        api.get('/crm/samples'),
+        api.get('/crm/accounts')
+      ]);
+      setSamples(samplesRes.data);
+      setAccounts(accountsRes.data);
+    } catch (error) {
+      toast.error('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        quantity: parseFloat(formData.quantity) || 1
+      };
+      
+      await api.post('/crm/samples', payload);
+      toast.success('Sample created successfully');
+      setOpen(false);
+      fetchData();
+      resetForm();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save sample');
+    }
+  };
+
+  const handleFeedback = async (sampleId, status) => {
+    try {
+      await api.put(`/crm/samples/${sampleId}/feedback?feedback_status=${status}`);
+      toast.success('Feedback updated');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update feedback');
+    }
+  };
+
+  const handleDelete = async (sampleId) => {
+    if (!window.confirm('Are you sure you want to delete this sample?')) return;
+    try {
+      await api.delete(`/crm/samples/${sampleId}`);
+      toast.success('Sample deleted');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete sample');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      account_id: '', contact_person: '', product_name: '', product_specs: '',
+      quantity: 1, unit: 'Pcs', from_location: '', courier: '', tracking_number: '',
+      expected_delivery: '', feedback_due_date: '', purpose: '', notes: ''
+    });
+  };
+
+  const filteredSamples = samples.filter(sample => {
+    const matchesSearch = sample.sample_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sample.account_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sample.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || sample.feedback_status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) return <div className="flex items-center justify-center h-96"><div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div></div>;
+
+  return (
+    <div className="space-y-6" data-testid="samples-list">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 font-manrope">Samples Management</h2>
+          <p className="text-slate-600 mt-1 font-inter">{samples.length} total samples</p>
+        </div>
+        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-sample-button">
+              <Plus className="h-4 w-4 mr-2" />New Sample
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-manrope">Send Sample</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-inter">Customer *</Label>
+                  <Select value={formData.account_id} onValueChange={(value) => setFormData({...formData, account_id: value})} required>
+                    <SelectTrigger data-testid="sample-account"><SelectValue placeholder="Select customer" /></SelectTrigger>
+                    <SelectContent>
+                      {accounts.map(acc => (
+                        <SelectItem key={acc.id} value={acc.id}>{acc.customer_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Contact Person</Label>
+                  <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Product Name *</Label>
+                  <Input value={formData.product_name} onChange={(e) => setFormData({...formData, product_name: e.target.value})} required data-testid="sample-product-name" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Product Specs *</Label>
+                  <Input value={formData.product_specs} onChange={(e) => setFormData({...formData, product_specs: e.target.value})} placeholder="48mm x 65mtr, Brown..." required data-testid="sample-specs" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Quantity *</Label>
+                  <Input type="number" value={formData.quantity} onChange={(e) => setFormData({...formData, quantity: e.target.value})} required min="1" data-testid="sample-quantity" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Unit</Label>
+                  <Select value={formData.unit} onValueChange={(value) => setFormData({...formData, unit: value})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pcs">Pcs</SelectItem>
+                      <SelectItem value="Rolls">Rolls</SelectItem>
+                      <SelectItem value="Box">Box</SelectItem>
+                      <SelectItem value="Kg">Kg</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">From Location *</Label>
+                  <Input value={formData.from_location} onChange={(e) => setFormData({...formData, from_location: e.target.value})} placeholder="Mumbai Factory" required data-testid="sample-location" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Courier</Label>
+                  <Select value={formData.courier} onValueChange={(value) => setFormData({...formData, courier: value})}>
+                    <SelectTrigger><SelectValue placeholder="Select courier" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DTDC">DTDC</SelectItem>
+                      <SelectItem value="BlueDart">BlueDart</SelectItem>
+                      <SelectItem value="Delhivery">Delhivery</SelectItem>
+                      <SelectItem value="FedEx">FedEx</SelectItem>
+                      <SelectItem value="Self">Self Delivery</SelectItem>
+                      <SelectItem value="Transport">Transport</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Tracking Number</Label>
+                  <Input value={formData.tracking_number} onChange={(e) => setFormData({...formData, tracking_number: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Expected Delivery</Label>
+                  <Input type="date" value={formData.expected_delivery} onChange={(e) => setFormData({...formData, expected_delivery: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Feedback Due Date *</Label>
+                  <Input type="date" value={formData.feedback_due_date} onChange={(e) => setFormData({...formData, feedback_due_date: e.target.value})} required data-testid="sample-feedback-date" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Purpose</Label>
+                  <Select value={formData.purpose} onValueChange={(value) => setFormData({...formData, purpose: value})}>
+                    <SelectTrigger><SelectValue placeholder="Select purpose" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Trial">Trial</SelectItem>
+                      <SelectItem value="Evaluation">Evaluation</SelectItem>
+                      <SelectItem value="Quality Check">Quality Check</SelectItem>
+                      <SelectItem value="New Development">New Development</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="font-inter">Notes</Label>
+                <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={2} />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm(); }}>Cancel</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="sample-submit-button">Create Sample</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input placeholder="Search samples..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" data-testid="sample-search" />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Feedback Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="positive">Positive</SelectItem>
+            <SelectItem value="negative">Negative</SelectItem>
+            <SelectItem value="needs_revision">Needs Revision</SelectItem>
+            <SelectItem value="no_response">No Response</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Sample #</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Customer</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Product</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Quantity</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Feedback</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Due Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredSamples.length === 0 ? (
+                  <tr><td colSpan="8" className="px-4 py-12 text-center text-slate-500 font-inter">
+                    {searchTerm || statusFilter !== 'all' ? 'No samples found' : 'No samples yet. Click "New Sample" to create one.'}
+                  </td></tr>
+                ) : (
+                  filteredSamples.map((sample) => (
+                    <tr key={sample.id} className="hover:bg-slate-50 transition-colors" data-testid={`sample-row-${sample.id}`}>
+                      <td className="px-4 py-3 font-mono text-sm font-semibold text-orange-600">{sample.sample_number}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-900 font-inter">{sample.account_name}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-slate-900 font-inter">{sample.product_name}</div>
+                        <div className="text-sm text-slate-500">{sample.product_specs}</div>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-sm">{sample.quantity} {sample.unit}</td>
+                      <td className="px-4 py-3">
+                        <Badge className={`font-inter ${
+                          sample.status === 'created' ? 'bg-slate-100 text-slate-800' :
+                          sample.status === 'dispatched' ? 'bg-blue-100 text-blue-800' :
+                          sample.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'
+                        }`}>{sample.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Select value={sample.feedback_status} onValueChange={(val) => handleFeedback(sample.id, val)}>
+                          <SelectTrigger className="w-[130px] h-8">
+                            <Badge className={`font-inter ${
+                              sample.feedback_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              sample.feedback_status === 'positive' ? 'bg-green-100 text-green-800' :
+                              sample.feedback_status === 'negative' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+                            }`}>{sample.feedback_status}</Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="positive">Positive</SelectItem>
+                            <SelectItem value="negative">Negative</SelectItem>
+                            <SelectItem value="needs_revision">Needs Revision</SelectItem>
+                            <SelectItem value="no_response">No Response</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600 font-mono">{new Date(sample.feedback_due_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(sample.id)} className="text-destructive" data-testid={`delete-sample-${sample.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// ==================== MAIN CRM COMPONENT ====================
 const CRM = () => {
   return (
     <Routes>
       <Route index element={<CRMOverview />} />
       <Route path="leads" element={<LeadsList />} />
       <Route path="accounts" element={<AccountsList />} />
-      <Route path="quotations" element={<div className="p-6"><Card><CardContent className="p-12 text-center"><FileText className="h-12 w-12 text-slate-400 mx-auto mb-4" /><p className="text-slate-600 font-inter">Quotations module - Building now...</p></CardContent></Card></div>} />
-      <Route path="samples" element={<div className="p-6"><Card><CardContent className="p-12 text-center"><Beaker className="h-12 w-12 text-slate-400 mx-auto mb-4" /><p className="text-slate-600 font-inter">Samples module - Building now...</p></CardContent></Card></div>} />
+      <Route path="quotations" element={<QuotationsList />} />
+      <Route path="samples" element={<SamplesList />} />
     </Routes>
   );
 };
