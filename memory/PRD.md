@@ -4,7 +4,7 @@
 AdhesiveFlow ERP is a comprehensive enterprise resource planning system specifically designed for the adhesive tapes industry. The system integrates ERP, CRM, HRMS, and Accounting modules with AI-powered business intelligence.
 
 ## Tech Stack
-- **Frontend:** React, Tailwind CSS, Shadcn UI
+- **Frontend:** React, Tailwind CSS, Shadcn UI, react-beautiful-dnd
 - **Backend:** FastAPI (Python)
 - **Database:** MongoDB
 - **Authentication:** JWT with Role-Based Access Control (RBAC)
@@ -15,148 +15,123 @@ AdhesiveFlow ERP is a comprehensive enterprise resource planning system specific
 Full sales pipeline management from lead to order.
 
 **Features Implemented:**
-- **Leads Management**
-  - Create/Edit/Delete leads with full field support
-  - Fields: Company, Contact, Email, Phone, Mobile, Address, City, State, Pincode
-  - Lead source tracking (IndiaMART, TradeIndia, Alibaba, Website, Referral, etc.)
-  - Industry classification
-  - Estimated value tracking
-  - Lead status workflow (New → Contacted → Qualified → Converted/Lost)
-  - Next follow-up date and activity tracking
-  - Lead score system
-  - Convert lead to account functionality
-  - Search and filter capabilities
 
-- **Accounts Management**
-  - Full customer profile with GSTIN and PAN
-  - Multiple shipping addresses support
-  - Multiple contact persons with primary contact flag
-  - Credit limit and credit days configuration
-  - Credit control settings (Ignore/Warn/Block)
-  - Payment terms configuration
-  - Industry and location tracking
-  - Soft delete (deactivation)
+#### Leads Management (with Kanban Board)
+- **Kanban View** - Drag-drop leads across 7 stages: New → Contacted → Qualified → Proposal → Negotiation → Converted → Lost
+- **List View** - Traditional table view with advanced filters
+- Full CRUD with all fields from Excel specs
+- Lead source tracking with **editable dropdowns**
+- Industry classification with **editable dropdowns**
+- Status workflow with drag-drop movement
+- Follow-up tracking and lead scoring
+- Advanced filters: Status, Source, Industry, City, State, Date range
+- Permission-based data visibility (users see only their assigned leads)
 
-- **Quotations**
-  - Multi-line item quotations
-  - Auto-generated quote numbers (QT-YYYYMMDD-XXXXXX)
-  - HSN code support
-  - Per-line discount and tax rates
-  - Header-level discount
-  - Automatic tax calculation (CGST/SGST/IGST)
-  - Grand total calculation
-  - Validity date tracking
-  - Transport and delivery terms
-  - Status workflow (Draft → Sent → Accepted/Rejected/Expired)
-  - Convert to Sales Order functionality
+#### Accounts Management
+- Full customer profile with **GSTIN auto-validation**
+- Auto-fill state from GSTIN (extracts state code from first 2 digits)
+- Auto-extract PAN from GSTIN
+- Multiple shipping addresses support
+- Multiple contact persons with primary contact flag
+- Credit limit, credit days, credit control (Ignore/Warn/Block)
+- **Salesperson assignment** tracking
+- Outstanding amount tracking (receivable/payable)
+- Average payment days calculation
+- City and state filters
+- Permission-based data visibility
 
-- **Samples Management**
-  - Sample tracking with unique numbers (SMP-YYYYMMDD-XXXXXX)
-  - Product specs and quantity tracking
-  - Courier and tracking number
-  - Expected delivery date
-  - Feedback due date tracking
-  - Feedback status (Pending/Positive/Negative/Needs Revision/No Response)
-  - Sample return tracking with condition
+#### Quotations
+- Multi-line item quotations with HSN codes
+- Per-item tax/discount + header discount
+- Auto tax calculations (CGST/SGST/IGST)
+- Transport and delivery terms
+- Status workflow with convert-to-order
 
-- **CRM Dashboard**
-  - Overview stats (Leads, Accounts, Quotations, Samples counts)
-  - Quote conversion rate metric
-  - Recent leads and quotations
-  - Sales pipeline visualization
+#### Samples
+- Sample tracking with feedback management
+- Courier and tracking info
+- Feedback status workflow
 
-### 2. Inventory Module 🔄 IN PROGRESS
-- Items Master (basic implementation exists)
-- Pending: Stock tracking, transfers, warehouse management
+### 2. Master Data Management ✅ NEW
+- **Editable Dropdowns** for all categories:
+  - Lead sources, Lead statuses, Industries
+  - Payment terms, Credit control options
+  - Transport terms, Units of measure
+  - Tax rates, Couriers, Sample purposes
+  - Quotation statuses, Follow-up types
+  - Account types, Designations
+- Add new options from any dropdown
+- Admin/Manager can manage master data
 
-### 3. Production Module 🔄 IN PROGRESS
-- Work Orders (basic implementation exists)
-- Pending: Multi-level BOM, scheduling, resource planning
+### 3. Number Series Configuration ✅ NEW
+- Customizable document number formats
+- Prefix, suffix, separator configuration
+- Year format options (YYYY, YY, YYYYMM, etc.)
+- Padding configuration
+- Auto-reset yearly/monthly
 
-### 4. Procurement Module ⏳ NOT STARTED
-- Suppliers management
-- Purchase Orders
-- GRN (Goods Receipt Note)
-- Landed cost calculation
+### 4. Permissions System ✅ NEW
+- **Role-based access control** with 5 default roles:
+  - Admin (full access)
+  - Manager (team data access)
+  - Salesperson (own data only)
+  - Accountant (finance modules)
+  - Viewer (read-only)
+- **Customizable permissions per user**
+- **Data visibility levels**: Own, Team, Location, All
+- Module-level permissions: View, Create, Edit, Delete, Export, Approve
 
-### 5. Accounts Module ⏳ NOT STARTED
-- Invoices and payments
-- AR/AP aging reports
-- GST reports
-- Financial statements
+### 5. GST Utilities ✅ NEW
+- GSTIN validation (format check)
+- State extraction from GSTIN code
+- PAN extraction from GSTIN
+- Indian states reference with GST codes
+- Ready for paid GST API integration
 
-### 6. HRMS Module ⏳ NOT STARTED
-- Employee database
-- Attendance tracking
-- Leave management
-- Payroll with PF/ESI/PT/TDS
+## API Endpoints (New)
 
-### 7. Quality Module ⏳ NOT STARTED
-- QC Inspections
-- Customer complaints
-- Batch traceability
+### Master Data APIs
+- `GET /api/master-data/categories` - List all categories
+- `GET /api/master-data/category/{category}` - Get items for category
+- `POST /api/master-data/category/{category}` - Add item to category
+- `PUT /api/master-data/item/{id}` - Update item
+- `DELETE /api/master-data/item/{id}` - Delete item
 
-## User Authentication
+### Number Series APIs
+- `GET /api/master-data/number-series` - List all series
+- `POST /api/master-data/number-series` - Create/update series
+- `POST /api/master-data/number-series/generate/{type}` - Generate next number
+
+### Permissions APIs
+- `GET /api/permissions/roles` - List all roles
+- `POST /api/permissions/roles` - Create role
+- `PUT /api/permissions/roles/{name}` - Update role
+- `GET /api/permissions/users/{id}/access` - Get user access
+- `PUT /api/permissions/users/{id}/access` - Update user access
+- `GET /api/permissions/check/{module}/{action}` - Check permission
+
+### CRM New APIs
+- `GET /api/crm/leads/kanban/view` - Get Kanban data
+- `PUT /api/crm/leads/{id}/move` - Move lead status (drag-drop)
+- `GET /api/crm/accounts/gst-lookup/{gstin}` - Validate GSTIN
+
+## Remaining Work
+
+### Priority 2 (Next)
+- Accounts enhancement with outstanding display in table
+- Complete filter implementation across all modules
+- Number series integration in documents
+
+### Priority 3
+- Module-specific dashboards with analytics
+- Document print layout customization
+- Salesperson name on printed documents
+
+### Future
+- Full 3rd party integrations (GST portal, E-invoice)
+- AI-powered dashboard
+- Other modules (Inventory, Production, Procurement, etc.)
+
+## Login Credentials
 - Email: admin@adhesiveflow.com
 - Password: admin123
-- Roles: admin, user, viewer
-
-## API Endpoints
-
-### CRM APIs
-- `POST /api/crm/leads` - Create lead
-- `GET /api/crm/leads` - List leads (with filters)
-- `GET /api/crm/leads/{id}` - Get lead
-- `PUT /api/crm/leads/{id}` - Update lead
-- `DELETE /api/crm/leads/{id}` - Delete lead
-- `PUT /api/crm/leads/{id}/convert` - Convert to account
-
-- `POST /api/crm/accounts` - Create account
-- `GET /api/crm/accounts` - List accounts
-- `GET /api/crm/accounts/{id}` - Get account
-- `PUT /api/crm/accounts/{id}` - Update account
-- `DELETE /api/crm/accounts/{id}` - Deactivate account
-- `GET /api/crm/accounts/{id}/credit-check` - Check credit availability
-
-- `POST /api/crm/quotations` - Create quotation
-- `GET /api/crm/quotations` - List quotations
-- `GET /api/crm/quotations/{id}` - Get quotation
-- `PUT /api/crm/quotations/{id}` - Update quotation
-- `PUT /api/crm/quotations/{id}/status` - Update status
-- `POST /api/crm/quotations/{id}/convert-to-order` - Convert to order
-- `DELETE /api/crm/quotations/{id}` - Delete quotation
-
-- `POST /api/crm/samples` - Create sample
-- `GET /api/crm/samples` - List samples
-- `GET /api/crm/samples/{id}` - Get sample
-- `PUT /api/crm/samples/{id}` - Update sample
-- `PUT /api/crm/samples/{id}/dispatch` - Mark dispatched
-- `PUT /api/crm/samples/{id}/feedback` - Update feedback
-- `PUT /api/crm/samples/{id}/return` - Mark returned
-- `DELETE /api/crm/samples/{id}` - Delete sample
-
-- `GET /api/crm/stats/overview` - CRM dashboard stats
-
-## Integrations (Planned)
-- GST API - Auto-fetch customer data from GSTIN
-- E-invoice / E-waybill APIs
-- IndiaMart, Alibaba B2B portals
-- WhatsApp and Email campaigns
-- GPT-5.2 for AI-powered insights (using Emergent LLM Key)
-
-## Reference Files
-- **Backend Routes:** /app/backend/routes/
-- **Frontend Pages:** /app/frontend/src/pages/
-- **Shadcn Components:** /app/frontend/src/components/ui/
-- **Test Reports:** /app/test_reports/
-
-## Database Collections
-- users
-- leads
-- accounts
-- quotations
-- samples
-- sales_orders
-- followups
-- items
-- work_orders
