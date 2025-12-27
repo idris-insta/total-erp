@@ -480,6 +480,32 @@ async def get_leads(
     leads = await db.leads.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return [Lead(**lead) for lead in leads]
 
+@router.get("/leads/kanban/view")
+async def get_leads_kanban(current_user: dict = Depends(get_current_user)):
+    """Get leads organized by status for Kanban view"""
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    
+    # Define Kanban columns/statuses
+    statuses = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'converted', 'lost']
+    
+    kanban_data = {}
+    for status in statuses:
+        query = {**base_filter, 'status': status} if base_filter else {'status': status}
+        leads = await db.leads.find(query, {'_id': 0}).sort('updated_at', -1).to_list(100)
+        kanban_data[status] = leads
+    
+    # Get status counts
+    counts = {}
+    for status in statuses:
+        query = {**base_filter, 'status': status} if base_filter else {'status': status}
+        counts[status] = await db.leads.count_documents(query)
+    
+    return {
+        'columns': statuses,
+        'data': kanban_data,
+        'counts': counts
+    }
+
 @router.get("/leads/{lead_id}", response_model=Lead)
 async def get_lead(lead_id: str, current_user: dict = Depends(get_current_user)):
     lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
