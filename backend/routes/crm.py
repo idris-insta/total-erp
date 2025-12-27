@@ -523,6 +523,50 @@ async def mark_lead_contacted(lead_id: str, notes: Optional[str] = None, current
     
     return {'message': 'Lead marked as contacted'}
 
+@router.get("/leads/kanban")
+async def get_leads_kanban(current_user: dict = Depends(get_current_user)):
+    """Get leads organized by status for Kanban view"""
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    
+    # Define Kanban columns/statuses
+    statuses = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'converted', 'lost']
+    
+    kanban_data = {}
+    for status in statuses:
+        query = {**base_filter, 'status': status} if base_filter else {'status': status}
+        leads = await db.leads.find(query, {'_id': 0}).sort('updated_at', -1).to_list(100)
+        kanban_data[status] = leads
+    
+    # Get status counts
+    counts = {}
+    for status in statuses:
+        query = {**base_filter, 'status': status} if base_filter else {'status': status}
+        counts[status] = await db.leads.count_documents(query)
+    
+    return {
+        'columns': statuses,
+        'data': kanban_data,
+        'counts': counts
+    }
+
+@router.put("/leads/{lead_id}/move")
+async def move_lead_status(lead_id: str, new_status: str, current_user: dict = Depends(get_current_user)):
+    """Move lead to a new status (for Kanban drag-drop)"""
+    valid_statuses = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'converted', 'lost']
+    if new_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    result = await db.leads.update_one(
+        {'id': lead_id},
+        {'$set': {'status': new_status, 'updated_at': now}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    return {'message': f'Lead moved to {new_status}'}
+
 @router.put("/leads/{lead_id}/convert")
 async def convert_lead_to_account(lead_id: str, account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
     lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
