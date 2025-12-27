@@ -1,20 +1,52 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from typing import List, Optional
-from datetime import datetime, timezone
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timezone, timedelta
 import uuid
 from server import db, get_current_user
 
 router = APIRouter()
 
+# ==================== LEAD MODELS ====================
 class LeadCreate(BaseModel):
     company_name: str
     contact_person: str
     email: str
     phone: str
+    mobile: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
     source: str
+    industry: Optional[str] = None
     product_interest: Optional[str] = None
+    estimated_value: Optional[float] = None
     notes: Optional[str] = None
+    assigned_to: Optional[str] = None
+    next_followup_date: Optional[str] = None
+    followup_activity: Optional[str] = None
+
+class LeadUpdate(BaseModel):
+    company_name: Optional[str] = None
+    contact_person: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    mobile: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
+    source: Optional[str] = None
+    industry: Optional[str] = None
+    product_interest: Optional[str] = None
+    estimated_value: Optional[float] = None
+    notes: Optional[str] = None
+    status: Optional[str] = None
+    assigned_to: Optional[str] = None
+    next_followup_date: Optional[str] = None
+    followup_activity: Optional[str] = None
+    lead_score: Optional[int] = None
 
 class Lead(BaseModel):
     id: str
@@ -22,88 +54,275 @@ class Lead(BaseModel):
     contact_person: str
     email: str
     phone: str
+    mobile: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
     source: str
+    industry: Optional[str] = None
     status: str
     product_interest: Optional[str] = None
+    estimated_value: Optional[float] = None
     notes: Optional[str] = None
+    assigned_to: Optional[str] = None
+    next_followup_date: Optional[str] = None
+    followup_activity: Optional[str] = None
+    lead_score: int = 0
+    last_contacted: Optional[str] = None
     created_at: str
     updated_at: str
 
+# ==================== ACCOUNT MODELS ====================
+class ContactPerson(BaseModel):
+    name: str
+    designation: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    mobile: Optional[str] = None
+    is_primary: bool = False
+
+class ShippingAddress(BaseModel):
+    label: str = "Default"
+    address: str
+    city: str
+    state: str
+    pincode: str
+    country: str = "India"
+
 class AccountCreate(BaseModel):
     customer_name: str
+    account_type: str = "Customer"
     gstin: str
+    pan: Optional[str] = None
     billing_address: str
-    shipping_addresses: List[dict]
-    credit_limit: float
-    payment_terms: str
-    contact_person: str
-    email: str
-    phone: str
+    billing_city: Optional[str] = None
+    billing_state: Optional[str] = None
+    billing_pincode: Optional[str] = None
+    shipping_addresses: List[ShippingAddress] = []
+    contacts: List[ContactPerson] = []
+    credit_limit: float = 0
+    credit_days: int = 30
+    credit_control: str = "Warn"
+    payment_terms: str = "30 days"
+    industry: Optional[str] = None
+    website: Optional[str] = None
+    agent_id: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
+
+class AccountUpdate(BaseModel):
+    customer_name: Optional[str] = None
+    account_type: Optional[str] = None
+    gstin: Optional[str] = None
+    pan: Optional[str] = None
+    billing_address: Optional[str] = None
+    billing_city: Optional[str] = None
+    billing_state: Optional[str] = None
+    billing_pincode: Optional[str] = None
+    shipping_addresses: Optional[List[ShippingAddress]] = None
+    contacts: Optional[List[ContactPerson]] = None
+    credit_limit: Optional[float] = None
+    credit_days: Optional[int] = None
+    credit_control: Optional[str] = None
+    payment_terms: Optional[str] = None
+    industry: Optional[str] = None
+    website: Optional[str] = None
+    agent_id: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class Account(BaseModel):
     id: str
     customer_name: str
+    account_type: str
     gstin: str
+    pan: Optional[str] = None
     billing_address: str
-    shipping_addresses: List[dict]
+    billing_city: Optional[str] = None
+    billing_state: Optional[str] = None
+    billing_pincode: Optional[str] = None
+    shipping_addresses: List[dict] = []
+    contacts: List[dict] = []
     credit_limit: float
+    credit_days: int
+    credit_control: str
     payment_terms: str
-    contact_person: str
-    email: str
-    phone: str
+    industry: Optional[str] = None
+    website: Optional[str] = None
+    agent_id: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
+    is_active: bool = True
+    total_outstanding: float = 0
+    lead_id: Optional[str] = None
     created_at: str
+    updated_at: Optional[str] = None
+
+# ==================== QUOTATION MODELS ====================
+class QuotationItem(BaseModel):
+    item_id: Optional[str] = None
+    item_name: str
+    description: Optional[str] = None
+    hsn_code: Optional[str] = None
+    quantity: float
+    unit: str = "Pcs"
+    unit_price: float
+    discount_percent: float = 0
+    tax_percent: float = 18
+    line_total: Optional[float] = None
 
 class QuotationCreate(BaseModel):
     account_id: str
-    items: List[dict]
-    transport: str
-    credit_period: str
-    validity_days: int = 15
-    supply_location: str
+    contact_person: Optional[str] = None
+    salesperson_id: Optional[str] = None
+    reference: Optional[str] = None
+    valid_until: str
+    items: List[QuotationItem]
+    transport: Optional[str] = None
+    delivery_terms: Optional[str] = None
+    payment_terms: Optional[str] = None
+    terms_conditions: Optional[str] = None
     notes: Optional[str] = None
+    header_discount_percent: float = 0
+
+class QuotationUpdate(BaseModel):
+    contact_person: Optional[str] = None
+    salesperson_id: Optional[str] = None
+    reference: Optional[str] = None
+    valid_until: Optional[str] = None
+    items: Optional[List[QuotationItem]] = None
+    transport: Optional[str] = None
+    delivery_terms: Optional[str] = None
+    payment_terms: Optional[str] = None
+    terms_conditions: Optional[str] = None
+    notes: Optional[str] = None
+    header_discount_percent: Optional[float] = None
+    status: Optional[str] = None
 
 class Quotation(BaseModel):
     id: str
     quote_number: str
     account_id: str
+    account_name: Optional[str] = None
+    contact_person: Optional[str] = None
+    salesperson_id: Optional[str] = None
+    reference: Optional[str] = None
+    quote_date: str
+    valid_until: str
     items: List[dict]
-    sub_total: float
-    tax_amount: float
-    total_amount: float
-    status: str
-    transport: str
-    credit_period: str
-    validity_days: int
-    supply_location: str
+    subtotal: float
+    header_discount_percent: float
+    header_discount_amount: float
+    taxable_amount: float
+    cgst_amount: float
+    sgst_amount: float
+    igst_amount: float
+    total_tax: float
+    grand_total: float
+    transport: Optional[str] = None
+    delivery_terms: Optional[str] = None
+    payment_terms: Optional[str] = None
+    terms_conditions: Optional[str] = None
     notes: Optional[str] = None
+    status: str
+    converted_to_order: bool = False
+    order_id: Optional[str] = None
+    created_by: str
     created_at: str
-    expiry_date: str
+    updated_at: Optional[str] = None
 
+# ==================== SAMPLE MODELS ====================
 class SampleCreate(BaseModel):
     account_id: str
+    contact_person: Optional[str] = None
     quotation_id: Optional[str] = None
+    product_name: str
     product_specs: str
     quantity: float
+    unit: str = "Pcs"
     from_location: str
-    courier: str
-    feedback_date: str
+    courier: Optional[str] = None
+    tracking_number: Optional[str] = None
+    expected_delivery: Optional[str] = None
+    feedback_due_date: str
+    purpose: Optional[str] = None
+    notes: Optional[str] = None
+
+class SampleUpdate(BaseModel):
+    contact_person: Optional[str] = None
+    product_name: Optional[str] = None
+    product_specs: Optional[str] = None
+    quantity: Optional[float] = None
+    unit: Optional[str] = None
+    from_location: Optional[str] = None
+    courier: Optional[str] = None
+    tracking_number: Optional[str] = None
+    expected_delivery: Optional[str] = None
+    feedback_due_date: Optional[str] = None
+    purpose: Optional[str] = None
+    notes: Optional[str] = None
+    status: Optional[str] = None
+    feedback_status: Optional[str] = None
+    feedback_notes: Optional[str] = None
+    feedback_date: Optional[str] = None
+    return_date: Optional[str] = None
+    return_condition: Optional[str] = None
 
 class Sample(BaseModel):
     id: str
     sample_number: str
     account_id: str
+    account_name: Optional[str] = None
+    contact_person: Optional[str] = None
     quotation_id: Optional[str] = None
+    product_name: str
     product_specs: str
     quantity: float
+    unit: str
     from_location: str
-    courier: str
-    feedback_date: str
-    feedback_status: str
-    cost: float
+    courier: Optional[str] = None
+    tracking_number: Optional[str] = None
+    expected_delivery: Optional[str] = None
+    feedback_due_date: str
+    purpose: Optional[str] = None
+    notes: Optional[str] = None
     status: str
+    feedback_status: str
+    feedback_notes: Optional[str] = None
+    feedback_date: Optional[str] = None
+    return_date: Optional[str] = None
+    return_condition: Optional[str] = None
+    estimated_cost: float = 0
+    sent_by: str
+    created_at: str
+    updated_at: Optional[str] = None
+
+# ==================== FOLLOWUP MODELS ====================
+class FollowupCreate(BaseModel):
+    entity_type: str  # lead, account, quotation, sample
+    entity_id: str
+    followup_type: str  # call, email, meeting, visit
+    scheduled_date: str
+    notes: Optional[str] = None
+    assigned_to: Optional[str] = None
+
+class Followup(BaseModel):
+    id: str
+    entity_type: str
+    entity_id: str
+    followup_type: str
+    scheduled_date: str
+    completed_date: Optional[str] = None
+    notes: Optional[str] = None
+    outcome: Optional[str] = None
+    assigned_to: Optional[str] = None
+    status: str
+    created_by: str
     created_at: str
 
-
+# ==================== LEAD ENDPOINTS ====================
 @router.post("/leads", response_model=Lead)
 async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_current_user)):
     lead_id = str(uuid.uuid4())
@@ -113,6 +332,8 @@ async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_cu
         'id': lead_id,
         **lead_data.model_dump(),
         'status': 'new',
+        'lead_score': 0,
+        'last_contacted': None,
         'created_by': current_user['id'],
         'created_at': now,
         'updated_at': now
@@ -122,12 +343,22 @@ async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_cu
     return Lead(**{k: v for k, v in lead_doc.items() if k != '_id'})
 
 @router.get("/leads", response_model=List[Lead])
-async def get_leads(source: Optional[str] = None, status: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_leads(
+    source: Optional[str] = None, 
+    status: Optional[str] = None,
+    assigned_to: Optional[str] = None,
+    industry: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     query = {}
     if source:
         query['source'] = source
     if status:
         query['status'] = status
+    if assigned_to:
+        query['assigned_to'] = assigned_to
+    if industry:
+        query['industry'] = industry
     
     leads = await db.leads.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return [Lead(**lead) for lead in leads]
@@ -140,10 +371,13 @@ async def get_lead(lead_id: str, current_user: dict = Depends(get_current_user))
     return Lead(**lead)
 
 @router.put("/leads/{lead_id}", response_model=Lead)
-async def update_lead(lead_id: str, lead_data: LeadCreate, current_user: dict = Depends(get_current_user)):
+async def update_lead(lead_id: str, lead_data: LeadUpdate, current_user: dict = Depends(get_current_user)):
+    update_dict = {k: v for k, v in lead_data.model_dump().items() if v is not None}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
     result = await db.leads.update_one(
         {'id': lead_id},
-        {'$set': {**lead_data.model_dump(), 'updated_at': datetime.now(timezone.utc).isoformat()}}
+        {'$set': update_dict}
     )
     
     if result.matched_count == 0:
@@ -161,41 +395,119 @@ async def delete_lead(lead_id: str, current_user: dict = Depends(get_current_use
     
     return {'message': 'Lead deleted successfully'}
 
+@router.put("/leads/{lead_id}/contact")
+async def mark_lead_contacted(lead_id: str, notes: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    now = datetime.now(timezone.utc).isoformat()
+    update_data = {
+        'last_contacted': now,
+        'updated_at': now
+    }
+    if notes:
+        update_data['notes'] = notes
+    
+    result = await db.leads.update_one(
+        {'id': lead_id},
+        {'$set': update_data, '$inc': {'lead_score': 5}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    return {'message': 'Lead marked as contacted'}
+
 @router.put("/leads/{lead_id}/convert")
 async def convert_lead_to_account(lead_id: str, account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
     lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
+    if lead.get('status') == 'converted':
+        raise HTTPException(status_code=400, detail="Lead already converted")
+    
     account_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
     account_doc = {
         'id': account_id,
         **account_data.model_dump(),
         'lead_id': lead_id,
-        'created_at': datetime.now(timezone.utc).isoformat()
+        'is_active': True,
+        'total_outstanding': 0,
+        'created_at': now,
+        'updated_at': now
     }
     
+    # Convert ShippingAddress and ContactPerson to dict
+    account_doc['shipping_addresses'] = [addr.model_dump() if hasattr(addr, 'model_dump') else addr for addr in account_doc.get('shipping_addresses', [])]
+    account_doc['contacts'] = [c.model_dump() if hasattr(c, 'model_dump') else c for c in account_doc.get('contacts', [])]
+    
     await db.accounts.insert_one(account_doc)
-    await db.leads.update_one({'id': lead_id}, {'$set': {'status': 'converted', 'account_id': account_id}})
+    await db.leads.update_one(
+        {'id': lead_id}, 
+        {'$set': {'status': 'converted', 'account_id': account_id, 'updated_at': now}}
+    )
     
     return {'message': 'Lead converted to account', 'account_id': account_id}
 
+@router.get("/leads/stats/summary")
+async def get_leads_stats(current_user: dict = Depends(get_current_user)):
+    pipeline = [
+        {'$group': {'_id': '$status', 'count': {'$sum': 1}}}
+    ]
+    results = await db.leads.aggregate(pipeline).to_list(100)
+    stats = {r['_id']: r['count'] for r in results}
+    
+    source_pipeline = [
+        {'$group': {'_id': '$source', 'count': {'$sum': 1}}}
+    ]
+    source_results = await db.leads.aggregate(source_pipeline).to_list(100)
+    by_source = {r['_id']: r['count'] for r in source_results}
+    
+    return {
+        'total': sum(stats.values()),
+        'by_status': stats,
+        'by_source': by_source
+    }
 
+# ==================== ACCOUNT ENDPOINTS ====================
 @router.post("/accounts", response_model=Account)
 async def create_account(account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
     account_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
     account_doc = {
         'id': account_id,
         **account_data.model_dump(),
-        'created_at': datetime.now(timezone.utc).isoformat()
+        'is_active': True,
+        'total_outstanding': 0,
+        'lead_id': None,
+        'created_at': now,
+        'updated_at': now
     }
+    
+    # Convert nested models to dict
+    account_doc['shipping_addresses'] = [addr.model_dump() if hasattr(addr, 'model_dump') else addr for addr in account_doc.get('shipping_addresses', [])]
+    account_doc['contacts'] = [c.model_dump() if hasattr(c, 'model_dump') else c for c in account_doc.get('contacts', [])]
     
     await db.accounts.insert_one(account_doc)
     return Account(**{k: v for k, v in account_doc.items() if k != '_id'})
 
 @router.get("/accounts", response_model=List[Account])
-async def get_accounts(current_user: dict = Depends(get_current_user)):
-    accounts = await db.accounts.find({}, {'_id': 0}).sort('created_at', -1).to_list(1000)
+async def get_accounts(
+    account_type: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    location: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    query = {}
+    if account_type:
+        query['account_type'] = account_type
+    if is_active is not None:
+        query['is_active'] = is_active
+    if location:
+        query['location'] = location
+    
+    accounts = await db.accounts.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return [Account(**account) for account in accounts]
 
 @router.get("/accounts/{account_id}", response_model=Account)
@@ -206,10 +518,19 @@ async def get_account(account_id: str, current_user: dict = Depends(get_current_
     return Account(**account)
 
 @router.put("/accounts/{account_id}", response_model=Account)
-async def update_account(account_id: str, account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
+async def update_account(account_id: str, account_data: AccountUpdate, current_user: dict = Depends(get_current_user)):
+    update_dict = {k: v for k, v in account_data.model_dump().items() if v is not None}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    # Convert nested models to dict
+    if 'shipping_addresses' in update_dict:
+        update_dict['shipping_addresses'] = [addr.model_dump() if hasattr(addr, 'model_dump') else addr for addr in update_dict['shipping_addresses']]
+    if 'contacts' in update_dict:
+        update_dict['contacts'] = [c.model_dump() if hasattr(c, 'model_dump') else c for c in update_dict['contacts']]
+    
     result = await db.accounts.update_one(
         {'id': account_id},
-        {'$set': {**account_data.model_dump(), 'updated_at': datetime.now(timezone.utc).isoformat()}}
+        {'$set': update_dict}
     )
     
     if result.matched_count == 0:
@@ -220,49 +541,146 @@ async def update_account(account_id: str, account_data: AccountCreate, current_u
 
 @router.delete("/accounts/{account_id}")
 async def delete_account(account_id: str, current_user: dict = Depends(get_current_user)):
-    result = await db.accounts.delete_one({'id': account_id})
+    # Soft delete - mark as inactive
+    result = await db.accounts.update_one(
+        {'id': account_id},
+        {'$set': {'is_active': False, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
     
-    if result.deleted_count == 0:
+    if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Account not found")
     
-    return {'message': 'Account deleted successfully'}
+    return {'message': 'Account deactivated successfully'}
 
+@router.get("/accounts/{account_id}/credit-check")
+async def check_account_credit(account_id: str, amount: float = 0, current_user: dict = Depends(get_current_user)):
+    account = await db.accounts.find_one({'id': account_id}, {'_id': 0})
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    available_credit = account.get('credit_limit', 0) - account.get('total_outstanding', 0)
+    can_proceed = available_credit >= amount
+    
+    return {
+        'credit_limit': account.get('credit_limit', 0),
+        'total_outstanding': account.get('total_outstanding', 0),
+        'available_credit': available_credit,
+        'requested_amount': amount,
+        'can_proceed': can_proceed,
+        'credit_control': account.get('credit_control', 'Warn'),
+        'message': 'Credit available' if can_proceed else f"Insufficient credit. Available: ₹{available_credit:,.2f}"
+    }
+
+# ==================== QUOTATION ENDPOINTS ====================
+def calculate_quotation_totals(items: List[dict], header_discount_percent: float = 0):
+    subtotal = 0
+    calculated_items = []
+    
+    for item in items:
+        qty = item.get('quantity', 0)
+        price = item.get('unit_price', 0)
+        discount = item.get('discount_percent', 0)
+        tax = item.get('tax_percent', 18)
+        
+        line_subtotal = qty * price
+        line_discount = line_subtotal * (discount / 100)
+        line_taxable = line_subtotal - line_discount
+        line_tax = line_taxable * (tax / 100)
+        line_total = line_taxable + line_tax
+        
+        calc_item = {**item, 'line_total': round(line_total, 2)}
+        calculated_items.append(calc_item)
+        subtotal += line_subtotal
+    
+    header_discount_amount = subtotal * (header_discount_percent / 100)
+    taxable_amount = subtotal - header_discount_amount
+    
+    # Calculate GST (assuming intra-state for now - CGST + SGST)
+    total_tax = 0
+    cgst_amount = 0
+    sgst_amount = 0
+    igst_amount = 0
+    
+    for item in items:
+        tax_rate = item.get('tax_percent', 18)
+        item_taxable = (item.get('quantity', 0) * item.get('unit_price', 0)) * (1 - item.get('discount_percent', 0) / 100)
+        item_taxable -= item_taxable * (header_discount_percent / 100)
+        item_tax = item_taxable * (tax_rate / 100)
+        total_tax += item_tax
+        cgst_amount += item_tax / 2
+        sgst_amount += item_tax / 2
+    
+    grand_total = taxable_amount + total_tax
+    
+    return {
+        'items': calculated_items,
+        'subtotal': round(subtotal, 2),
+        'header_discount_percent': header_discount_percent,
+        'header_discount_amount': round(header_discount_amount, 2),
+        'taxable_amount': round(taxable_amount, 2),
+        'cgst_amount': round(cgst_amount, 2),
+        'sgst_amount': round(sgst_amount, 2),
+        'igst_amount': round(igst_amount, 2),
+        'total_tax': round(total_tax, 2),
+        'grand_total': round(grand_total, 2)
+    }
 
 @router.post("/quotations", response_model=Quotation)
 async def create_quotation(quote_data: QuotationCreate, current_user: dict = Depends(get_current_user)):
+    # Verify account exists
+    account = await db.accounts.find_one({'id': quote_data.account_id}, {'_id': 0})
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    
     quote_id = str(uuid.uuid4())
-    quote_number = f"QT-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
-    
-    sub_total = sum(item['quantity'] * item['price'] for item in quote_data.items)
-    tax_amount = sub_total * 0.18
-    total_amount = sub_total + tax_amount
-    
     now = datetime.now(timezone.utc)
-    expiry_date = (now + timedelta(days=quote_data.validity_days)).isoformat()
+    quote_number = f"QT-{now.strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
+    
+    # Calculate totals
+    items_dict = [item.model_dump() for item in quote_data.items]
+    totals = calculate_quotation_totals(items_dict, quote_data.header_discount_percent)
     
     quote_doc = {
         'id': quote_id,
         'quote_number': quote_number,
-        **quote_data.model_dump(),
-        'sub_total': sub_total,
-        'tax_amount': tax_amount,
-        'total_amount': total_amount,
-        'status': 'pending',
+        'account_id': quote_data.account_id,
+        'account_name': account.get('customer_name'),
+        'contact_person': quote_data.contact_person,
+        'salesperson_id': quote_data.salesperson_id,
+        'reference': quote_data.reference,
+        'quote_date': now.isoformat(),
+        'valid_until': quote_data.valid_until,
+        **totals,
+        'transport': quote_data.transport,
+        'delivery_terms': quote_data.delivery_terms,
+        'payment_terms': quote_data.payment_terms or account.get('payment_terms'),
+        'terms_conditions': quote_data.terms_conditions,
+        'notes': quote_data.notes,
+        'status': 'draft',
+        'converted_to_order': False,
+        'order_id': None,
+        'created_by': current_user['id'],
         'created_at': now.isoformat(),
-        'expiry_date': expiry_date,
-        'created_by': current_user['id']
+        'updated_at': now.isoformat()
     }
     
     await db.quotations.insert_one(quote_doc)
     return Quotation(**{k: v for k, v in quote_doc.items() if k != '_id'})
 
 @router.get("/quotations", response_model=List[Quotation])
-async def get_quotations(account_id: Optional[str] = None, status: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_quotations(
+    account_id: Optional[str] = None,
+    status: Optional[str] = None,
+    salesperson_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     query = {}
     if account_id:
         query['account_id'] = account_id
     if status:
         query['status'] = status
+    if salesperson_id:
+        query['salesperson_id'] = salesperson_id
     
     quotations = await db.quotations.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return [Quotation(**quote) for quote in quotations]
@@ -274,40 +692,210 @@ async def get_quotation(quote_id: str, current_user: dict = Depends(get_current_
         raise HTTPException(status_code=404, detail="Quotation not found")
     return Quotation(**quote)
 
+@router.put("/quotations/{quote_id}", response_model=Quotation)
+async def update_quotation(quote_id: str, quote_data: QuotationUpdate, current_user: dict = Depends(get_current_user)):
+    existing = await db.quotations.find_one({'id': quote_id}, {'_id': 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+    
+    if existing.get('status') in ['accepted', 'converted']:
+        raise HTTPException(status_code=400, detail="Cannot modify accepted or converted quotation")
+    
+    update_dict = {k: v for k, v in quote_data.model_dump().items() if v is not None}
+    
+    # Recalculate totals if items changed
+    if 'items' in update_dict:
+        items_dict = [item.model_dump() if hasattr(item, 'model_dump') else item for item in update_dict['items']]
+        discount = update_dict.get('header_discount_percent', existing.get('header_discount_percent', 0))
+        totals = calculate_quotation_totals(items_dict, discount)
+        update_dict.update(totals)
+    
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.quotations.update_one({'id': quote_id}, {'$set': update_dict})
+    
+    quote = await db.quotations.find_one({'id': quote_id}, {'_id': 0})
+    return Quotation(**quote)
 
+@router.put("/quotations/{quote_id}/status")
+async def update_quotation_status(quote_id: str, status: str, current_user: dict = Depends(get_current_user)):
+    valid_statuses = ['draft', 'sent', 'accepted', 'rejected', 'expired', 'revised']
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+    
+    result = await db.quotations.update_one(
+        {'id': quote_id},
+        {'$set': {'status': status, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+    
+    return {'message': f'Quotation status updated to {status}'}
+
+@router.post("/quotations/{quote_id}/convert-to-order")
+async def convert_quotation_to_order(quote_id: str, current_user: dict = Depends(get_current_user)):
+    quote = await db.quotations.find_one({'id': quote_id}, {'_id': 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+    
+    if quote.get('converted_to_order'):
+        raise HTTPException(status_code=400, detail="Quotation already converted to order")
+    
+    # Create sales order (simplified - actual implementation would be in sales module)
+    order_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    order_doc = {
+        'id': order_id,
+        'order_number': f"SO-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}",
+        'quotation_id': quote_id,
+        'account_id': quote.get('account_id'),
+        'account_name': quote.get('account_name'),
+        'items': quote.get('items'),
+        'subtotal': quote.get('subtotal'),
+        'total_tax': quote.get('total_tax'),
+        'grand_total': quote.get('grand_total'),
+        'status': 'pending',
+        'created_by': current_user['id'],
+        'created_at': now
+    }
+    
+    await db.sales_orders.insert_one(order_doc)
+    await db.quotations.update_one(
+        {'id': quote_id},
+        {'$set': {'converted_to_order': True, 'order_id': order_id, 'status': 'accepted', 'updated_at': now}}
+    )
+    
+    return {'message': 'Quotation converted to sales order', 'order_id': order_id}
+
+@router.delete("/quotations/{quote_id}")
+async def delete_quotation(quote_id: str, current_user: dict = Depends(get_current_user)):
+    quote = await db.quotations.find_one({'id': quote_id}, {'_id': 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+    
+    if quote.get('converted_to_order'):
+        raise HTTPException(status_code=400, detail="Cannot delete converted quotation")
+    
+    await db.quotations.delete_one({'id': quote_id})
+    return {'message': 'Quotation deleted successfully'}
+
+# ==================== SAMPLE ENDPOINTS ====================
 @router.post("/samples", response_model=Sample)
 async def create_sample(sample_data: SampleCreate, current_user: dict = Depends(get_current_user)):
+    # Verify account exists
+    account = await db.accounts.find_one({'id': sample_data.account_id}, {'_id': 0})
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    
     sample_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
     sample_number = f"SMP-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
     
     sample_doc = {
         'id': sample_id,
         'sample_number': sample_number,
+        'account_id': sample_data.account_id,
+        'account_name': account.get('customer_name'),
         **sample_data.model_dump(),
+        'status': 'created',
         'feedback_status': 'pending',
-        'cost': 0,
-        'status': 'sent',
-        'created_at': datetime.now(timezone.utc).isoformat(),
-        'created_by': current_user['id']
+        'feedback_notes': None,
+        'feedback_date': None,
+        'return_date': None,
+        'return_condition': None,
+        'estimated_cost': 0,
+        'sent_by': current_user['id'],
+        'created_at': now,
+        'updated_at': now
     }
     
     await db.samples.insert_one(sample_doc)
     return Sample(**{k: v for k, v in sample_doc.items() if k != '_id'})
 
 @router.get("/samples", response_model=List[Sample])
-async def get_samples(account_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_samples(
+    account_id: Optional[str] = None,
+    status: Optional[str] = None,
+    feedback_status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     query = {}
     if account_id:
         query['account_id'] = account_id
+    if status:
+        query['status'] = status
+    if feedback_status:
+        query['feedback_status'] = feedback_status
     
     samples = await db.samples.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return [Sample(**sample) for sample in samples]
 
-@router.put("/samples/{sample_id}/feedback")
-async def update_sample_feedback(sample_id: str, feedback_status: str, notes: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+@router.get("/samples/{sample_id}", response_model=Sample)
+async def get_sample(sample_id: str, current_user: dict = Depends(get_current_user)):
+    sample = await db.samples.find_one({'id': sample_id}, {'_id': 0})
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    return Sample(**sample)
+
+@router.put("/samples/{sample_id}", response_model=Sample)
+async def update_sample(sample_id: str, sample_data: SampleUpdate, current_user: dict = Depends(get_current_user)):
+    update_dict = {k: v for k, v in sample_data.model_dump().items() if v is not None}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
     result = await db.samples.update_one(
         {'id': sample_id},
-        {'$set': {'feedback_status': feedback_status, 'feedback_notes': notes, 'updated_at': datetime.now(timezone.utc).isoformat()}}
+        {'$set': update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    sample = await db.samples.find_one({'id': sample_id}, {'_id': 0})
+    return Sample(**sample)
+
+@router.put("/samples/{sample_id}/dispatch")
+async def dispatch_sample(sample_id: str, courier: str, tracking_number: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    now = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.samples.update_one(
+        {'id': sample_id},
+        {'$set': {
+            'status': 'dispatched',
+            'courier': courier,
+            'tracking_number': tracking_number,
+            'dispatch_date': now,
+            'updated_at': now
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    return {'message': 'Sample dispatched successfully'}
+
+@router.put("/samples/{sample_id}/feedback")
+async def update_sample_feedback(
+    sample_id: str,
+    feedback_status: str,
+    feedback_notes: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    valid_statuses = ['pending', 'positive', 'negative', 'needs_revision', 'no_response']
+    if feedback_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid feedback status. Must be one of: {valid_statuses}")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.samples.update_one(
+        {'id': sample_id},
+        {'$set': {
+            'feedback_status': feedback_status,
+            'feedback_notes': feedback_notes,
+            'feedback_date': now,
+            'updated_at': now
+        }}
     )
     
     if result.matched_count == 0:
@@ -315,4 +903,132 @@ async def update_sample_feedback(sample_id: str, feedback_status: str, notes: Op
     
     return {'message': 'Sample feedback updated'}
 
-from datetime import timedelta
+@router.put("/samples/{sample_id}/return")
+async def mark_sample_returned(
+    sample_id: str,
+    return_condition: str,
+    notes: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    valid_conditions = ['good', 'damaged', 'lost', 'consumed']
+    if return_condition not in valid_conditions:
+        raise HTTPException(status_code=400, detail=f"Invalid return condition. Must be one of: {valid_conditions}")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.samples.update_one(
+        {'id': sample_id},
+        {'$set': {
+            'status': 'returned',
+            'return_date': now,
+            'return_condition': return_condition,
+            'return_notes': notes,
+            'updated_at': now
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    return {'message': 'Sample marked as returned'}
+
+@router.delete("/samples/{sample_id}")
+async def delete_sample(sample_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.samples.delete_one({'id': sample_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    return {'message': 'Sample deleted successfully'}
+
+# ==================== FOLLOWUP ENDPOINTS ====================
+@router.post("/followups", response_model=Followup)
+async def create_followup(followup_data: FollowupCreate, current_user: dict = Depends(get_current_user)):
+    followup_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    followup_doc = {
+        'id': followup_id,
+        **followup_data.model_dump(),
+        'completed_date': None,
+        'outcome': None,
+        'status': 'scheduled',
+        'created_by': current_user['id'],
+        'created_at': now
+    }
+    
+    await db.followups.insert_one(followup_doc)
+    return Followup(**{k: v for k, v in followup_doc.items() if k != '_id'})
+
+@router.get("/followups")
+async def get_followups(
+    entity_type: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    status: Optional[str] = None,
+    assigned_to: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    query = {}
+    if entity_type:
+        query['entity_type'] = entity_type
+    if entity_id:
+        query['entity_id'] = entity_id
+    if status:
+        query['status'] = status
+    if assigned_to:
+        query['assigned_to'] = assigned_to
+    
+    followups = await db.followups.find(query, {'_id': 0}).sort('scheduled_date', 1).to_list(1000)
+    return followups
+
+@router.put("/followups/{followup_id}/complete")
+async def complete_followup(
+    followup_id: str,
+    outcome: str,
+    notes: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    now = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.followups.update_one(
+        {'id': followup_id},
+        {'$set': {
+            'status': 'completed',
+            'completed_date': now,
+            'outcome': outcome,
+            'completion_notes': notes
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Follow-up not found")
+    
+    return {'message': 'Follow-up marked as completed'}
+
+# ==================== CRM STATS ====================
+@router.get("/stats/overview")
+async def get_crm_overview(current_user: dict = Depends(get_current_user)):
+    leads_count = await db.leads.count_documents({})
+    accounts_count = await db.accounts.count_documents({'is_active': True})
+    quotations_count = await db.quotations.count_documents({})
+    samples_count = await db.samples.count_documents({})
+    
+    # Pending quotations
+    pending_quotes = await db.quotations.count_documents({'status': {'$in': ['draft', 'sent']}})
+    
+    # Samples awaiting feedback
+    pending_samples = await db.samples.count_documents({'feedback_status': 'pending'})
+    
+    # Quote conversion rate
+    accepted_quotes = await db.quotations.count_documents({'status': 'accepted'})
+    conversion_rate = (accepted_quotes / quotations_count * 100) if quotations_count > 0 else 0
+    
+    return {
+        'leads': leads_count,
+        'accounts': accounts_count,
+        'quotations': quotations_count,
+        'samples': samples_count,
+        'pending_quotations': pending_quotes,
+        'pending_samples': pending_samples,
+        'quote_conversion_rate': round(conversion_rate, 1)
+    }
