@@ -4,7 +4,7 @@ import {
   Plus, Search, Edit, Trash2, Eye, FileText, Package as PackageIcon, 
   Beaker, Users as UsersIcon, Building2, CheckCircle, Send, Phone, 
   Mail, MapPin, Calendar, ArrowRight, TrendingUp, Clock, Filter,
-  MoreVertical, RefreshCw, Download, ChevronDown, X, Check
+  MoreVertical, RefreshCw, Download, ChevronDown, X, Check, LayoutGrid
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Textarea } from '../components/ui/textarea';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import LeadsPage from './LeadsPage';
 
 // ==================== CRM OVERVIEW ====================
 const CRMOverview = () => {
