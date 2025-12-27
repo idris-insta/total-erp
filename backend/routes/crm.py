@@ -430,9 +430,17 @@ async def get_leads(
     status: Optional[str] = None,
     assigned_to: Optional[str] = None,
     industry: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    search: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    query = {}
+    # Apply permission-based filtering
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    query = {**base_filter} if base_filter else {}
+    
     if source:
         query['source'] = source
     if status:
@@ -441,6 +449,24 @@ async def get_leads(
         query['assigned_to'] = assigned_to
     if industry:
         query['industry'] = industry
+    if city:
+        query['city'] = {"$regex": city, "$options": "i"}
+    if state:
+        query['state'] = {"$regex": state, "$options": "i"}
+    if search:
+        query['$or'] = [
+            {'company_name': {"$regex": search, "$options": "i"}},
+            {'contact_person': {"$regex": search, "$options": "i"}},
+            {'email': {"$regex": search, "$options": "i"}},
+            {'phone': {"$regex": search, "$options": "i"}}
+        ]
+    if date_from:
+        query['created_at'] = {"$gte": date_from}
+    if date_to:
+        if 'created_at' in query:
+            query['created_at']['$lte'] = date_to
+        else:
+            query['created_at'] = {"$lte": date_to}
     
     leads = await db.leads.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
     return [Lead(**lead) for lead in leads]
