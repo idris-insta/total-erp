@@ -631,20 +631,57 @@ async def get_leads_stats(current_user: dict = Depends(get_current_user)):
     }
 
 # ==================== ACCOUNT ENDPOINTS ====================
+@router.get("/accounts/gst-lookup/{gstin}")
+async def lookup_gst_for_account(gstin: str, current_user: dict = Depends(get_current_user)):
+    """Validate GSTIN and return state information for auto-fill"""
+    result = validate_and_parse_gstin(gstin)
+    if not result.get("valid"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Invalid GSTIN"))
+    
+    return {
+        "gstin": gstin.upper(),
+        "valid": True,
+        "state_code": result["state_code"],
+        "state_name": result["state_name"],
+        "pan": result["pan"],
+        "suggested_billing_state": result["state_name"]
+    }
+
 @router.post("/accounts", response_model=Account)
 async def create_account(account_data: AccountCreate, current_user: dict = Depends(get_current_user)):
     account_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Validate and auto-fill from GSTIN
+    gstin_info = validate_and_parse_gstin(account_data.gstin)
     
     account_doc = {
         'id': account_id,
         **account_data.model_dump(),
         'is_active': True,
         'total_outstanding': 0,
+        'receivable_amount': 0,
+        'payable_amount': 0,
+        'avg_payment_days': 0,
         'lead_id': None,
+        'created_by': current_user['id'],
+        'assigned_to': account_data.salesperson_id or current_user['id'],
         'created_at': now,
         'updated_at': now
     }
+    
+    # Auto-fill state from GSTIN if not provided
+    if gstin_info.get("valid") and not account_doc.get('billing_state'):
+        account_doc['billing_state'] = gstin_info.get('state_name')
+    
+    # Extract PAN from GSTIN if not provided
+    if gstin_info.get("valid") and not account_doc.get('pan'):
+        account_doc['pan'] = gstin_info.get('pan')
+    
+    # Get salesperson name if assigned
+    if account_doc.get('salesperson_id'):
+        salesperson = await db.users.find_one({'id': account_doc['salesperson_id']}, {'name': 1})
+        account_doc['salesperson_name'] = salesperson.get('name') if salesperson else None
     
     # Convert nested models to dict
     account_doc['shipping_addresses'] = [addr.model_dump() if hasattr(addr, 'model_dump') else addr for addr in account_doc.get('shipping_addresses', [])]
@@ -658,17 +695,42 @@ async def get_accounts(
     account_type: Optional[str] = None,
     is_active: Optional[bool] = None,
     location: Optional[str] = None,
+    salesperson_id: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    industry: Optional[str] = None,
+    search: Optional[str] = None,
+    has_outstanding: Optional[bool] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    query = {}
+    # Apply permission-based filtering
+    base_filter = await get_data_filter(current_user, "crm_accounts")
+    query = {**base_filter} if base_filter else {}
+    
     if account_type:
         query['account_type'] = account_type
     if is_active is not None:
         query['is_active'] = is_active
     if location:
-        query['location'] = location
+        query['location'] = {"$regex": location, "$options": "i"}
+    if salesperson_id:
+        query['salesperson_id'] = salesperson_id
+    if city:
+        query['billing_city'] = {"$regex": city, "$options": "i"}
+    if state:
+        query['billing_state'] = {"$regex": state, "$options": "i"}
+    if industry:
+        query['industry'] = industry
+    if search:
+        query['$or'] = [
+            {'customer_name': {"$regex": search, "$options": "i"}},
+            {'gstin': {"$regex": search, "$options": "i"}}
+        ]
+    if has_outstanding:
+        query['total_outstanding'] = {"$gt": 0}
     
     accounts = await db.accounts.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
+    return [Account(**account) for account in accounts]
     return [Account(**account) for account in accounts]
 
 @router.get("/accounts/{account_id}", response_model=Account)
