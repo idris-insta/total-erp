@@ -1871,7 +1871,7 @@ const CRM = () => {
   return (
     <Routes>
       <Route index element={<CRMOverview />} />
-      <Route path="leads" element={<LeadsList />} />
+      <Route path="leads" element={<LeadsPage />} />
       <Route path="accounts" element={<AccountsList />} />
       <Route path="quotations" element={<QuotationsList />} />
       <Route path="samples" element={<SamplesList />} />
