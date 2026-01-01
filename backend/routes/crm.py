@@ -1246,6 +1246,35 @@ async def get_crm_overview(current_user: dict = Depends(get_current_user)):
     accepted_quotes = await db.quotations.count_documents({'status': 'accepted'})
     conversion_rate = (accepted_quotes / quotations_count * 100) if quotations_count > 0 else 0
     
+    # Leads by status
+    lead_status_pipeline = [{'$group': {'_id': '$status', 'count': {'$sum': 1}}}]
+    lead_status_results = await db.leads.aggregate(lead_status_pipeline).to_list(100)
+    leads_by_status = {r['_id']: r['count'] for r in lead_status_results}
+    
+    # Leads by source
+    lead_source_pipeline = [{'$group': {'_id': '$source', 'count': {'$sum': 1}}}]
+    lead_source_results = await db.leads.aggregate(lead_source_pipeline).to_list(100)
+    leads_by_source = {r['_id']: r['count'] for r in lead_source_results}
+    
+    # Quotations by status
+    quote_status_pipeline = [{'$group': {'_id': '$status', 'count': {'$sum': 1}, 'total': {'$sum': '$grand_total'}}}]
+    quote_status_results = await db.quotations.aggregate(quote_status_pipeline).to_list(100)
+    quotes_by_status = {r['_id']: {'count': r['count'], 'total': r['total']} for r in quote_status_results}
+    
+    # Total quote value
+    total_quote_value = sum(q.get('total', 0) for q in quotes_by_status.values())
+    
+    # Accounts by state
+    state_pipeline = [{'$group': {'_id': '$billing_state', 'count': {'$sum': 1}}}]
+    state_results = await db.accounts.aggregate(state_pipeline).to_list(100)
+    accounts_by_state = {r['_id']: r['count'] for r in state_results if r['_id']}
+    
+    # Top accounts by outstanding
+    top_outstanding = await db.accounts.find(
+        {'receivable_amount': {'$gt': 0}}, 
+        {'_id': 0, 'customer_name': 1, 'receivable_amount': 1, 'billing_city': 1}
+    ).sort('receivable_amount', -1).to_list(5)
+    
     return {
         'leads': leads_count,
         'accounts': accounts_count,
@@ -1253,5 +1282,11 @@ async def get_crm_overview(current_user: dict = Depends(get_current_user)):
         'samples': samples_count,
         'pending_quotations': pending_quotes,
         'pending_samples': pending_samples,
-        'quote_conversion_rate': round(conversion_rate, 1)
+        'quote_conversion_rate': round(conversion_rate, 1),
+        'total_quote_value': round(total_quote_value, 2),
+        'leads_by_status': leads_by_status,
+        'leads_by_source': leads_by_source,
+        'quotes_by_status': quotes_by_status,
+        'accounts_by_state': accounts_by_state,
+        'top_outstanding': top_outstanding
     }
