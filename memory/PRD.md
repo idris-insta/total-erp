@@ -117,15 +117,11 @@ Full sales pipeline management from lead to order.
 
 ## Remaining Work
 
-### Priority 3 (Next)
-- Module-specific dashboards with analytics
-- Document print layout customization
-- Salesperson name on printed documents
-
 ### Future
-- Full 3rd party integrations (GST portal, E-invoice)
-- AI-powered dashboard
-- Other modules (Inventory, Production, Procurement, etc.)
+- Document print layout customization
+- Salesperson name on printed documents  
+- Full 3rd party integrations (GST portal API, E-invoice, E-waybill)
+- Other modules (Inventory, Production, Procurement, Accounts, HRMS, Quality)
 
 ## Login Credentials
 - Email: admin@adhesiveflow.com
