@@ -648,6 +648,7 @@ const AccountsList = () => {
   const [open, setOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({ industry: 'all', state: 'all', hasOutstanding: 'all' });
   const [formData, setFormData] = useState({
     customer_name: '', account_type: 'Customer', gstin: '', pan: '',
     billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
