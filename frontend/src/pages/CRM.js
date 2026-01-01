@@ -1060,9 +1060,41 @@ const AccountsList = () => {
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input placeholder="Search by name or GSTIN..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" data-testid="account-search" />
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input placeholder="Search by name or GSTIN..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" data-testid="account-search" />
+        </div>
+        <Select value={filters?.industry || 'all'} onValueChange={(v) => setFilters({...filters, industry: v})}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Industry" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Industries</SelectItem>
+            <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+            <SelectItem value="Packaging">Packaging</SelectItem>
+            <SelectItem value="Construction">Construction</SelectItem>
+            <SelectItem value="Automotive">Automotive</SelectItem>
+            <SelectItem value="FMCG">FMCG</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filters?.state || 'all'} onValueChange={(v) => setFilters({...filters, state: v})}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="State" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All States</SelectItem>
+            <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+            <SelectItem value="Gujarat">Gujarat</SelectItem>
+            <SelectItem value="Delhi">Delhi</SelectItem>
+            <SelectItem value="Karnataka">Karnataka</SelectItem>
+            <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filters?.hasOutstanding || 'all'} onValueChange={(v) => setFilters({...filters, hasOutstanding: v})}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Outstanding" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Accounts</SelectItem>
+            <SelectItem value="yes">With Outstanding</SelectItem>
+            <SelectItem value="no">No Outstanding</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card className="border-slate-200 shadow-sm">
