@@ -117,12 +117,7 @@ Full sales pipeline management from lead to order.
 
 ## Remaining Work
 
-### Priority 2 (Next)
-- Accounts enhancement with outstanding display in table
-- Complete filter implementation across all modules
-- Number series integration in documents
-
-### Priority 3
+### Priority 3 (Next)
 - Module-specific dashboards with analytics
 - Document print layout customization
 - Salesperson name on printed documents
