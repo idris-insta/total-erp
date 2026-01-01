@@ -1071,44 +1071,52 @@ const AccountsList = () => {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Customer</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">GSTIN</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Contact</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Credit Limit</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Payment Terms</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Actions</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Customer</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">City/State</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">GSTIN</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Outstanding</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Credit</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Avg Days</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Salesperson</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredAccounts.length === 0 ? (
-                  <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500 font-inter">
+                  <tr><td colSpan="8" className="px-4 py-12 text-center text-slate-500 font-inter">
                     {searchTerm ? 'No accounts found' : 'No accounts yet. Click "Add Account" to create one.'}
                   </td></tr>
                 ) : (
                   filteredAccounts.map((acc) => (
                     <tr key={acc.id} className="hover:bg-slate-50 transition-colors" data-testid={`account-row-${acc.id}`}>
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-900 font-inter">{acc.customer_name}</div>
-                        <div className="text-sm text-slate-500 font-inter">{acc.industry || '-'}</div>
+                      <td className="px-3 py-3">
+                        <div className="font-semibold text-slate-900 font-inter text-sm">{acc.customer_name}</div>
+                        <div className="text-xs text-slate-500 font-inter">{acc.industry || '-'}</div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-sm text-slate-600">{acc.gstin}</td>
-                      <td className="px-4 py-3">
-                        {acc.contacts?.length > 0 ? (
-                          <div>
-                            <div className="text-sm text-slate-900 font-inter">{acc.contacts[0].name}</div>
-                            <div className="text-sm text-slate-500 font-mono">{acc.contacts[0].phone || acc.contacts[0].mobile}</div>
-                          </div>
-                        ) : <span className="text-slate-400">-</span>}
+                      <td className="px-3 py-3">
+                        <div className="text-sm text-slate-900">{acc.billing_city || '-'}</div>
+                        <div className="text-xs text-slate-500">{acc.billing_state || '-'}</div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-sm font-semibold text-slate-900">₹{acc.credit_limit?.toLocaleString('en-IN') || '0'}</td>
-                      <td className="px-4 py-3"><Badge className="bg-green-100 text-green-800 font-inter">{acc.payment_terms}</Badge></td>
-                      <td className="px-4 py-3">
-                        <Badge className={acc.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                          {acc.is_active !== false ? 'Active' : 'Inactive'}
-                        </Badge>
+                      <td className="px-3 py-3 font-mono text-xs text-slate-600">{acc.gstin}</td>
+                      <td className="px-3 py-3">
+                        <div className={`font-mono text-sm font-semibold ${(acc.receivable_amount || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {(acc.receivable_amount || 0) > 0 ? `₹${acc.receivable_amount?.toLocaleString('en-IN')}` : '₹0'}
+                        </div>
+                        {(acc.payable_amount || 0) > 0 && (
+                          <div className="text-xs text-blue-600 font-mono">Pay: ₹{acc.payable_amount?.toLocaleString('en-IN')}</div>
+                        )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
+                        <div className="font-mono text-sm">₹{acc.credit_limit?.toLocaleString('en-IN') || '0'}</div>
+                        <Badge className="bg-slate-100 text-slate-700 text-xs">{acc.payment_terms}</Badge>
+                      </td>
+                      <td className="px-3 py-3 font-mono text-sm text-slate-600">
+                        {acc.avg_payment_days ? `${Math.round(acc.avg_payment_days)} days` : '-'}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-slate-600">
+                        {acc.salesperson_name || '-'}
+                      </td>
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(acc)} data-testid={`edit-account-${acc.id}`}>
                             <Edit className="h-4 w-4" />
