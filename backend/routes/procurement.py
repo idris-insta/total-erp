@@ -1,285 +1,627 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import uuid
 from server import db, get_current_user
 
 router = APIRouter()
 
+# ==================== SUPPLIER MODELS ====================
 class SupplierCreate(BaseModel):
+    supplier_code: Optional[str] = None
     supplier_name: str
-    supplier_type: str
+    supplier_type: str = "Raw Material"
     contact_person: str
     email: str
     phone: str
+    mobile: Optional[str] = None
     address: str
-    gstin: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
     country: str = "India"
+    gstin: Optional[str] = None
+    pan: Optional[str] = None
+    payment_terms: str = "30 days"
+    credit_limit: float = 0
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    notes: Optional[str] = None
+
+class SupplierUpdate(BaseModel):
+    supplier_name: Optional[str] = None
+    supplier_type: Optional[str] = None
+    contact_person: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    mobile: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
+    gstin: Optional[str] = None
+    pan: Optional[str] = None
+    payment_terms: Optional[str] = None
+    credit_limit: Optional[float] = None
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    notes: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class Supplier(BaseModel):
     id: str
+    supplier_code: str
     supplier_name: str
     supplier_type: str
     contact_person: str
     email: str
     phone: str
+    mobile: Optional[str] = None
     address: str
-    gstin: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
     country: str
-    quality_score: float
+    gstin: Optional[str] = None
+    pan: Optional[str] = None
+    payment_terms: str
+    credit_limit: float
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    notes: Optional[str] = None
+    quality_rating: float = 0
+    delivery_rating: float = 0
+    total_orders: int = 0
+    total_value: float = 0
+    is_active: bool = True
     created_at: str
+    updated_at: Optional[str] = None
+
+# ==================== PURCHASE ORDER MODELS ====================
+class POItemCreate(BaseModel):
+    item_id: str
+    quantity: float
+    unit_price: float
+    tax_percent: float = 18
+    discount_percent: float = 0
+    delivery_date: Optional[str] = None
+    notes: Optional[str] = None
 
 class PurchaseOrderCreate(BaseModel):
     supplier_id: str
-    po_type: str
-    items: List[dict]
+    po_type: str = "Standard"
+    warehouse_id: str
+    items: List[POItemCreate]
     currency: str = "INR"
-    delivery_location: str
-    payment_terms: str
+    payment_terms: Optional[str] = None
+    delivery_terms: Optional[str] = None
+    shipping_address: Optional[str] = None
     notes: Optional[str] = None
+    expected_date: Optional[str] = None
+
+class PurchaseOrderUpdate(BaseModel):
+    items: Optional[List[POItemCreate]] = None
+    payment_terms: Optional[str] = None
+    delivery_terms: Optional[str] = None
+    shipping_address: Optional[str] = None
+    notes: Optional[str] = None
+    expected_date: Optional[str] = None
+    status: Optional[str] = None
 
 class PurchaseOrder(BaseModel):
     id: str
     po_number: str
     supplier_id: str
+    supplier_name: Optional[str] = None
     po_type: str
+    warehouse_id: str
+    warehouse_name: Optional[str] = None
     items: List[dict]
-    sub_total: float
-    tax_amount: float
-    total_amount: float
+    subtotal: float
+    discount_amount: float
+    taxable_amount: float
+    cgst_amount: float
+    sgst_amount: float
+    igst_amount: float
+    total_tax: float
+    grand_total: float
     currency: str
-    delivery_location: str
-    payment_terms: str
-    status: str
+    payment_terms: Optional[str] = None
+    delivery_terms: Optional[str] = None
+    shipping_address: Optional[str] = None
+    expected_date: Optional[str] = None
     notes: Optional[str] = None
+    status: str  # draft, sent, partial, received, cancelled
+    received_value: float = 0
+    created_by: str
     created_at: str
+    updated_at: Optional[str] = None
+
+# ==================== GRN MODELS ====================
+class GRNItemCreate(BaseModel):
+    po_item_index: int
+    item_id: str
+    received_qty: float
+    accepted_qty: float
+    rejected_qty: float = 0
+    rejection_reason: Optional[str] = None
+    batch_no: Optional[str] = None
+    expiry_date: Optional[str] = None
+    unit_price: float
 
 class GRNCreate(BaseModel):
     po_id: str
-    items: List[dict]
-    location: str
+    items: List[GRNItemCreate]
     invoice_no: Optional[str] = None
+    invoice_date: Optional[str] = None
+    invoice_amount: Optional[float] = None
+    lr_no: Optional[str] = None
+    vehicle_no: Optional[str] = None
     notes: Optional[str] = None
 
 class GRN(BaseModel):
     id: str
     grn_number: str
     po_id: str
+    po_number: Optional[str] = None
+    supplier_id: str
+    supplier_name: Optional[str] = None
+    warehouse_id: str
     items: List[dict]
-    location: str
+    total_qty: float
+    accepted_qty: float
+    rejected_qty: float
+    total_value: float
     invoice_no: Optional[str] = None
-    status: str
+    invoice_date: Optional[str] = None
+    invoice_amount: Optional[float] = None
+    lr_no: Optional[str] = None
+    vehicle_no: Optional[str] = None
     notes: Optional[str] = None
+    status: str  # pending_qc, approved, partial
+    qc_status: Optional[str] = None
+    created_by: str
     created_at: str
 
-class LandedCostCreate(BaseModel):
-    po_id: str
-    freight: float
-    duty: float
-    cha: float
-    cfs: float
-    insurance: float
-    local_transport: float
-    commission: float
-    misc_expenses: float
-    fx_rate: float
-
-
+# ==================== SUPPLIER ENDPOINTS ====================
 @router.post("/suppliers", response_model=Supplier)
 async def create_supplier(supplier_data: SupplierCreate, current_user: dict = Depends(get_current_user)):
     supplier_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Generate supplier code
+    count = await db.suppliers.count_documents({})
+    supplier_code = supplier_data.supplier_code or f"SUP-{str(count + 1).zfill(4)}"
+    
     supplier_doc = {
-        'id': supplier_id,
+        "id": supplier_id,
+        "supplier_code": supplier_code,
         **supplier_data.model_dump(),
-        'quality_score': 100.0,
-        'created_at': datetime.now(timezone.utc).isoformat()
+        "quality_rating": 0,
+        "delivery_rating": 0,
+        "total_orders": 0,
+        "total_value": 0,
+        "is_active": True,
+        "created_at": now,
+        "updated_at": now
     }
     
     await db.suppliers.insert_one(supplier_doc)
     return Supplier(**{k: v for k, v in supplier_doc.items() if k != '_id'})
 
 @router.get("/suppliers", response_model=List[Supplier])
-async def get_suppliers(supplier_type: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_suppliers(
+    supplier_type: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    search: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     query = {}
     if supplier_type:
-        query['supplier_type'] = supplier_type
+        query["supplier_type"] = supplier_type
+    if is_active is not None:
+        query["is_active"] = is_active
+    if search:
+        query["$or"] = [
+            {"supplier_name": {"$regex": search, "$options": "i"}},
+            {"supplier_code": {"$regex": search, "$options": "i"}},
+            {"gstin": {"$regex": search, "$options": "i"}}
+        ]
+    if city:
+        query["city"] = {"$regex": city, "$options": "i"}
+    if state:
+        query["state"] = {"$regex": state, "$options": "i"}
     
-    suppliers = await db.suppliers.find(query, {'_id': 0}).to_list(1000)
-    return [Supplier(**supplier) for supplier in suppliers]
+    suppliers = await db.suppliers.find(query, {"_id": 0}).sort("supplier_name", 1).to_list(1000)
+    return [Supplier(**s) for s in suppliers]
 
 @router.get("/suppliers/{supplier_id}", response_model=Supplier)
 async def get_supplier(supplier_id: str, current_user: dict = Depends(get_current_user)):
-    supplier = await db.suppliers.find_one({'id': supplier_id}, {'_id': 0})
+    supplier = await db.suppliers.find_one({"id": supplier_id}, {"_id": 0})
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
     return Supplier(**supplier)
 
+@router.put("/suppliers/{supplier_id}", response_model=Supplier)
+async def update_supplier(supplier_id: str, supplier_data: SupplierUpdate, current_user: dict = Depends(get_current_user)):
+    update_dict = {k: v for k, v in supplier_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.suppliers.update_one({"id": supplier_id}, {"$set": update_dict})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    supplier = await db.suppliers.find_one({"id": supplier_id}, {"_id": 0})
+    return Supplier(**supplier)
+
+@router.delete("/suppliers/{supplier_id}")
+async def delete_supplier(supplier_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.suppliers.update_one(
+        {"id": supplier_id},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return {"message": "Supplier deactivated"}
+
+# ==================== PURCHASE ORDER ENDPOINTS ====================
+def calculate_po_totals(items: List[dict]) -> dict:
+    subtotal = 0
+    total_discount = 0
+    total_tax = 0
+    
+    calculated_items = []
+    for item in items:
+        qty = item.get("quantity", 0)
+        price = item.get("unit_price", 0)
+        discount_pct = item.get("discount_percent", 0)
+        tax_pct = item.get("tax_percent", 18)
+        
+        line_subtotal = qty * price
+        line_discount = line_subtotal * (discount_pct / 100)
+        line_taxable = line_subtotal - line_discount
+        line_tax = line_taxable * (tax_pct / 100)
+        line_total = line_taxable + line_tax
+        
+        calculated_items.append({
+            **item,
+            "line_subtotal": round(line_subtotal, 2),
+            "line_discount": round(line_discount, 2),
+            "line_taxable": round(line_taxable, 2),
+            "line_tax": round(line_tax, 2),
+            "line_total": round(line_total, 2),
+            "received_qty": 0
+        })
+        
+        subtotal += line_subtotal
+        total_discount += line_discount
+        total_tax += line_tax
+    
+    taxable_amount = subtotal - total_discount
+    cgst = total_tax / 2
+    sgst = total_tax / 2
+    
+    return {
+        "items": calculated_items,
+        "subtotal": round(subtotal, 2),
+        "discount_amount": round(total_discount, 2),
+        "taxable_amount": round(taxable_amount, 2),
+        "cgst_amount": round(cgst, 2),
+        "sgst_amount": round(sgst, 2),
+        "igst_amount": 0,
+        "total_tax": round(total_tax, 2),
+        "grand_total": round(taxable_amount + total_tax, 2)
+    }
 
 @router.post("/purchase-orders", response_model=PurchaseOrder)
 async def create_purchase_order(po_data: PurchaseOrderCreate, current_user: dict = Depends(get_current_user)):
     po_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    po_number = f"PO-{now.strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
     
-    if po_data.po_type == "import":
-        supplier = await db.suppliers.find_one({'id': po_data.supplier_id}, {'_id': 0})
-        po_number = f"IPO-{supplier['supplier_name'][:3].upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:4].upper()}"
-    else:
-        po_number = f"PO-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
+    # Get supplier details
+    supplier = await db.suppliers.find_one({"id": po_data.supplier_id}, {"supplier_name": 1, "payment_terms": 1})
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
     
-    sub_total = sum(item['quantity'] * item['unit_price'] for item in po_data.items)
-    tax_amount = sub_total * 0.18 if po_data.currency == "INR" else 0
-    total_amount = sub_total + tax_amount
+    # Get warehouse details
+    warehouse = await db.warehouses.find_one({"id": po_data.warehouse_id}, {"warehouse_name": 1})
+    
+    # Enrich items with item details
+    items_with_details = []
+    for item in po_data.items:
+        item_doc = await db.items.find_one({"id": item.item_id}, {"item_code": 1, "item_name": 1, "uom": 1, "hsn_code": 1})
+        if item_doc:
+            items_with_details.append({
+                **item.model_dump(),
+                "item_code": item_doc.get("item_code"),
+                "item_name": item_doc.get("item_name"),
+                "uom": item_doc.get("uom"),
+                "hsn_code": item_doc.get("hsn_code")
+            })
+    
+    # Calculate totals
+    totals = calculate_po_totals(items_with_details)
     
     po_doc = {
-        'id': po_id,
-        'po_number': po_number,
-        **po_data.model_dump(),
-        'sub_total': sub_total,
-        'tax_amount': tax_amount,
-        'total_amount': total_amount,
-        'status': 'pending',
-        'created_at': datetime.now(timezone.utc).isoformat(),
-        'created_by': current_user['id']
+        "id": po_id,
+        "po_number": po_number,
+        "supplier_id": po_data.supplier_id,
+        "supplier_name": supplier.get("supplier_name"),
+        "po_type": po_data.po_type,
+        "warehouse_id": po_data.warehouse_id,
+        "warehouse_name": warehouse.get("warehouse_name") if warehouse else "",
+        **totals,
+        "currency": po_data.currency,
+        "payment_terms": po_data.payment_terms or supplier.get("payment_terms"),
+        "delivery_terms": po_data.delivery_terms,
+        "shipping_address": po_data.shipping_address,
+        "expected_date": po_data.expected_date,
+        "notes": po_data.notes,
+        "status": "draft",
+        "received_value": 0,
+        "created_by": current_user["id"],
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
     }
     
     await db.purchase_orders.insert_one(po_doc)
     return PurchaseOrder(**{k: v for k, v in po_doc.items() if k != '_id'})
 
 @router.get("/purchase-orders", response_model=List[PurchaseOrder])
-async def get_purchase_orders(status: Optional[str] = None, po_type: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_purchase_orders(
+    supplier_id: Optional[str] = None,
+    status: Optional[str] = None,
+    warehouse_id: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     query = {}
+    if supplier_id:
+        query["supplier_id"] = supplier_id
     if status:
-        query['status'] = status
-    if po_type:
-        query['po_type'] = po_type
+        query["status"] = status
+    if warehouse_id:
+        query["warehouse_id"] = warehouse_id
+    if date_from:
+        query["created_at"] = {"$gte": date_from}
+    if date_to:
+        if "created_at" in query:
+            query["created_at"]["$lte"] = date_to
+        else:
+            query["created_at"] = {"$lte": date_to}
     
-    pos = await db.purchase_orders.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
+    pos = await db.purchase_orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return [PurchaseOrder(**po) for po in pos]
 
 @router.get("/purchase-orders/{po_id}", response_model=PurchaseOrder)
 async def get_purchase_order(po_id: str, current_user: dict = Depends(get_current_user)):
-    po = await db.purchase_orders.find_one({'id': po_id}, {'_id': 0})
+    po = await db.purchase_orders.find_one({"id": po_id}, {"_id": 0})
     if not po:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
+        raise HTTPException(status_code=404, detail="Purchase Order not found")
     return PurchaseOrder(**po)
 
+@router.put("/purchase-orders/{po_id}/status")
+async def update_po_status(po_id: str, status: str, current_user: dict = Depends(get_current_user)):
+    valid_statuses = ["draft", "sent", "partial", "received", "cancelled"]
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+    
+    result = await db.purchase_orders.update_one(
+        {"id": po_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Purchase Order not found")
+    
+    return {"message": f"Status updated to {status}"}
 
+@router.delete("/purchase-orders/{po_id}")
+async def delete_purchase_order(po_id: str, current_user: dict = Depends(get_current_user)):
+    po = await db.purchase_orders.find_one({"id": po_id}, {"status": 1})
+    if not po:
+        raise HTTPException(status_code=404, detail="Purchase Order not found")
+    
+    if po.get("status") not in ["draft"]:
+        raise HTTPException(status_code=400, detail="Can only delete draft POs")
+    
+    await db.purchase_orders.delete_one({"id": po_id})
+    return {"message": "Purchase Order deleted"}
+
+# ==================== GRN ENDPOINTS ====================
 @router.post("/grn", response_model=GRN)
 async def create_grn(grn_data: GRNCreate, current_user: dict = Depends(get_current_user)):
-    po = await db.purchase_orders.find_one({'id': grn_data.po_id}, {'_id': 0})
-    if not po:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
-    
     grn_id = str(uuid.uuid4())
-    grn_number = f"GRN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
+    now = datetime.now(timezone.utc)
+    grn_number = f"GRN-{now.strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
     
-    grn_doc = {
-        'id': grn_id,
-        'grn_number': grn_number,
-        **grn_data.model_dump(),
-        'status': 'completed',
-        'created_at': datetime.now(timezone.utc).isoformat(),
-        'created_by': current_user['id']
-    }
+    # Get PO details
+    po = await db.purchase_orders.find_one({"id": grn_data.po_id}, {"_id": 0})
+    if not po:
+        raise HTTPException(status_code=404, detail="Purchase Order not found")
     
-    await db.grns.insert_one(grn_doc)
+    # Process items
+    total_qty = 0
+    accepted_qty = 0
+    rejected_qty = 0
+    total_value = 0
     
+    items_with_details = []
     for item in grn_data.items:
-        await db.stock_transactions.insert_one({
-            'id': str(uuid.uuid4()),
-            'item_id': item['item_id'],
-            'location': grn_data.location,
-            'quantity': item['quantity'],
-            'uom': item['uom'],
-            'transaction_type': 'in',
-            'reference_no': grn_number,
-            'created_at': datetime.now(timezone.utc).isoformat(),
-            'created_by': current_user['id']
+        po_item = po["items"][item.po_item_index] if item.po_item_index < len(po["items"]) else None
+        
+        items_with_details.append({
+            **item.model_dump(),
+            "item_code": po_item.get("item_code") if po_item else "",
+            "item_name": po_item.get("item_name") if po_item else "",
+            "uom": po_item.get("uom") if po_item else "",
+            "line_value": item.accepted_qty * item.unit_price
         })
         
-        existing_stock = await db.stock.find_one({'item_id': item['item_id'], 'location': grn_data.location}, {'_id': 0})
-        
-        if existing_stock:
-            await db.stock.update_one(
-                {'item_id': item['item_id'], 'location': grn_data.location},
-                {'$inc': {'quantity': item['quantity']}, '$set': {'last_updated': datetime.now(timezone.utc).isoformat()}}
-            )
-        else:
-            await db.stock.insert_one({
-                'id': str(uuid.uuid4()),
-                'item_id': item['item_id'],
-                'location': grn_data.location,
-                'quantity': item['quantity'],
-                'uom': item['uom'],
-                'last_updated': datetime.now(timezone.utc).isoformat()
-            })
+        total_qty += item.received_qty
+        accepted_qty += item.accepted_qty
+        rejected_qty += item.rejected_qty
+        total_value += item.accepted_qty * item.unit_price
+    
+    grn_doc = {
+        "id": grn_id,
+        "grn_number": grn_number,
+        "po_id": grn_data.po_id,
+        "po_number": po.get("po_number"),
+        "supplier_id": po.get("supplier_id"),
+        "supplier_name": po.get("supplier_name"),
+        "warehouse_id": po.get("warehouse_id"),
+        "items": items_with_details,
+        "total_qty": total_qty,
+        "accepted_qty": accepted_qty,
+        "rejected_qty": rejected_qty,
+        "total_value": round(total_value, 2),
+        "invoice_no": grn_data.invoice_no,
+        "invoice_date": grn_data.invoice_date,
+        "invoice_amount": grn_data.invoice_amount,
+        "lr_no": grn_data.lr_no,
+        "vehicle_no": grn_data.vehicle_no,
+        "notes": grn_data.notes,
+        "status": "pending_qc",
+        "qc_status": None,
+        "created_by": current_user["id"],
+        "created_at": now.isoformat()
+    }
+    
+    await db.grn.insert_one(grn_doc)
+    
+    # Update PO received quantities
+    po_items = po["items"]
+    for item in grn_data.items:
+        if item.po_item_index < len(po_items):
+            po_items[item.po_item_index]["received_qty"] = po_items[item.po_item_index].get("received_qty", 0) + item.accepted_qty
+    
+    # Check if PO is fully received
+    all_received = all(
+        item.get("received_qty", 0) >= item.get("quantity", 0)
+        for item in po_items
+    )
+    new_status = "received" if all_received else "partial"
     
     await db.purchase_orders.update_one(
-        {'id': grn_data.po_id},
-        {'$set': {'status': 'received'}}
+        {"id": grn_data.po_id},
+        {"$set": {
+            "items": po_items,
+            "status": new_status,
+            "received_value": po.get("received_value", 0) + total_value,
+            "updated_at": now.isoformat()
+        }}
     )
     
     return GRN(**{k: v for k, v in grn_doc.items() if k != '_id'})
 
 @router.get("/grn", response_model=List[GRN])
-async def get_grns(po_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+async def get_grns(
+    po_id: Optional[str] = None,
+    supplier_id: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
     query = {}
     if po_id:
-        query['po_id'] = po_id
+        query["po_id"] = po_id
+    if supplier_id:
+        query["supplier_id"] = supplier_id
+    if status:
+        query["status"] = status
     
-    grns = await db.grns.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
-    return [GRN(**grn) for grn in grns]
+    grns = await db.grn.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
+    return [GRN(**g) for g in grns]
 
+@router.put("/grn/{grn_id}/approve")
+async def approve_grn(grn_id: str, current_user: dict = Depends(get_current_user)):
+    """Approve GRN and update stock"""
+    grn = await db.grn.find_one({"id": grn_id}, {"_id": 0})
+    if not grn:
+        raise HTTPException(status_code=404, detail="GRN not found")
+    
+    if grn["status"] != "pending_qc":
+        raise HTTPException(status_code=400, detail="GRN already processed")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Add stock for each accepted item
+    for item in grn["items"]:
+        if item["accepted_qty"] > 0:
+            # Create stock entry
+            from routes.inventory import StockEntry, create_stock_entry
+            entry = StockEntry(
+                item_id=item["item_id"],
+                warehouse_id=grn["warehouse_id"],
+                quantity=item["accepted_qty"],
+                transaction_type="receipt",
+                reference_type="GRN",
+                reference_id=grn_id,
+                batch_no=item.get("batch_no"),
+                expiry_date=item.get("expiry_date"),
+                unit_cost=item["unit_price"]
+            )
+            await create_stock_entry(entry, current_user)
+    
+    await db.grn.update_one(
+        {"id": grn_id},
+        {"$set": {"status": "approved", "qc_status": "passed", "approved_at": now}}
+    )
+    
+    return {"message": "GRN approved and stock updated"}
 
-@router.post("/landed-cost")
-async def calculate_landed_cost(cost_data: LandedCostCreate, current_user: dict = Depends(get_current_user)):
-    po = await db.purchase_orders.find_one({'id': cost_data.po_id}, {'_id': 0})
-    if not po:
-        raise HTTPException(status_code=404, detail="Purchase order not found")
+# ==================== STATS ====================
+@router.get("/stats/overview")
+async def get_procurement_stats(current_user: dict = Depends(get_current_user)):
+    total_suppliers = await db.suppliers.count_documents({"is_active": True})
     
-    total_expenses = cost_data.freight + cost_data.duty + cost_data.cha + cost_data.cfs + cost_data.insurance + cost_data.local_transport + cost_data.commission + cost_data.misc_expenses
+    # PO stats
+    total_pos = await db.purchase_orders.count_documents({})
+    pending_pos = await db.purchase_orders.count_documents({"status": {"$in": ["draft", "sent"]}})
     
-    usd_value = po['sub_total']
-    inr_value = usd_value * cost_data.fx_rate
-    total_landed_cost = inr_value + total_expenses
+    # PO value
+    po_value_pipeline = [
+        {"$match": {"status": {"$nin": ["cancelled"]}}},
+        {"$group": {"_id": None, "total": {"$sum": "$grand_total"}}}
+    ]
+    po_value = await db.purchase_orders.aggregate(po_value_pipeline).to_list(1)
+    total_po_value = po_value[0]["total"] if po_value else 0
     
-    avg_cost_per_unit = total_landed_cost / sum(item['quantity'] for item in po['items'])
+    # Pending GRNs
+    pending_grns = await db.grn.count_documents({"status": "pending_qc"})
     
-    landed_cost_doc = {
-        'id': str(uuid.uuid4()),
-        'po_id': cost_data.po_id,
-        'usd_value': usd_value,
-        'fx_rate': cost_data.fx_rate,
-        'inr_value': inr_value,
-        'freight': cost_data.freight,
-        'duty': cost_data.duty,
-        'cha': cost_data.cha,
-        'cfs': cost_data.cfs,
-        'insurance': cost_data.insurance,
-        'local_transport': cost_data.local_transport,
-        'commission': cost_data.commission,
-        'misc_expenses': cost_data.misc_expenses,
-        'total_expenses': total_expenses,
-        'total_landed_cost': total_landed_cost,
-        'avg_cost_per_unit': avg_cost_per_unit,
-        'created_at': datetime.now(timezone.utc).isoformat(),
-        'created_by': current_user['id']
+    # This month's purchases
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+    monthly_pipeline = [
+        {"$match": {"created_at": {"$gte": month_start}, "status": {"$nin": ["cancelled"]}}},
+        {"$group": {"_id": None, "total": {"$sum": "$grand_total"}, "count": {"$sum": 1}}}
+    ]
+    monthly_result = await db.purchase_orders.aggregate(monthly_pipeline).to_list(1)
+    
+    # Top suppliers
+    top_suppliers_pipeline = [
+        {"$match": {"is_active": True}},
+        {"$sort": {"total_value": -1}},
+        {"$limit": 5},
+        {"$project": {"supplier_name": 1, "total_value": 1, "total_orders": 1}}
+    ]
+    top_suppliers = await db.suppliers.aggregate(top_suppliers_pipeline).to_list(5)
+    
+    return {
+        "total_suppliers": total_suppliers,
+        "total_pos": total_pos,
+        "pending_pos": pending_pos,
+        "total_po_value": round(total_po_value, 2),
+        "pending_grns": pending_grns,
+        "monthly_purchases": monthly_result[0]["total"] if monthly_result else 0,
+        "monthly_po_count": monthly_result[0]["count"] if monthly_result else 0,
+        "top_suppliers": [{k: v for k, v in s.items() if k != '_id'} for s in top_suppliers]
     }
-    
-    await db.landed_costs.insert_one(landed_cost_doc)
-    
-    for item in po['items']:
-        item_landed_cost = (item['quantity'] * item['unit_price'] * cost_data.fx_rate + (total_expenses * item['quantity'] / sum(i['quantity'] for i in po['items']))) / item['quantity']
-        await db.items.update_one(
-            {'id': item['item_id']},
-            {'$set': {'landed_cost': item_landed_cost, 'last_cost_update': datetime.now(timezone.utc).isoformat()}}
-        )
-    
-    return {'message': 'Landed cost calculated', 'landed_cost_id': landed_cost_doc['id'], 'total_landed_cost': total_landed_cost, 'avg_cost_per_unit': avg_cost_per_unit}
-
-@router.get("/landed-cost/{po_id}")
-async def get_landed_cost(po_id: str, current_user: dict = Depends(get_current_user)):
-    landed_cost = await db.landed_costs.find_one({'po_id': po_id}, {'_id': 0})
-    if not landed_cost:
-        raise HTTPException(status_code=404, detail="Landed cost not found")
-    return landed_cost
