@@ -757,10 +757,16 @@ const AccountsList = () => {
     });
   };
 
-  const filteredAccounts = accounts.filter(acc =>
-    acc.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    acc.gstin.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAccounts = accounts.filter(acc => {
+    const matchesSearch = acc.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      acc.gstin.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesIndustry = filters.industry === 'all' || acc.industry === filters.industry;
+    const matchesState = filters.state === 'all' || acc.billing_state?.includes(filters.state);
+    const matchesOutstanding = filters.hasOutstanding === 'all' || 
+      (filters.hasOutstanding === 'yes' && (acc.receivable_amount || 0) > 0) ||
+      (filters.hasOutstanding === 'no' && (acc.receivable_amount || 0) === 0);
+    return matchesSearch && matchesIndustry && matchesState && matchesOutstanding;
+  });
 
   if (loading) return <div className="flex items-center justify-center h-96"><div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div></div>;
 
