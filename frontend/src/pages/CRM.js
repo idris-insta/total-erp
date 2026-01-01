@@ -831,7 +831,23 @@ const AccountsList = () => {
                     </div>
                     <div className="space-y-2">
                       <Label className="font-inter">GSTIN *</Label>
-                      <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="27XXXXX0000X1ZX" required data-testid="account-gstin" />
+                      <div className="flex gap-2">
+                        <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="27XXXXX0000X1ZX" required data-testid="account-gstin" className="flex-1" />
+                        <Button type="button" variant="outline" size="sm" onClick={async () => {
+                          if (formData.gstin.length === 15) {
+                            try {
+                              const res = await api.get(`/crm/accounts/gst-lookup/${formData.gstin}`);
+                              if (res.data.valid) {
+                                setFormData({...formData, 
+                                  billing_state: res.data.state_name || formData.billing_state,
+                                  pan: res.data.pan || formData.pan
+                                });
+                                toast.success(`State: ${res.data.state_name}`);
+                              }
+                            } catch (e) { toast.error('Invalid GSTIN'); }
+                          } else { toast.error('Enter valid 15-char GSTIN'); }
+                        }}>Verify</Button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label className="font-inter">PAN</Label>
