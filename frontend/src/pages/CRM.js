@@ -347,80 +347,8 @@ const CRMOverview = () => {
     </div>
   );
 };
-  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6" data-testid="crm-overview">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 font-manrope">CRM Dashboard</h2>
-          <p className="text-slate-600 mt-1 font-inter">Complete sales pipeline management</p>
-        </div>
-        <Button onClick={fetchData} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/leads')} data-testid="leads-card">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <UsersIcon className="h-5 w-5 text-blue-600" />
-                </div>
-                <CardTitle className="text-base font-manrope">Leads</CardTitle>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600 font-manrope">{stats.leads}</div>
-            <p className="text-sm text-slate-500 mt-1 font-inter">Potential customers</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/accounts')} data-testid="accounts-card">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-green-600" />
-                </div>
-                <CardTitle className="text-base font-manrope">Accounts</CardTitle>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600 font-manrope">{stats.accounts}</div>
-            <p className="text-sm text-slate-500 mt-1 font-inter">Active customers</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/crm/quotations')} data-testid="quotations-card">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                </div>
-                <CardTitle className="text-base font-manrope">Quotations</CardTitle>
-              </div>
-              <ArrowRight className="h-4 w-4 text-slate-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
+// ==================== LEADS LIST (LEGACY - Now using LeadsPage) ====================
             <div className="text-3xl font-bold text-purple-600 font-manrope">{stats.quotations}</div>
             <p className="text-sm text-slate-500 mt-1 font-inter">{stats.pending_quotations} pending</p>
           </CardContent>
