@@ -33,10 +33,10 @@ class TestAuth:
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "No access_token in response"
+        assert "token" in data, "No token in response"
         assert "user" in data, "No user in response"
         print(f"✓ Login successful for {TEST_EMAIL}")
-        return data["access_token"]
+        return data["token"]
 
 
 @pytest.fixture(scope="module")
@@ -47,7 +47,7 @@ def auth_token():
         "password": TEST_PASSWORD
     })
     if response.status_code == 200:
-        return response.json().get("access_token")
+        return response.json().get("token")
     pytest.skip("Authentication failed - skipping tests")
 
 
