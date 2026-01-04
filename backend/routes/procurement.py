@@ -53,7 +53,7 @@ class SupplierUpdate(BaseModel):
 
 class Supplier(BaseModel):
     id: str
-    supplier_code: str
+    supplier_code: Optional[str] = None
     supplier_name: str
     supplier_type: str
     contact_person: str
