@@ -450,7 +450,7 @@ const ItemsMaster = () => {
                       <Select value={formData.secondary_uom} onValueChange={(value) => setFormData({...formData, secondary_uom: value})}>
                         <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="SQM">SQM</SelectItem>
                           <SelectItem value="MTR">MTR</SelectItem>
                           <SelectItem value="KG">KG</SelectItem>
