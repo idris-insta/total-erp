@@ -447,7 +447,7 @@ const ItemsMaster = () => {
                     </div>
                     <div className="space-y-2">
                       <Label className="font-inter">Secondary UOM</Label>
-                      <Select value={formData.secondary_uom} onValueChange={(value) => setFormData({...formData, secondary_uom: value})}>
+                      <Select value={formData.secondary_uom || 'none'} onValueChange={(value) => setFormData({...formData, secondary_uom: value === 'none' ? '' : value})}>
                         <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
