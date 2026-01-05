@@ -117,7 +117,7 @@
 ##         comment: "Screenshots captured successfully but earlier console showed auth 401 due to missing admin@instabiz.com user; user created. Need full UI smoke + CRUD verification."
 ##       - working: true
 ##         agent: "testing"
-##         comment: "✅ COMPREHENSIVE UI TESTING COMPLETED: Login successful with admin@instabiz.com/adminpassword. HRMS module: Dashboard loaded with employee stats (1 employee, 1 present), employees page accessible with existing employee 'Rajesh Kumar', attendance and leave management dialogs accessible. Quality module: Dashboard loaded, QC inspections/complaints/TDS pages all accessible with functional dialogs. Production module: Dashboard loaded, machines/work orders/production entries pages accessible with functional dialogs. Regression: Inventory and Procurement dashboards loaded without errors. All core UI flows working correctly."
+##         comment: "✅ COMPREHENSIVE UI TESTING COMPLETED: Login successful with admin@instabiz.com/adminpassword. HRMS module: Dashboard loaded with employee stats, Employees/Attendance/Leave screens accessible with functional dialogs. Quality module: Dashboard loaded; Inspections/Complaints/TDS screens accessible with functional dialogs. Production module: Dashboard loaded; Machines/Work Orders/Entries screens accessible with functional dialogs. Regression: Inventory and Procurement dashboards load without errors."
 ## backend:
 ##   - task: "Auth: ensure admin@instabiz.com works"
 ##     implemented: true
