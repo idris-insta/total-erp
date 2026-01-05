@@ -136,18 +136,62 @@ async def create_production_entry(entry_data: ProductionEntry, current_user: dic
     
     await db.work_orders.update_one({'id': entry_data.wo_id}, {'$set': update_data})
     
-    await db.stock_transactions.insert_one({
+    # Record stock movement into Inventory stock ledger/balance (uses Inventory module collections)
+    machine = await db.machines.find_one({'id': wo['machine_id']}, {'_id': 0})
+    warehouses = await db.warehouses.find({}, {'_id': 0}).to_list(1000)
+    default_wh = next((w for w in warehouses if w.get('warehouse_type') == 'Main'), warehouses[0] if warehouses else None)
+
+    await db.stock_ledger.insert_one({
         'id': str(uuid.uuid4()),
         'item_id': wo['item_id'],
-        'location': (await db.machines.find_one({'id': wo['machine_id']}, {'_id': 0}))['location'],
-        'quantity': entry_data.quantity_produced,
-        'uom': 'pcs',
-        'transaction_type': 'in',
-        'reference_no': wo['wo_number'],
-        'batch_number': batch_number,
-        'created_at': datetime.now(timezone.utc).isoformat(),
+        'warehouse_id': (default_wh or {}).get('id', ''),
+        'transaction_date': datetime.now(timezone.utc).isoformat(),
+        'transaction_type': 'production_in',
+        'reference_type': 'WorkOrder',
+        'reference_id': wo['id'],
+        'in_qty': entry_data.quantity_produced,
+        'out_qty': 0,
+        'balance_qty': 0,
+        'unit_cost': 0,
+        'batch_no': batch_number,
+        'notes': f"Machine: {(machine or {}).get('machine_code', wo['machine_id'])}",
         'created_by': current_user['id']
     })
+
+    # Update stock_balance and item current_stock similarly to Inventory /stock/entry logic
+    balance = await db.stock_balance.find_one({'item_id': wo['item_id'], 'warehouse_id': (default_wh or {}).get('id', '')}, {'_id': 0})
+    current_qty = balance.get('quantity', 0) if balance else 0
+    new_qty = current_qty + entry_data.quantity_produced
+
+    if balance:
+        await db.stock_balance.update_one(
+            {'item_id': wo['item_id'], 'warehouse_id': (default_wh or {}).get('id', '')},
+            {'$set': {'quantity': new_qty, 'available_qty': new_qty, 'last_updated': datetime.now(timezone.utc).isoformat()}}
+        )
+    else:
+        item_doc = await db.items.find_one({'id': wo['item_id']}, {'_id': 0})
+        await db.stock_balance.insert_one({
+            'id': str(uuid.uuid4()),
+            'item_id': wo['item_id'],
+            'item_code': (item_doc or {}).get('item_code'),
+            'item_name': (item_doc or {}).get('item_name'),
+            'warehouse_id': (default_wh or {}).get('id', ''),
+            'warehouse_name': (default_wh or {}).get('warehouse_name', ''),
+            'quantity': new_qty,
+            'reserved_qty': 0,
+            'available_qty': new_qty,
+            'uom': (item_doc or {}).get('uom', 'Rolls'),
+            'avg_cost': 0,
+            'total_value': 0,
+            'last_updated': datetime.now(timezone.utc).isoformat()
+        })
+
+    total_stock = await db.stock_balance.aggregate([
+        {'$match': {'item_id': wo['item_id']}},
+        {'$group': {'_id': None, 'total': {'$sum': '$quantity'}}}
+    ]).to_list(1)
+    total = total_stock[0]['total'] if total_stock else 0
+    await db.items.update_one({'id': wo['item_id']}, {'$set': {'current_stock': total}})
     
     return {'message': 'Production entry created', 'entry_id': entry_id, 'batch_number': batch_number}
 
