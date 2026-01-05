@@ -141,6 +141,11 @@ async def create_production_entry(entry_data: ProductionEntry, current_user: dic
     warehouses = await db.warehouses.find({}, {'_id': 0}).to_list(1000)
     default_wh = next((w for w in warehouses if w.get('warehouse_type') == 'Main'), warehouses[0] if warehouses else None)
 
+    # Update stock_balance and item current_stock similarly to Inventory /stock/entry logic
+    balance = await db.stock_balance.find_one({'item_id': wo['item_id'], 'warehouse_id': (default_wh or {}).get('id', '')}, {'_id': 0})
+    current_qty = balance.get('quantity', 0) if balance else 0
+    new_qty = current_qty + entry_data.quantity_produced
+
     await db.stock_ledger.insert_one({
         'id': str(uuid.uuid4()),
         'item_id': wo['item_id'],
@@ -151,17 +156,12 @@ async def create_production_entry(entry_data: ProductionEntry, current_user: dic
         'reference_id': wo['id'],
         'in_qty': entry_data.quantity_produced,
         'out_qty': 0,
-        'balance_qty': 0,
+        'balance_qty': new_qty,
         'unit_cost': 0,
         'batch_no': batch_number,
         'notes': f"Machine: {(machine or {}).get('machine_code', wo['machine_id'])}",
         'created_by': current_user['id']
     })
-
-    # Update stock_balance and item current_stock similarly to Inventory /stock/entry logic
-    balance = await db.stock_balance.find_one({'item_id': wo['item_id'], 'warehouse_id': (default_wh or {}).get('id', '')}, {'_id': 0})
-    current_qty = balance.get('quantity', 0) if balance else 0
-    new_qty = current_qty + entry_data.quantity_produced
 
     if balance:
         await db.stock_balance.update_one(
