@@ -101,3 +101,40 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: "ERP/CRM/HRMS for adhesive tapes industry - complete demo-ready modules and close backend gaps"
+## frontend:
+##   - task: "HRMS/Quality/Production pages render and key UI actions work"
+##     implemented: true
+##     working: "unknown"
+##     file: "/app/frontend/src/pages/HRMS.js, /app/frontend/src/pages/Quality.js, /app/frontend/src/pages/Production.js"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##       - working: "unknown"
+##         agent: "main"
+##         comment: "Screenshots captured successfully but earlier console showed auth 401 due to missing admin@instabiz.com user; user created. Need full UI smoke + CRUD verification."
+## backend:
+##   - task: "Auth: ensure admin@instabiz.com works"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/server.py (DB users seed via script)"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "main"
+##         comment: "Created admin@instabiz.com user in MongoDB; /api/auth/login now returns JWT successfully."
+##   - task: "Production entry updates inventory stock collections"
+##     implemented: true
+##     working: "unknown"
+##     file: "/app/backend/routes/production.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##       - working: "unknown"
+##         agent: "main"
+##         comment: "Replaced write to non-existent stock_transactions with writes to stock_ledger/stock_balance and item current_stock update. Needs e2e validation with a real production entry."
