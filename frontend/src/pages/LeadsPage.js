@@ -327,11 +327,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     }
   }, [lead, open]);
 
-  useEffect(() => {
-    if (formData.assigned_to === 'unassigned') {
-      setFormData((prev) => ({ ...prev, assigned_to: '' }));
-    }
-  }, [formData.assigned_to]);
+  // assigned_to uses 'unassigned' token in UI; normalized to null on submit
 
   const loadStates = useCallback(async (country) => {
     if (!country) return;
