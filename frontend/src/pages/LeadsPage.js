@@ -421,16 +421,83 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
               <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
             </div>
             <div className="space-y-2">
+              <Label>Country</Label>
+              <Input value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value})} placeholder="India" />
+            </div>
+            <div className="space-y-2">
+              <Label>State</Label>
+              <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
+                <SelectTrigger><SelectValue placeholder={loadingGeo ? 'Loading...' : 'Select state'} /></SelectTrigger>
+                <SelectContent>
+                  {stateOptions.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Pincode</Label>
+              <Input 
+                value={formData.pincode} 
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setFormData({...formData, pincode: v});
+                  if (v.length === 6 && (formData.country || 'India').toLowerCase() === 'india') {
+                    tryAutoFillFromPincode(v);
+                  }
+                }} 
+              />
+              {loadingGeo && <div className="text-xs text-slate-500">Auto-filling location…</div>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>District</Label>
+              <Input value={formData.district} onChange={(e) => setFormData({...formData, district: e.target.value})} />
+            </div>
+            <div className="space-y-2">
               <Label>City</Label>
               <Input value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} />
             </div>
             <div className="space-y-2">
-              <Label>State</Label>
-              <Input value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} />
+              <Label>Customer Type</Label>
+              <Select value={formData.customer_type} onValueChange={(v) => setFormData({...formData, customer_type: v})}>
+                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                <SelectContent>
+                  {CUSTOMER_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Assigned To</Label>
+              <Select value={formData.assigned_to} onValueChange={(v) => setFormData({...formData, assigned_to: v})}>
+                <SelectTrigger><SelectValue placeholder="Select salesperson" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Unassigned</SelectItem>
+                  {salesUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label>Pincode</Label>
-              <Input value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} />
+              <Label>Pipeline</Label>
+              <Input value={formData.pipeline} onChange={(e) => setFormData({...formData, pipeline: e.target.value})} placeholder="main" />
+            </div>
+            <div className="space-y-2">
+              <Label>Stage</Label>
+              <Select value={formData.status || (lead?.status || 'new')} onValueChange={(v) => setFormData({...formData, status: v})}>
+                <SelectTrigger><SelectValue placeholder="Select stage" /></SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map(s => <SelectItem key={s} value={s}>{STATUS_CONFIG[s].label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
