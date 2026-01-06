@@ -359,17 +359,6 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     setFormData((prev) => ({ ...prev, state: '' }));
   }, [formData.country]);
 
-    } else {
-      setFormData({
-        company_name: '', contact_person: '', email: '', phone: '', mobile: '',
-        address: '', country: 'India', state: '', district: '', city: '', pincode: '',
-        customer_type: '', pipeline: 'main', assigned_to: '',
-        source: 'IndiaMART', industry: '', product_interest: '',
-        estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
-      });
-    }
-  }, [lead, open]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
