@@ -75,7 +75,7 @@ const UserManagement = () => {
       toast.success('User created successfully');
       setOpen(false);
       fetchUsers();
-      setFormData({ email: '', password: '', name: '', role: 'viewer', location: '', department: '' });
+      setFormData({ email: '', password: '', name: '', role: 'viewer', location: '', department: '', team: '', reports_to: '' });
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create user');
     }
