@@ -784,6 +784,7 @@ async def get_leads_kanban(current_user: dict = Depends(get_current_user)):
     
     return {
         'columns': statuses,
+        'statuses': statuses,
         'data': kanban_data,
         'counts': counts
     }
