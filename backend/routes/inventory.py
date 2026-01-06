@@ -498,6 +498,25 @@ async def create_transfer(transfer_data: StockTransferCreate, current_user: dict
     }
     
     await db.stock_transfers.insert_one(transfer_doc)
+
+    # Auto-create approval request (admin for phase-1)
+    await db.approval_requests.insert_one({
+        "id": str(uuid.uuid4()),
+        "module": "Inventory",
+        "entity_type": "StockTransfer",
+        "entity_id": transfer_id,
+        "action": "Stock Transfer",
+        "condition": "Inter-warehouse",
+        "status": "pending",
+        "approver_role": "admin",
+        "requested_by": current_user["id"],
+        "requested_at": datetime.now(timezone.utc).isoformat(),
+        "decided_by": None,
+        "decided_at": None,
+        "payload": {"transfer_number": transfer_number},
+        "notes": "Workbook rule: Inter-warehouse transfer requires approval"
+    })
+
     return StockTransfer(**{k: v for k, v in transfer_doc.items() if k != '_id'})
 
 @router.get("/transfers", response_model=List[StockTransfer])
