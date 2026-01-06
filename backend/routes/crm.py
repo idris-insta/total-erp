@@ -975,10 +975,21 @@ async def create_account(account_data: AccountCreate, current_user: dict = Depen
     
     # Validate and auto-fill from GSTIN
     gstin_info = validate_and_parse_gstin(account_data.gstin)
+
+    payload = account_data.model_dump()
+
+    # Auto-fill geo fields for India PIN
+    if (payload.get('billing_country') or 'India').strip().lower() == 'india' and payload.get('billing_pincode'):
+        geo = await lookup_india_pincode(payload.get('billing_pincode'))
+        if geo:
+            payload['billing_country'] = geo.get('country') or payload.get('billing_country')
+            payload['billing_state'] = geo.get('state') or payload.get('billing_state')
+            payload['billing_district'] = geo.get('district') or payload.get('billing_district')
+            payload['billing_city'] = geo.get('city') or payload.get('billing_city')
     
     account_doc = {
         'id': account_id,
-        **account_data.model_dump(),
+        **payload,
         'is_active': True,
         'total_outstanding': 0,
         'receivable_amount': 0,
