@@ -1075,6 +1075,16 @@ async def get_account(account_id: str, current_user: dict = Depends(get_current_
 @router.put("/accounts/{account_id}", response_model=Account)
 async def update_account(account_id: str, account_data: AccountUpdate, current_user: dict = Depends(get_current_user)):
     update_dict = {k: v for k, v in account_data.model_dump().items() if v is not None}
+
+    # Auto-fill geo fields for India PIN if changed
+    if (update_dict.get('billing_country') or 'India').strip().lower() == 'india' and update_dict.get('billing_pincode'):
+        geo = await lookup_india_pincode(update_dict.get('billing_pincode'))
+        if geo:
+            update_dict['billing_country'] = geo.get('country') or update_dict.get('billing_country')
+            update_dict['billing_state'] = geo.get('state') or update_dict.get('billing_state')
+            update_dict['billing_district'] = geo.get('district') or update_dict.get('billing_district')
+            update_dict['billing_city'] = geo.get('city') or update_dict.get('billing_city')
+
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
     
     # Convert nested models to dict
