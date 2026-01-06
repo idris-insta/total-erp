@@ -105,6 +105,43 @@ async def start_work_order(wo_id: str, current_user: dict = Depends(get_current_
     
     return {'message': 'Work order started'}
 
+
+@router.put("/work-orders/{wo_id}/cancel")
+async def cancel_work_order(wo_id: str, current_user: dict = Depends(get_current_user)):
+    # WORKBOOK APPROVAL: Cancel Production Order requires approval (admin for phase-1)
+    approval = await db.approval_requests.find_one({
+        "module": "Production",
+        "entity_type": "WorkOrder",
+        "entity_id": wo_id,
+        "action": "Cancel Production Order",
+        "status": "approved",
+    }, {"_id": 0})
+    if not approval:
+        await db.approval_requests.insert_one({
+            "id": str(uuid.uuid4()),
+            "module": "Production",
+            "entity_type": "WorkOrder",
+            "entity_id": wo_id,
+            "action": "Cancel Production Order",
+            "condition": "Any",
+            "status": "pending",
+            "approver_role": "admin",
+            "requested_by": current_user["id"],
+            "requested_at": datetime.now(timezone.utc).isoformat(),
+            "decided_by": None,
+            "decided_at": None,
+            "payload": {"wo_id": wo_id},
+            "notes": "Workbook rule: cancel production order requires approval"
+        })
+        raise HTTPException(status_code=409, detail="Approval required: Cancel Production Order")
+
+    wo = await db.work_orders.find_one({'id': wo_id}, {'_id': 0})
+    if not wo:
+        raise HTTPException(status_code=404, detail="Work order not found")
+
+    await db.work_orders.update_one({'id': wo_id}, {'$set': {'status': 'cancelled', 'updated_at': datetime.now(timezone.utc).isoformat()}})
+    return {'message': 'Work order cancelled'}
+
 @router.post("/production-entries")
 async def create_production_entry(entry_data: ProductionEntry, current_user: dict = Depends(get_current_user)):
     wo = await db.work_orders.find_one({'id': entry_data.wo_id}, {'_id': 0})
