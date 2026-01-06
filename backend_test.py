@@ -19,6 +19,7 @@ class APITester:
     def __init__(self):
         self.token = None
         self.session = requests.Session()
+        self.session.headers.update({'User-Agent': 'ERP-Test-Client/1.0'})
         self.test_results = []
         
     def log_test(self, test_name, success, details=""):
