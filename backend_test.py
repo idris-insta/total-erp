@@ -502,9 +502,332 @@ class APITester:
             error = response.text if response else "Connection failed"
             self.log_test("Create Work Order", False, f"Status: {status}, Error: {error}")
     
+    def test_stock_transfer_approval(self, warehouse_id, item_id):
+        """Test 1: Stock Transfer Approval Enforcement"""
+        print("\n=== Testing Stock Transfer Approval Enforcement ===")
+        
+        if not warehouse_id or not item_id:
+            self.log_test("Stock Transfer Approval", False, "Missing warehouse_id or item_id")
+            return None
+            
+        # Get warehouses to create transfer between two
+        response = self.make_request("GET", "/inventory/warehouses")
+        if not response or response.status_code != 200:
+            self.log_test("Get Warehouses for Transfer", False, f"Status: {response.status_code if response else 'No response'}")
+            return None
+            
+        warehouses = response.json()
+        if len(warehouses) < 2:
+            # Create second warehouse
+            wh2_data = {
+                "warehouse_code": "WH-BRANCH",
+                "warehouse_name": "Branch Warehouse",
+                "warehouse_type": "Branch",
+                "address": "Branch Location, Mumbai",
+                "city": "Mumbai",
+                "state": "Maharashtra",
+                "pincode": "400002",
+                "is_active": True
+            }
+            response = self.make_request("POST", "/inventory/warehouses", wh2_data)
+            if response and response.status_code == 200:
+                wh2_data = response.json()
+                to_warehouse = wh2_data.get("id")
+                self.log_test("Create Second Warehouse", True, f"Warehouse ID: {to_warehouse}")
+            else:
+                self.log_test("Create Second Warehouse", False, f"Status: {response.status_code if response else 'No response'}")
+                return None
+        else:
+            to_warehouse = warehouses[1]["id"]
+            
+        # Create stock transfer
+        transfer_data = {
+            "from_warehouse": warehouse_id,
+            "to_warehouse": to_warehouse,
+            "items": [
+                {
+                    "item_id": item_id,
+                    "quantity": 10.0,
+                    "batch_no": f"BATCH-{datetime.now().strftime('%Y%m%d')}-001"
+                }
+            ],
+            "scheduled_date": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
+            "truck_no": "MH01AB1234",
+            "driver_name": "Suresh Patil",
+            "driver_phone": "9876543210",
+            "notes": "Test transfer for approval enforcement"
+        }
+        
+        response = self.make_request("POST", "/inventory/transfers", transfer_data)
+        if response and response.status_code == 200:
+            transfer = response.json()
+            transfer_id = transfer.get("id")
+            self.log_test("Create Stock Transfer", True, f"Transfer: {transfer.get('transfer_number')}")
+            
+            # Verify approval request was auto-created
+            response = self.make_request("GET", "/approvals/requests", params={"status": "pending", "module": "Inventory"})
+            if response and response.status_code == 200:
+                approvals = response.json()
+                transfer_approval = next((a for a in approvals if a.get("entity_id") == transfer_id and a.get("entity_type") == "StockTransfer"), None)
+                if transfer_approval:
+                    self.log_test("Auto-create Approval Request", True, f"Approval ID: {transfer_approval.get('id')}")
+                    
+                    # Try to issue transfer without approval - should return 409
+                    response = self.make_request("PUT", f"/inventory/transfers/{transfer_id}/issue")
+                    if response and response.status_code == 409:
+                        self.log_test("Block Issue Without Approval", True, "409 Approval required returned")
+                        
+                        # Approve the request
+                        approval_id = transfer_approval.get("id")
+                        response = self.make_request("PUT", f"/approvals/requests/{approval_id}/approve", {"notes": "Test approval"})
+                        if response and response.status_code == 200:
+                            self.log_test("Approve Transfer Request", True, "Approval successful")
+                            
+                            # Retry issue - should succeed now
+                            response = self.make_request("PUT", f"/inventory/transfers/{transfer_id}/issue")
+                            if response and response.status_code == 200:
+                                self.log_test("Issue After Approval", True, "Transfer issued successfully")
+                                return transfer_id
+                            else:
+                                self.log_test("Issue After Approval", False, f"Status: {response.status_code if response else 'No response'}")
+                        else:
+                            self.log_test("Approve Transfer Request", False, f"Status: {response.status_code if response else 'No response'}")
+                    else:
+                        self.log_test("Block Issue Without Approval", False, f"Expected 409, got {response.status_code if response else 'No response'}")
+                else:
+                    self.log_test("Auto-create Approval Request", False, "No approval request found for transfer")
+            else:
+                self.log_test("List Approval Requests", False, f"Status: {response.status_code if response else 'No response'}")
+        else:
+            status = response.status_code if response else "No response"
+            error = response.text if response else "Connection failed"
+            self.log_test("Create Stock Transfer", False, f"Status: {status}, Error: {error}")
+        
+        return None
+    
+    def test_hrms_payroll_approval(self, employee_id):
+        """Test 2: HRMS Payroll Approval Enforcement"""
+        print("\n=== Testing HRMS Payroll Approval Enforcement ===")
+        
+        if not employee_id:
+            self.log_test("HRMS Payroll Approval", False, "No employee ID available")
+            return
+            
+        payroll_data = {
+            "employee_id": employee_id,
+            "month": "December",
+            "year": 2024,
+            "days_present": 22.0,
+            "days_absent": 8.0,
+            "overtime_hours": 5.0
+        }
+        
+        # First call should return 409 and auto-create approval request
+        response = self.make_request("POST", "/hrms/payroll", payroll_data)
+        if response and response.status_code == 409:
+            self.log_test("Block Payroll Without Approval", True, "409 Approval required returned")
+            
+            # Verify approval request was auto-created
+            response = self.make_request("GET", "/approvals/requests", params={"status": "pending", "module": "HRMS"})
+            if response and response.status_code == 200:
+                approvals = response.json()
+                payroll_approval = next((a for a in approvals if a.get("entity_type") == "Payroll" and a.get("action") == "Payroll Run"), None)
+                if payroll_approval:
+                    self.log_test("Auto-create Payroll Approval", True, f"Approval ID: {payroll_approval.get('id')}")
+                    
+                    # Approve the request
+                    approval_id = payroll_approval.get("id")
+                    response = self.make_request("PUT", f"/approvals/requests/{approval_id}/approve", {"notes": "Test payroll approval"})
+                    if response and response.status_code == 200:
+                        self.log_test("Approve Payroll Request", True, "Approval successful")
+                        
+                        # Retry payroll - should succeed now
+                        response = self.make_request("POST", "/hrms/payroll", payroll_data)
+                        if response and response.status_code == 200:
+                            payroll_result = response.json()
+                            self.log_test("Generate Payroll After Approval", True, f"Net salary: {payroll_result.get('net_salary')}")
+                        else:
+                            self.log_test("Generate Payroll After Approval", False, f"Status: {response.status_code if response else 'No response'}")
+                    else:
+                        self.log_test("Approve Payroll Request", False, f"Status: {response.status_code if response else 'No response'}")
+                else:
+                    self.log_test("Auto-create Payroll Approval", False, "No payroll approval request found")
+            else:
+                self.log_test("List Payroll Approvals", False, f"Status: {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("Block Payroll Without Approval", False, f"Expected 409, got {response.status_code if response else 'No response'}")
+    
+    def test_production_scrap_approval(self, item_id, machine_id):
+        """Test 3: Production Scrap >7% Approval Enforcement"""
+        print("\n=== Testing Production Scrap >7% Approval Enforcement ===")
+        
+        if not item_id or not machine_id:
+            self.log_test("Production Scrap Approval", False, "Missing item_id or machine_id")
+            return None
+            
+        # Create work order
+        wo_data = {
+            "item_id": item_id,
+            "quantity_to_make": 100.0,
+            "machine_id": machine_id,
+            "thickness": 0.5,
+            "color": "Clear",
+            "width": 25.0,
+            "length": 50.0,
+            "brand": "InstaBiz",
+            "priority": "high"
+        }
+        
+        response = self.make_request("POST", "/production/work-orders", wo_data)
+        if response and response.status_code == 200:
+            wo = response.json()
+            wo_id = wo.get("id")
+            self.log_test("Create Work Order for Scrap Test", True, f"WO: {wo.get('wo_number')}")
+            
+            # Start work order
+            response = self.make_request("PUT", f"/production/work-orders/{wo_id}/start")
+            if response and response.status_code == 200:
+                self.log_test("Start Work Order for Scrap Test", True, "Work order started")
+                
+                # Create production entry with >7% wastage (8 wastage out of 92 produced = 8.7%)
+                production_data = {
+                    "wo_id": wo_id,
+                    "quantity_produced": 92.0,
+                    "wastage": 8.0,  # 8.7% wastage
+                    "start_time": "08:00:00",
+                    "end_time": "16:00:00",
+                    "operator": "Rajesh Kumar",
+                    "notes": "Test production with high wastage for approval enforcement"
+                }
+                
+                # First call should return 409 and auto-create approval request
+                response = self.make_request("POST", "/production/production-entries", production_data)
+                if response and response.status_code == 409:
+                    self.log_test("Block High Scrap Without Approval", True, "409 Approval required returned")
+                    
+                    # Verify approval request was auto-created
+                    response = self.make_request("GET", "/approvals/requests", params={"status": "pending", "module": "Production"})
+                    if response and response.status_code == 200:
+                        approvals = response.json()
+                        scrap_approval = next((a for a in approvals if a.get("entity_id") == wo_id and a.get("action") == "Production Scrap"), None)
+                        if scrap_approval:
+                            self.log_test("Auto-create Scrap Approval", True, f"Approval ID: {scrap_approval.get('id')}")
+                            
+                            # Approve the request
+                            approval_id = scrap_approval.get("id")
+                            response = self.make_request("PUT", f"/approvals/requests/{approval_id}/approve", {"notes": "Test scrap approval"})
+                            if response and response.status_code == 200:
+                                self.log_test("Approve Scrap Request", True, "Approval successful")
+                                
+                                # Retry production entry - should succeed now and update inventory
+                                response = self.make_request("POST", "/production/production-entries", production_data)
+                                if response and response.status_code == 200:
+                                    prod_result = response.json()
+                                    self.log_test("Create Production Entry After Approval", True, f"Batch: {prod_result.get('batch_number')}")
+                                    
+                                    # Verify inventory stock was updated
+                                    response = self.make_request("GET", "/inventory/stock/balance", params={"item_id": item_id})
+                                    if response and response.status_code == 200:
+                                        balances = response.json()
+                                        total_qty = sum(bal.get("quantity", 0) for bal in balances)
+                                        self.log_test("Verify Stock Update After Production", total_qty >= 92, f"Total stock: {total_qty}")
+                                        return wo_id
+                                    else:
+                                        self.log_test("Verify Stock Update After Production", False, f"Status: {response.status_code if response else 'No response'}")
+                                else:
+                                    self.log_test("Create Production Entry After Approval", False, f"Status: {response.status_code if response else 'No response'}")
+                            else:
+                                self.log_test("Approve Scrap Request", False, f"Status: {response.status_code if response else 'No response'}")
+                        else:
+                            self.log_test("Auto-create Scrap Approval", False, "No scrap approval request found")
+                    else:
+                        self.log_test("List Scrap Approvals", False, f"Status: {response.status_code if response else 'No response'}")
+                else:
+                    self.log_test("Block High Scrap Without Approval", False, f"Expected 409, got {response.status_code if response else 'No response'}")
+            else:
+                self.log_test("Start Work Order for Scrap Test", False, f"Status: {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("Create Work Order for Scrap Test", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        return None
+    
+    def test_production_cancel_approval(self, item_id, machine_id):
+        """Test 4: Production Cancel Work Order Approval Enforcement"""
+        print("\n=== Testing Production Cancel Work Order Approval Enforcement ===")
+        
+        if not item_id or not machine_id:
+            self.log_test("Production Cancel Approval", False, "Missing item_id or machine_id")
+            return
+            
+        # Create work order for cancellation test
+        wo_data = {
+            "item_id": item_id,
+            "quantity_to_make": 50.0,
+            "machine_id": machine_id,
+            "thickness": 0.5,
+            "color": "Blue",
+            "width": 20.0,
+            "length": 30.0,
+            "brand": "InstaBiz",
+            "priority": "normal"
+        }
+        
+        response = self.make_request("POST", "/production/work-orders", wo_data)
+        if response and response.status_code == 200:
+            wo = response.json()
+            wo_id = wo.get("id")
+            self.log_test("Create Work Order for Cancel Test", True, f"WO: {wo.get('wo_number')}")
+            
+            # First call to cancel should return 409 and auto-create approval request
+            response = self.make_request("PUT", f"/production/work-orders/{wo_id}/cancel")
+            if response and response.status_code == 409:
+                self.log_test("Block Cancel Without Approval", True, "409 Approval required returned")
+                
+                # Verify approval request was auto-created
+                response = self.make_request("GET", "/approvals/requests", params={"status": "pending", "module": "Production"})
+                if response and response.status_code == 200:
+                    approvals = response.json()
+                    cancel_approval = next((a for a in approvals if a.get("entity_id") == wo_id and a.get("action") == "Cancel Production Order"), None)
+                    if cancel_approval:
+                        self.log_test("Auto-create Cancel Approval", True, f"Approval ID: {cancel_approval.get('id')}")
+                        
+                        # Approve the request
+                        approval_id = cancel_approval.get("id")
+                        response = self.make_request("PUT", f"/approvals/requests/{approval_id}/approve", {"notes": "Test cancel approval"})
+                        if response and response.status_code == 200:
+                            self.log_test("Approve Cancel Request", True, "Approval successful")
+                            
+                            # Retry cancel - should succeed now and set status to cancelled
+                            response = self.make_request("PUT", f"/production/work-orders/{wo_id}/cancel")
+                            if response and response.status_code == 200:
+                                self.log_test("Cancel Work Order After Approval", True, "Work order cancelled successfully")
+                                
+                                # Verify work order status is cancelled
+                                response = self.make_request("GET", f"/production/work-orders/{wo_id}")
+                                if response and response.status_code == 200:
+                                    wo_status = response.json()
+                                    if wo_status.get("status") == "cancelled":
+                                        self.log_test("Verify Cancelled Status", True, "Status set to cancelled")
+                                    else:
+                                        self.log_test("Verify Cancelled Status", False, f"Status: {wo_status.get('status')}")
+                                else:
+                                    self.log_test("Verify Cancelled Status", False, f"Status: {response.status_code if response else 'No response'}")
+                            else:
+                                self.log_test("Cancel Work Order After Approval", False, f"Status: {response.status_code if response else 'No response'}")
+                        else:
+                            self.log_test("Approve Cancel Request", False, f"Status: {response.status_code if response else 'No response'}")
+                    else:
+                        self.log_test("Auto-create Cancel Approval", False, "No cancel approval request found")
+                else:
+                    self.log_test("List Cancel Approvals", False, f"Status: {response.status_code if response else 'No response'}")
+            else:
+                self.log_test("Block Cancel Without Approval", False, f"Expected 409, got {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("Create Work Order for Cancel Test", False, f"Status: {response.status_code if response else 'No response'}")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Backend API Tests for Adhesive ERP System")
+        print("🚀 Starting Backend API Tests for Adhesive ERP System - Approval Enforcement Focus")
         print(f"Base URL: {BASE_URL}")
         print("=" * 60)
         
@@ -515,20 +838,16 @@ class APITester:
         
         self.test_auth_me()
         
-        # HRMS tests
-        employee_id = self.test_hrms_employees()
-        self.test_hrms_attendance(employee_id)
-        self.test_hrms_leave_requests(employee_id)
-        
-        # Quality tests
-        self.test_quality_inspections()
-        self.test_quality_complaints()
-        self.test_quality_tds()
-        
-        # Inventory + Production integration tests
+        # Setup required data
         warehouse_id, item_id = self.test_inventory_setup()
         machine_id = self.test_production_setup()
-        self.test_production_workflow(item_id, machine_id)
+        employee_id = self.test_hrms_employees()
+        
+        # Approval enforcement tests (main focus)
+        self.test_stock_transfer_approval(warehouse_id, item_id)
+        self.test_hrms_payroll_approval(employee_id)
+        self.test_production_scrap_approval(item_id, machine_id)
+        self.test_production_cancel_approval(item_id, machine_id)
         
         # Summary
         print("\n" + "=" * 60)
