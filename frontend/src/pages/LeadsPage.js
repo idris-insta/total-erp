@@ -276,7 +276,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
   const [formData, setFormData] = useState({
     company_name: '', contact_person: '', email: '', phone: '', mobile: '',
     address: '', country: 'India', state: '', district: '', city: '', pincode: '',
-    customer_type: '', pipeline: 'main', assigned_to: '',
+    customer_type: '', pipeline: 'main', assigned_to: 'unassigned',
     source: 'IndiaMART', industry: '', product_interest: '',
     estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
   });
