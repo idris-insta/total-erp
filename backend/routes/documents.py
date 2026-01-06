@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -50,10 +50,10 @@ class EmailTemplateResponse(BaseModel):
 @router.post("/documents/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    module: str = None,
-    entity: str = None,
-    entity_id: str = None,
-    description: str = None,
+    module: str = Form(...),
+    entity: str = Form(...),
+    entity_id: str = Form(...),
+    description: Optional[str] = Form(None),
     current_user: dict = Depends(get_current_user)
 ):
     """
