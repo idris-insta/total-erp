@@ -105,8 +105,11 @@ async def get_data_filter(current_user: dict, module: str) -> dict:
                 {"assigned_to": None, "created_by": user_id}
             ]}
 
-        # Default: if user isn't in sales hierarchy, show nothing for leads
-        return {"assigned_to": user_id}
+        # Default: if user isn't in sales hierarchy, show only own/assigned
+        return {"$or": [
+            {"assigned_to": user_id},
+            {"assigned_to": None, "created_by": user_id}
+        ]}
     
     # Check user's custom access config
     access = await db.user_access.find_one({"user_id": user_id}, {"_id": 0})
