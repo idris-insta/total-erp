@@ -261,6 +261,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
 
   useEffect(() => {
     if (lead) {
+      // editing mode
       setFormData({
         company_name: lead.company_name || '',
         contact_person: lead.contact_person || '',
