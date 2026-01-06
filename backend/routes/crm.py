@@ -305,6 +305,9 @@ class AccountCreate(BaseModel):
     credit_limit: float = 0
     credit_days: int = 30
     credit_control: str = "Warn"
+    billing_country: str = "India"
+    billing_district: Optional[str] = None
+
     payment_terms: str = "30 days"
     industry: Optional[str] = None
     website: Optional[str] = None
