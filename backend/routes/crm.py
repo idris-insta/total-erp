@@ -62,7 +62,7 @@ async def lookup_states_for_country(country_name: str) -> List[str]:
         return INDIA_STATES_UT
 
     payload = {"country": country_name}
-    async with httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "adhesive-erp"}) as client:
+    async with httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "adhesive-erp"}, follow_redirects=True) as client:
         resp = await client.post(COUNTRIESNOW_STATES_API, json=payload)
         if resp.status_code != 200:
             return []
