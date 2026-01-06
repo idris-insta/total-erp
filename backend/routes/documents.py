@@ -116,6 +116,25 @@ async def get_documents(
     documents = await db.documents.find(query, {'_id': 0}).sort('uploaded_at', -1).to_list(1000)
     return [Document(**doc) for doc in documents]
 
+
+@router.get("/documents/{document_id}/download")
+async def download_document(document_id: str, current_user: dict = Depends(get_current_user)):
+    """Download/view a document by id"""
+    document = await db.documents.find_one({'id': document_id}, {'_id': 0})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    file_path = Path(document['file_path'])
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    from fastapi.responses import FileResponse
+    return FileResponse(
+        path=str(file_path),
+        media_type=document.get('mime_type') or 'application/octet-stream',
+        filename=document.get('original_filename')
+    )
+
 @router.delete("/documents/{document_id}")
 async def delete_document(document_id: str, current_user: dict = Depends(get_current_user)):
     """
