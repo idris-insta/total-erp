@@ -147,6 +147,37 @@ async def create_production_entry(entry_data: ProductionEntry, current_user: dic
     wo = await db.work_orders.find_one({'id': entry_data.wo_id}, {'_id': 0})
     if not wo:
         raise HTTPException(status_code=404, detail="Work order not found")
+
+    # WORKBOOK APPROVAL: scrap / wastage > 7% requires approval (admin for phase-1)
+    if entry_data.quantity_produced and entry_data.quantity_produced > 0:
+        scrap_pct = (entry_data.wastage / entry_data.quantity_produced) * 100 if entry_data.wastage else 0
+        if scrap_pct > 7:
+            approval = await db.approval_requests.find_one({
+                "module": "Production",
+                "entity_type": "ProductionEntry",
+                "entity_id": entry_data.wo_id,
+                "action": "Production Scrap",
+                "status": "approved",
+            }, {"_id": 0})
+            if not approval:
+                await db.approval_requests.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "module": "Production",
+                    "entity_type": "ProductionEntry",
+                    "entity_id": entry_data.wo_id,
+                    "action": "Production Scrap",
+                    "condition": ">7%",
+                    "status": "pending",
+                    "approver_role": "admin",
+                    "requested_by": current_user["id"],
+                    "requested_at": datetime.now(timezone.utc).isoformat(),
+                    "decided_by": None,
+                    "decided_at": None,
+                    "payload": entry_data.model_dump(),
+                    "notes": f"Workbook rule: scrap {scrap_pct:.2f}% > 7% requires approval"
+                })
+                raise HTTPException(status_code=409, detail="Approval required: Production Scrap > 7%")
+
     
     entry_id = str(uuid.uuid4())
     batch_number = f"{wo['item_id']}-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{wo['machine_id']}-{wo['wo_number']}"
