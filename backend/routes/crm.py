@@ -349,6 +349,9 @@ class Account(BaseModel):
     gstin: str
     pan: Optional[str] = None
     billing_address: str
+    billing_country: str = "India"
+    billing_district: Optional[str] = None
+
     billing_city: Optional[str] = None
     billing_state: Optional[str] = None
     billing_pincode: Optional[str] = None
