@@ -341,6 +341,137 @@ async def create_payment(pmt_data: PaymentCreate, current_user: dict = Depends(g
         "id": pmt_id,
         "payment_number": pmt_number,
         "payment_type": pmt_data.payment_type,
+
+# ==================== CHART OF ACCOUNTS ENDPOINTS ====================
+@router.post("/coa/groups", response_model=LedgerGroup)
+async def create_ledger_group(group_data: LedgerGroupCreate, current_user: dict = Depends(get_current_user)):
+    group_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    doc = {
+        "id": group_id,
+        **group_data.model_dump(),
+        "is_system": False,
+        "created_at": now,
+    }
+    await db.ledger_groups.insert_one(doc)
+    return LedgerGroup(**{k: v for k, v in doc.items() if k != "_id"})
+
+
+@router.get("/coa/groups", response_model=List[LedgerGroup])
+async def list_ledger_groups(current_user: dict = Depends(get_current_user)):
+    groups = await db.ledger_groups.find({}, {"_id": 0}).sort("category", 1).to_list(1000)
+    return [LedgerGroup(**g) for g in groups]
+
+
+@router.post("/coa/ledgers", response_model=Ledger)
+async def create_ledger(ledger_data: LedgerCreate, current_user: dict = Depends(get_current_user)):
+    ledger_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    group = await db.ledger_groups.find_one({"id": ledger_data.group_id}, {"_id": 0})
+    if not group:
+        raise HTTPException(status_code=400, detail="Invalid ledger group")
+
+    doc = {
+        "id": ledger_id,
+        **ledger_data.model_dump(),
+        "group_name": group.get("name"),
+        "current_balance": ledger_data.opening_balance,
+        "current_balance_type": ledger_data.opening_balance_type,
+        "is_system": False,
+        "created_at": now,
+    }
+    await db.ledgers.insert_one(doc)
+    return Ledger(**{k: v for k, v in doc.items() if k != "_id"})
+
+
+@router.get("/coa/ledgers", response_model=List[Ledger])
+async def list_ledgers(current_user: dict = Depends(get_current_user)):
+    ledgers = await db.ledgers.find({}, {"_id": 0}).sort("name", 1).to_list(2000)
+    return [Ledger(**l) for l in ledgers]
+
+
+@router.post("/journals", response_model=JournalEntry)
+async def create_journal_entry(entry: JournalEntryCreate, current_user: dict = Depends(get_current_user)):
+    entry_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+
+    total_debit = sum((l.debit or 0) for l in entry.lines)
+    total_credit = sum((l.credit or 0) for l in entry.lines)
+
+    if round(total_debit, 2) != round(total_credit, 2):
+        raise HTTPException(status_code=400, detail="Journal not balanced (Dr must equal Cr)")
+
+    # Resolve ledger names
+    lines = []
+    for l in entry.lines:
+        led = await db.ledgers.find_one({"id": l.ledger_id}, {"_id": 0})
+        if not led:
+            raise HTTPException(status_code=400, detail="Invalid ledger in journal")
+        lines.append({
+            "ledger_id": l.ledger_id,
+            "ledger_name": led.get("name"),
+            "debit": l.debit or 0,
+            "credit": l.credit or 0,
+            "narration": l.narration,
+        })
+
+    entry_number = f"JV-{now.strftime('%Y%m')}-{str(uuid.uuid4())[:6].upper()}"
+
+    doc = {
+        "id": entry_id,
+        "entry_number": entry_number,
+        "entry_date": entry.entry_date,
+        "reference_type": entry.reference_type,
+        "reference_id": entry.reference_id,
+        "narration": entry.narration,
+        "lines": lines,
+        "total_debit": round(total_debit, 2),
+        "total_credit": round(total_credit, 2),
+        "created_by": current_user["id"],
+        "created_at": now.isoformat(),
+    }
+
+    await db.journal_entries.insert_one(doc)
+
+    # Update ledger balances (simple running balance demo)
+    for ln in lines:
+        led = await db.ledgers.find_one({"id": ln["ledger_id"]}, {"_id": 0})
+        cur = led.get("current_balance", 0)
+        cur_type = led.get("current_balance_type", "debit")
+
+        # Convert to signed
+        signed = cur if cur_type == "debit" else -cur
+        signed += (ln["debit"] - ln["credit"])
+
+        new_type = "debit" if signed >= 0 else "credit"
+        new_bal = abs(signed)
+        await db.ledgers.update_one({"id": ln["ledger_id"]}, {"$set": {"current_balance": round(new_bal, 2), "current_balance_type": new_type}})
+
+    return JournalEntry(**{k: v for k, v in doc.items() if k != "_id"})
+
+
+@router.get("/reports/trial-balance", response_model=List[TrialBalanceRow])
+async def trial_balance(current_user: dict = Depends(get_current_user)):
+    ledgers = await db.ledgers.find({}, {"_id": 0}).to_list(5000)
+    groups = await db.ledger_groups.find({}, {"_id": 0}).to_list(5000)
+    gmap = {g["id"]: g for g in groups}
+
+    rows = []
+    for l in ledgers:
+        g = gmap.get(l.get("group_id")) or {}
+        bal = l.get("current_balance", 0)
+        bal_type = l.get("current_balance_type", "debit")
+        rows.append({
+            "ledger_id": l.get("id"),
+            "ledger_name": l.get("name"),
+            "group_name": g.get("name", ""),
+            "category": g.get("category", ""),
+            "debit": bal if bal_type == "debit" else 0,
+            "credit": bal if bal_type == "credit" else 0,
+        })
+
+    return [TrialBalanceRow(**r) for r in rows]
+
         "account_id": pmt_data.account_id,
         "account_name": account.get("customer_name") or account.get("supplier_name") if account else None,
         "amount": pmt_data.amount,
