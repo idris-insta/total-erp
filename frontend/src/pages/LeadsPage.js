@@ -48,9 +48,14 @@ export const EditableSelect = ({ value, onChange, category, options: initialOpti
   }, [category]);
 
   useEffect(() => {
-    if (category && (!initialOptions || initialOptions.length === 0)) {
-      fetchOptions();
-    }
+    let ignore = False;
+    const load = async () => {
+      if (category && (!initialOptions || initialOptions.length === 0)) {
+        await fetchOptions();
+      }
+    };
+    load();
+    return () => { ignore = true; };
   }, [category, initialOptions, fetchOptions]);
 
   // (removed duplicate fetchOptions block)
