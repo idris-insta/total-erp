@@ -53,13 +53,8 @@ export const EditableSelect = ({ value, onChange, category, options: initialOpti
     }
   }, [category, initialOptions, fetchOptions]);
 
-    try {
-      const response = await api.get(`/master-data/category/${category}`);
-      setOptions(response.data);
-    } catch (error) {
-      console.error('Failed to fetch options:', error);
-    }
-  };
+  // (removed duplicate fetchOptions block)
+
 
   const handleAddNew = async () => {
     if (!newValue.trim()) return;
