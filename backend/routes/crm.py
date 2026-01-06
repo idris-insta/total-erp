@@ -89,19 +89,24 @@ async def get_data_filter(current_user: dict, module: str) -> dict:
     if module == "crm_leads":
         if role == "sales_manager":
             return {}
+
         if role == "sales_team_leader":
             reports = await db.users.find({"reports_to": user_id}, {"id": 1, "_id": 0}).to_list(1000)
             team_user_ids = [u.get("id") for u in reports if u.get("id")]
             team_user_ids.append(user_id)
             return {"$or": [
-                {"created_by": {"$in": team_user_ids}},
-                {"assigned_to": {"$in": team_user_ids}}
+                {"assigned_to": {"$in": team_user_ids}},
+                {"assigned_to": None, "created_by": {"$in": team_user_ids}}
             ]}
-        # salesperson and others: own/assigned only
-        return {"$or": [
-            {"created_by": user_id},
-            {"assigned_to": user_id}
-        ]}
+
+        if role == "salesperson":
+            return {"$or": [
+                {"assigned_to": user_id},
+                {"assigned_to": None, "created_by": user_id}
+            ]}
+
+        # Default: if user isn't in sales hierarchy, show nothing for leads
+        return {"assigned_to": user_id}
     
     # Check user's custom access config
     access = await db.user_access.find_one({"user_id": user_id}, {"_id": 0})
