@@ -221,6 +221,34 @@ async def reject_leave(leave_id: str, reason: str, current_user: dict = Depends(
 
 @router.post("/payroll")
 async def generate_payroll(payroll_data: PayrollCreate, current_user: dict = Depends(get_current_user)):
+    # WORKBOOK APPROVAL: Payroll run requires approval (admin for phase-1)
+    approval = await db.approval_requests.find_one({
+        "module": "HRMS",
+        "entity_type": "Payroll",
+        "entity_id": f"{payroll_data.employee_id}:{payroll_data.month}:{payroll_data.year}",
+        "action": "Payroll Run",
+        "status": "approved",
+    }, {"_id": 0})
+    if not approval:
+        # create pending request and block
+        await db.approval_requests.insert_one({
+            "id": str(uuid.uuid4()),
+            "module": "HRMS",
+            "entity_type": "Payroll",
+            "entity_id": f"{payroll_data.employee_id}:{payroll_data.month}:{payroll_data.year}",
+            "action": "Payroll Run",
+            "condition": "Any",
+            "status": "pending",
+            "approver_role": "admin",
+            "requested_by": current_user["id"],
+            "requested_at": datetime.now(timezone.utc).isoformat(),
+            "decided_by": None,
+            "decided_at": None,
+            "payload": payroll_data.model_dump(),
+            "notes": "Workbook rule: Payroll run requires approval"
+        })
+        raise HTTPException(status_code=409, detail="Approval required: Payroll Run")
+
     employee = await db.employees.find_one({'id': payroll_data.employee_id}, {'_id': 0})
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
