@@ -359,7 +359,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     try {
       const payload = {
         ...formData,
-        estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null
+        estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null,
+        status: formData.status || (lead?.status || 'new')
       };
       
       if (lead) {
