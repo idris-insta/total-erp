@@ -826,11 +826,18 @@ async def update_lead(lead_id: str, lead_data: LeadUpdate, current_user: dict = 
 
 @router.delete("/leads/{lead_id}")
 async def delete_lead(lead_id: str, current_user: dict = Depends(get_current_user)):
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    query = {"id": lead_id, **base_filter} if base_filter else {"id": lead_id}
+
+    lead = await db.leads.find_one(query, {'_id': 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
     result = await db.leads.delete_one({'id': lead_id})
-    
+
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Lead not found")
-    
+
     return {'message': 'Lead deleted successfully'}
 
 @router.put("/leads/{lead_id}/contact")

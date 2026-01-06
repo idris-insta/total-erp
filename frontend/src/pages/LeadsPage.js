@@ -151,6 +151,18 @@ const LeadCard = ({ lead, index, onEdit, onView, onDelete }) => {
                     <DropdownMenuItem onClick={() => onEdit?.(lead)}>
                       <Edit className="h-4 w-4 mr-2" />Edit Lead
                     </DropdownMenuItem>
+                    {lead.status === 'proposal' && (
+                      <DropdownMenuItem onClick={async () => {
+                        try {
+                          const res = await api.post(`/crm/leads/${lead.id}/create-quotation`);
+                          toast.success(`Quotation created: ${res.data?.quote_number || ''}`);
+                        } catch (e) {
+                          toast.error(e.response?.data?.detail || 'Failed to create quotation');
+                        }
+                      }}>
+                        <FileText className="h-4 w-4 mr-2" />Create Quotation
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => onDelete?.(lead)} className="text-red-600">
                       <Trash2 className="h-4 w-4 mr-2" />Delete
                     </DropdownMenuItem>
