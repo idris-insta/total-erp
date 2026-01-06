@@ -57,13 +57,21 @@ const UserManagement = () => {
   });
   const { user: currentUser } = useAuth();
 
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/settings/users');
+      setUsers(response.data);
+    } catch (error) {
+      toast.error('Failed to load users');
+    }
+  };
+
   useEffect(() => {
     if (currentUser?.role === 'admin') {
       fetchUsers();
     }
   }, [currentUser]);
 
-  const fetchUsers = async () => {
     try {
       const response = await api.get('/settings/users');
       setUsers(response.data);
