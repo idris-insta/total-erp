@@ -579,7 +579,7 @@ async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_cu
     lead_doc = {
         'id': lead_id,
         **lead_payload,
-        'status': 'new',
+        'status': lead_payload.get('status') or 'new',
         'lead_score': 0,
         'last_contacted': None,
         'created_by': current_user['id'],
