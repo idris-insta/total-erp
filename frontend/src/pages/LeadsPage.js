@@ -38,13 +38,21 @@ export const EditableSelect = ({ value, onChange, category, options: initialOpti
   const [newValue, setNewValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
+  const fetchOptions = useCallback(async () => {
+    try {
+      const response = await api.get(`/master-data/category/${category}`);
+      setOptions(response.data);
+    } catch (error) {
+      console.error('Failed to fetch options:', error);
+    }
+  }, [category]);
+
   useEffect(() => {
     if (category && (!initialOptions || initialOptions.length === 0)) {
       fetchOptions();
     }
-  }, [category]);
+  }, [category, initialOptions, fetchOptions]);
 
-  const fetchOptions = async () => {
     try {
       const response = await api.get(`/master-data/category/${category}`);
       setOptions(response.data);
