@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { 
   Plus, Search, Edit, Trash2, Eye, Phone, Mail, Calendar, 
-  Building2, MoreVertical, Filter, LayoutGrid, List, RefreshCw
+  Building2, MoreVertical, Filter, LayoutGrid, List, RefreshCw, FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
