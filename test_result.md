@@ -103,6 +103,8 @@
 #====================================================================================================
 
 ## user_problem_statement: "ERP/CRM/HRMS for adhesive tapes industry - complete demo-ready modules and close backend gaps"
+
+## iteration_2: CRM enhancements (district/state dropdown/pincode autofill/lead assignment/quotation from proposal)
 ## frontend:
 ##   - task: "HRMS/Quality/Production pages render and key UI actions work"
 ##     implemented: true
