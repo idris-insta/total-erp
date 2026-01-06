@@ -202,6 +202,9 @@ class LeadCreate(BaseModel):
     pipeline: str = "main"
     customer_type: Optional[str] = None
 
+    # Stage
+    status: Optional[str] = None
+
     source: str
     industry: Optional[str] = None
     product_interest: Optional[str] = None

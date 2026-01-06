@@ -68,6 +68,7 @@ const UserManagement = () => {
 
   useEffect(() => {
     if (currentUser?.role === 'admin') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchUsers();
     }
   }, [currentUser]);
