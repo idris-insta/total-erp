@@ -14,7 +14,9 @@ import { useAuth } from '../context/AuthContext';
 
 const ROLES = [
   { value: 'admin', label: 'Administrator', description: 'Full system access' },
-  { value: 'sales_manager', label: 'Sales Manager', description: 'CRM, Quotations, Accounts view' },
+  { value: 'sales_manager', label: 'Sales Manager', description: 'CRM access + team visibility' },
+  { value: 'sales_team_leader', label: 'Sales Team Leader', description: 'CRM access for own + direct reports' },
+  { value: 'salesperson', label: 'Sales Person', description: 'CRM access for own assigned leads' },
   { value: 'production_manager', label: 'Production Manager', description: 'Production, Inventory, Quality' },
   { value: 'purchase_manager', label: 'Purchase Manager', description: 'Procurement, Suppliers, Inventory view' },
   { value: 'accounts_manager', label: 'Accounts Manager', description: 'Accounts, Finance, Reports' },
