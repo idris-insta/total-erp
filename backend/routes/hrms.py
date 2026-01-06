@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 import uuid
 from server import db, get_current_user
 
