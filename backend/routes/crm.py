@@ -96,10 +96,19 @@ class LeadCreate(BaseModel):
     email: str
     phone: str
     mobile: Optional[str] = None
+
+    # Address
     address: Optional[str] = None
-    city: Optional[str] = None
+    country: str = "India"
     state: Optional[str] = None
+    district: Optional[str] = None
+    city: Optional[str] = None
     pincode: Optional[str] = None
+
+    # Classification
+    pipeline: str = "main"
+    customer_type: Optional[str] = None
+
     source: str
     industry: Optional[str] = None
     product_interest: Optional[str] = None
@@ -115,10 +124,17 @@ class LeadUpdate(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
     mobile: Optional[str] = None
+
     address: Optional[str] = None
-    city: Optional[str] = None
+    country: Optional[str] = None
     state: Optional[str] = None
+    district: Optional[str] = None
+    city: Optional[str] = None
     pincode: Optional[str] = None
+
+    pipeline: Optional[str] = None
+    customer_type: Optional[str] = None
+
     source: Optional[str] = None
     industry: Optional[str] = None
     product_interest: Optional[str] = None
@@ -137,10 +153,17 @@ class Lead(BaseModel):
     email: str
     phone: str
     mobile: Optional[str] = None
+
     address: Optional[str] = None
-    city: Optional[str] = None
+    country: str = "India"
     state: Optional[str] = None
+    district: Optional[str] = None
+    city: Optional[str] = None
     pincode: Optional[str] = None
+
+    pipeline: str = "main"
+    customer_type: Optional[str] = None
+
     source: str
     industry: Optional[str] = None
     status: str
