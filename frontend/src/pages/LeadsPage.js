@@ -49,7 +49,6 @@ export const EditableSelect = ({ value, onChange, category, options: initialOpti
 
   useEffect(() => {
     if (category && (!initialOptions || initialOptions.length === 0)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchOptions();
     }
   }, [category, initialOptions, fetchOptions]);
