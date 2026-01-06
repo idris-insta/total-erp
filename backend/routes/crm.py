@@ -84,6 +84,24 @@ async def get_data_filter(current_user: dict, module: str) -> dict:
     # Admin sees everything
     if role == 'admin':
         return {}
+
+    # CRM Leads hierarchy rule (requested): assigned salesperson + team leader + sales manager
+    if module == "crm_leads":
+        if role == "sales_manager":
+            return {}
+        if role == "sales_team_leader":
+            reports = await db.users.find({"reports_to": user_id}, {"id": 1, "_id": 0}).to_list(1000)
+            team_user_ids = [u.get("id") for u in reports if u.get("id")]
+            team_user_ids.append(user_id)
+            return {"$or": [
+                {"created_by": {"$in": team_user_ids}},
+                {"assigned_to": {"$in": team_user_ids}}
+            ]}
+        # salesperson and others: own/assigned only
+        return {"$or": [
+            {"created_by": user_id},
+            {"assigned_to": user_id}
+        ]}
     
     # Check user's custom access config
     access = await db.user_access.find_one({"user_id": user_id}, {"_id": 0})
@@ -430,6 +448,15 @@ async def get_pincode_details(pincode: str, current_user: dict = Depends(get_cur
     if not details:
         raise HTTPException(status_code=404, detail="Pincode not found")
     return details
+
+
+# ==================== CRM USERS (for assignment) ====================
+@router.get("/users/sales")
+async def get_sales_users(current_user: dict = Depends(get_current_user)):
+    """Users eligible for lead assignment (sales roles)."""
+    roles = ["salesperson", "sales_team_leader", "sales_manager", "admin"]
+    users = await db.users.find({"role": {"$in": roles}}, {"_id": 0, "password": 0}).sort("name", 1).to_list(1000)
+    return [{"id": u.get("id"), "name": u.get("name"), "email": u.get("email"), "role": u.get("role"), "team": u.get("team"), "reports_to": u.get("reports_to")} for u in users]
 
 
 # ==================== SAMPLE MODELS ====================

@@ -44,6 +44,8 @@ class UserCreate(BaseModel):
     role: str = "viewer"
     location: Optional[str] = None
     department: Optional[str] = None
+    team: Optional[str] = None
+    reports_to: Optional[str] = None  # user_id of manager/team leader
 
 class UserResponse(BaseModel):
     id: str
@@ -87,6 +89,8 @@ async def register(user_data: UserCreate):
         'role': user_data.role,
         'location': user_data.location,
         'department': user_data.department,
+        'team': user_data.team,
+        'reports_to': user_data.reports_to,
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)

@@ -11,6 +11,8 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     location: Optional[str] = None
     department: Optional[str] = None
+    team: Optional[str] = None
+    reports_to: Optional[str] = None
     status: Optional[str] = None
 
 class UserResponse(BaseModel):
@@ -20,6 +22,8 @@ class UserResponse(BaseModel):
     role: str
     location: Optional[str] = None
     department: Optional[str] = None
+    team: Optional[str] = None
+    reports_to: Optional[str] = None
     created_at: str
 
 
