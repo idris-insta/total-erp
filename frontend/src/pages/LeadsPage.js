@@ -229,7 +229,7 @@ const KanbanColumn = ({ status, leads, onEdit, onView, onDelete }) => {
           <Badge className="bg-white/20 text-white border-0">{leads.length}</Badge>
         </div>
       </div>
-      <Droppable droppableId={status} isDropDisabled={false}>
+      <Droppable droppableId={status} isDropDisabled={false} isCombineEnabled={false}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
