@@ -482,6 +482,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
                 <SelectContent>
                   <SelectItem value="unassigned">Unassigned</SelectItem>
                   {salesUsers.map((u) => (
+                  {/* using 'unassigned' token to avoid empty SelectItem value */}
+
                     <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
                   ))}
                 </SelectContent>
