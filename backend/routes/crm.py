@@ -644,6 +644,13 @@ async def create_quotation_from_lead(lead_id: str, current_user: dict = Depends(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
+    # Permission check: lead must be visible to user
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    if base_filter:
+        visible = await db.leads.find_one({"id": lead_id, **base_filter}, {"_id": 0})
+        if not visible:
+            raise HTTPException(status_code=403, detail="Access denied")
+
     # Enforce stage check
     if lead.get('status') != 'proposal':
         raise HTTPException(status_code=400, detail="Quotation can be created only when lead is in Proposal stage")
@@ -779,13 +786,21 @@ async def get_leads_kanban(current_user: dict = Depends(get_current_user)):
 
 @router.get("/leads/{lead_id}", response_model=Lead)
 async def get_lead(lead_id: str, current_user: dict = Depends(get_current_user)):
-    lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    query = {"id": lead_id, **base_filter} if base_filter else {"id": lead_id}
+    lead = await db.leads.find_one(query, {'_id': 0})
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     return Lead(**lead)
 
 @router.put("/leads/{lead_id}", response_model=Lead)
 async def update_lead(lead_id: str, lead_data: LeadUpdate, current_user: dict = Depends(get_current_user)):
+    base_filter = await get_data_filter(current_user, "crm_leads")
+    query = {"id": lead_id, **base_filter} if base_filter else {"id": lead_id}
+    existing = await db.leads.find_one(query, {'_id': 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
     update_dict = {k: v for k, v in lead_data.model_dump().items() if v is not None}
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
 
