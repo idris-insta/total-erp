@@ -1000,7 +1000,12 @@ const StockTransfers = () => {
       toast.success('Transfer issued');
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to issue transfer');
+      const msg = error.response?.data?.detail;
+      if (msg && msg.includes('Approval required')) {
+        toast.error('Approval required. Please approve in Approvals Inbox, then issue again.');
+        return;
+      }
+      toast.error(msg || 'Failed to issue transfer');
     }
   };
 
