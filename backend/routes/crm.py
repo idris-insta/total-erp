@@ -575,6 +575,121 @@ async def get_leads(
         query['status'] = status
     if assigned_to:
         query['assigned_to'] = assigned_to
+
+@router.post("/leads/{lead_id}/create-quotation")
+async def create_quotation_from_lead(lead_id: str, current_user: dict = Depends(get_current_user)):
+    """Create a draft quotation from a lead (intended when lead is in Proposal stage)."""
+    lead = await db.leads.find_one({'id': lead_id}, {'_id': 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    # Enforce stage check
+    if lead.get('status') != 'proposal':
+        raise HTTPException(status_code=400, detail="Quotation can be created only when lead is in Proposal stage")
+
+    # Ensure an Account exists (create one if absent)
+    account_id = lead.get('account_id')
+    if account_id:
+        account = await db.accounts.find_one({'id': account_id}, {'_id': 0})
+    else:
+        account = None
+
+    if not account:
+        # Create minimal account from lead
+        account_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+        account_doc = {
+            'id': account_id,
+            'customer_name': lead.get('company_name'),
+            'account_type': 'Customer',
+            'gstin': 'NA',
+            'pan': None,
+            'billing_address': lead.get('address') or '',
+            'billing_city': lead.get('city'),
+            'billing_state': lead.get('state'),
+            'billing_pincode': lead.get('pincode'),
+            'shipping_addresses': [],
+            'contacts': [{
+                'name': lead.get('contact_person'),
+                'designation': None,
+                'email': lead.get('email'),
+                'phone': lead.get('phone'),
+                'mobile': lead.get('mobile'),
+                'is_primary': True
+            }],
+            'credit_limit': 0,
+            'credit_days': 30,
+            'credit_control': 'Warn',
+            'payment_terms': '30 days',
+            'industry': lead.get('industry'),
+            'website': None,
+            'agent_id': None,
+            'salesperson_id': lead.get('assigned_to') or None,
+            'salesperson_name': None,
+            'location': None,
+            'notes': f"Auto-created from Lead {lead_id}",
+            'is_active': True,
+            'total_outstanding': 0,
+            'receivable_amount': 0,
+            'payable_amount': 0,
+            'avg_payment_days': 0,
+            'lead_id': lead_id,
+            'created_by': current_user['id'],
+            'assigned_to': lead.get('assigned_to') or current_user['id'],
+            'created_at': now,
+            'updated_at': now
+        }
+        await db.accounts.insert_one(account_doc)
+        await db.leads.update_one({'id': lead_id}, {'$set': {'account_id': account_id, 'updated_at': now}})
+        account = account_doc
+
+    # Create draft quotation with prefilled contact person + reference
+    quote_id = str(uuid.uuid4())
+    now_dt = datetime.now(timezone.utc)
+    quote_number = f"QT-{now_dt.strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
+
+    # Empty items; user will fill in UI
+    items_dict = [{
+        'item_id': None,
+        'item_name': '---',
+        'description': lead.get('product_interest'),
+        'hsn_code': None,
+        'quantity': 1,
+        'unit': 'Pcs',
+        'unit_price': 0,
+        'discount_percent': 0,
+        'tax_percent': 18,
+        'line_total': 0
+    }]
+    totals = calculate_quotation_totals(items_dict, 0)
+
+    quote_doc = {
+        'id': quote_id,
+        'quote_number': quote_number,
+        'account_id': account_id,
+        'account_name': account.get('customer_name'),
+        'contact_person': lead.get('contact_person'),
+        'salesperson_id': lead.get('assigned_to'),
+        'reference': f"Lead: {lead_id}",
+        'quote_date': now_dt.isoformat(),
+        'valid_until': (now_dt + timedelta(days=15)).date().isoformat(),
+        **totals,
+        'transport': None,
+        'delivery_terms': None,
+        'payment_terms': account.get('payment_terms'),
+        'terms_conditions': None,
+        'notes': lead.get('notes'),
+        'status': 'draft',
+        'converted_to_order': False,
+        'order_id': None,
+        'created_by': current_user['id'],
+        'created_at': now_dt.isoformat(),
+        'updated_at': now_dt.isoformat()
+    }
+
+    await db.quotations.insert_one(quote_doc)
+    return {'message': 'Quotation created from lead', 'quotation_id': quote_id, 'quote_number': quote_number}
+
     if industry:
         query['industry'] = industry
     if city:
