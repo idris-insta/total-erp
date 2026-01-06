@@ -414,6 +414,24 @@ class Quotation(BaseModel):
     created_at: str
     updated_at: Optional[str] = None
 
+# ==================== GEO ENDPOINTS ====================
+@router.get("/geo/india/states")
+async def get_india_states(current_user: dict = Depends(get_current_user)):
+    return {"country": "India", "states": INDIA_STATES_UT}
+
+@router.get("/geo/states")
+async def get_states(country: str, current_user: dict = Depends(get_current_user)):
+    states = await lookup_states_for_country(country)
+    return {"country": country, "states": states}
+
+@router.get("/geo/pincode/{pincode}")
+async def get_pincode_details(pincode: str, current_user: dict = Depends(get_current_user)):
+    details = await lookup_india_pincode(pincode)
+    if not details:
+        raise HTTPException(status_code=404, detail="Pincode not found")
+    return details
+
+
 # ==================== SAMPLE MODELS ====================
 class SampleCreate(BaseModel):
     account_id: str
