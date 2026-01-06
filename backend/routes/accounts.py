@@ -261,6 +261,15 @@ async def create_invoice(inv_data: InvoiceCreate, current_user: dict = Depends(g
         "shipping_address": inv_data.shipping_address,
         "notes": inv_data.notes,
         "status": "draft",
+
+@router.get("/invoices/{inv_id}/attachments")
+async def list_invoice_attachments(inv_id: str, current_user: dict = Depends(get_current_user)):
+    inv = await db.invoices.find_one({"id": inv_id}, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    docs = await db.documents.find({"module": "Accounts", "entity": "Invoice", "entity_id": inv_id}, {"_id": 0}).sort("uploaded_at", -1).to_list(1000)
+    return docs
+
         "paid_amount": 0,
         "balance_amount": totals["grand_total"],
         "irn": inv_data.irn,
