@@ -29,7 +29,9 @@ const ROLES = [
 
 const PERMISSIONS = {
   admin: ['all'],
-  sales_manager: ['crm:*', 'accounts:read', 'dashboard:read'],
+  sales_manager: ['crm:* (all leads)', 'accounts:read', 'dashboard:read'],
+  sales_team_leader: ['crm:* (team leads)', 'dashboard:read'],
+  salesperson: ['crm:* (assigned leads)', 'dashboard:read'],
   production_manager: ['production:*', 'inventory:read', 'quality:*', 'dashboard:read'],
   purchase_manager: ['procurement:*', 'inventory:read', 'dashboard:read'],
   accounts_manager: ['accounts:*', 'dashboard:read'],
