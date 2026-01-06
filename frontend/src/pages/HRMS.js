@@ -1003,7 +1003,12 @@ const PayrollManagement = () => {
       setOpen(false);
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to generate payroll');
+      const msg = error.response?.data?.detail;
+      if (msg && msg.includes('Approval required')) {
+        toast.error('Approval required. Please approve in Approvals Inbox, then generate again.');
+        return;
+      }
+      toast.error(msg || 'Failed to generate payroll');
     }
   };
 
