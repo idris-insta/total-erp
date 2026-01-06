@@ -165,6 +165,26 @@
 ##       - working: true
 ##         agent: "testing"
 ##         comment: "Tested CRM Leads UI: District before City, State dropdown, Customer Type, Assign To, lead save, Kanban DnD OK. (Testing agent noted session timeouts on PIN autofill + Create Quotation click, but API and UI wiring exist; recommend you verify those two clicks quickly in your run.)"
+##   - task: "Approvals page UI smoke test"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/pages/Approvals.js"
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "testing"
+##         comment: "✅ VERIFIED: Approvals page loads correctly at /approvals with proper table structure. Shows 9 pending approval requests across Inventory, Production, and HRMS modules. Table headers (Status, Module, Entity, Action, Condition, Requested At, Actions) display correctly. Login with admin@instabiz.com/adminpassword working perfectly."
+##   - task: "Reports page download functionality"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/pages/Reports.js"
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "testing"
+##         comment: "✅ VERIFIED: Reports page loads successfully at /reports with KPI table displaying 5 reports (Sales, Inventory, Production, QC). XLSX and PDF download buttons are functional and trigger successful API calls with 200 status to /api/reports/export?format=xlsx and /api/reports/export?format=pdf endpoints. No console errors detected during download operations."
 
 ##     file: "/app/backend/routes/production.py"
 ##     stuck_count: 0
