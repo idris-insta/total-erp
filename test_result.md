@@ -138,6 +138,31 @@
 ##   - task: "Production entry updates inventory stock collections"
 ##     implemented: true
 ##     working: true
+
+## backend:
+##   - task: "CRM geo endpoints + lead model fields + quotation-from-lead"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/routes/crm.py"
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "main"
+##         comment: "Validated /api/crm/geo/pincode/110001 returns city/state/district. Created Lead with status=proposal auto-filled geo fields and successfully created quotation via POST /api/crm/leads/{id}/create-quotation."
+##
+## frontend:
+##   - task: "Leads UI: District field before City + State dropdown + PIN autofill + customer type + assign to + create quotation option"
+##     implemented: true
+##     working: "unknown"
+##     file: "/app/frontend/src/pages/LeadsPage.js"
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##       - working: "unknown"
+##         agent: "main"
+##         comment: "UI updated; needs Playwright smoke test: create lead, enter pincode 110001 -> auto fill, drag to Proposal, use 3-dot menu Create Quotation."
+
 ##     file: "/app/backend/routes/production.py"
 ##     stuck_count: 0
 ##     priority: "high"
