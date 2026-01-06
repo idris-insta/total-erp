@@ -521,6 +521,18 @@ async def get_transfers(
 @router.put("/transfers/{transfer_id}/issue")
 async def issue_transfer(transfer_id: str, current_user: dict = Depends(get_current_user)):
     """Issue transfer - deduct from source warehouse"""
+
+    # WORKBOOK APPROVAL: Inter-warehouse transfer requires approval before issue
+    approval = await db.approval_requests.find_one({
+        "module": "Inventory",
+        "entity_type": "StockTransfer",
+        "entity_id": transfer_id,
+        "action": "Stock Transfer",
+        "status": "approved",
+    }, {"_id": 0})
+    if not approval:
+        raise HTTPException(status_code=409, detail="Approval required: Stock Transfer")
+
     transfer = await db.stock_transfers.find_one({"id": transfer_id}, {"_id": 0})
     if not transfer:
         raise HTTPException(status_code=404, detail="Transfer not found")
