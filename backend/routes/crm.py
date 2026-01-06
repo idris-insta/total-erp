@@ -8,6 +8,73 @@ from server import db, get_current_user
 
 router = APIRouter()
 
+import httpx
+
+# ==================== GEO HELPERS (PINCODE / STATES) ====================
+INDIA_STATES_UT = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa",
+    "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala",
+    "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland",
+    "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+    "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+]
+
+PINCODE_API_BASE = "https://api.postalpincode.in/pincode/"
+COUNTRIESNOW_STATES_API = "https://countriesnow.space/api/v0.1/countries/states"
+
+async def lookup_india_pincode(pincode: str) -> Optional[dict]:
+    """Return {city, district, state, country} for India PIN (6 digits)"""
+    if not pincode or len(pincode) != 6 or not pincode.isdigit():
+        return None
+
+    async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "adhesive-erp"}) as client:
+        resp = await client.get(f"{PINCODE_API_BASE}{pincode}")
+        if resp.status_code != 200:
+            return None
+        data = resp.json()
+
+    # Expected: list with one element
+    if not isinstance(data, list) or not data:
+        return None
+    entry = data[0]
+    if entry.get("Status") != "Success":
+        return None
+
+    offices = entry.get("PostOffice") or []
+    if not offices:
+        return None
+
+    po = offices[0]
+    return {
+        "country": "India",
+        "state": po.get("State"),
+        "district": po.get("District"),
+        "city": po.get("Block") or po.get("Region") or po.get("Taluk")
+    }
+
+async def lookup_states_for_country(country_name: str) -> List[str]:
+    """Free public API to get list of states/provinces for a country (no key)."""
+    if not country_name:
+        return []
+    if country_name.strip().lower() in ["india", "bharat", "in"]:
+        return INDIA_STATES_UT
+
+    payload = {"country": country_name}
+    async with httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "adhesive-erp"}) as client:
+        resp = await client.post(COUNTRIESNOW_STATES_API, json=payload)
+        if resp.status_code != 200:
+            return []
+        data = resp.json()
+
+    states = []
+    for s in (data.get("data", {}).get("states") or []):
+        name = s.get("name")
+        if name:
+            states.append(name)
+    return states
+
 # ==================== PERMISSION HELPER ====================
 async def get_data_filter(current_user: dict, module: str) -> dict:
     """Build query filter based on user's data access permissions"""
