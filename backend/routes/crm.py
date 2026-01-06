@@ -325,6 +325,9 @@ class AccountUpdate(BaseModel):
     billing_city: Optional[str] = None
     billing_state: Optional[str] = None
     billing_pincode: Optional[str] = None
+    billing_country: Optional[str] = None
+    billing_district: Optional[str] = None
+
     shipping_addresses: Optional[List[ShippingAddress]] = None
     contacts: Optional[List[ContactPerson]] = None
     credit_limit: Optional[float] = None
