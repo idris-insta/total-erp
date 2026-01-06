@@ -287,7 +287,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     } else {
       setFormData({
         company_name: '', contact_person: '', email: '', phone: '', mobile: '',
-        address: '', city: '', state: '', pincode: '',
+        address: '', country: 'India', state: '', district: '', city: '', pincode: '',
+        customer_type: '', pipeline: 'main', assigned_to: '',
         source: 'IndiaMART', industry: '', product_interest: '',
         estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
       });
