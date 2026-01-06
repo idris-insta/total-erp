@@ -221,6 +221,17 @@
 ##       - working: true
 ##         agent: "testing"
 ##         comment: "✅ VERIFIED: Found existing machines, created work order, started work order, created production entry with batch tracking. All Production endpoints working correctly."
+##   - task: "Approval enforcement system (stock transfer, payroll, production scrap >7%, work order cancel)"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/routes/approvals.py, /app/backend/routes/inventory.py, /app/backend/routes/hrms.py, /app/backend/routes/production.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "testing"
+##         comment: "✅ VERIFIED: All 4 approval workflows tested and working perfectly. 1) Stock Transfer: Auto-creates approval request, blocks issue with 409 until approved, succeeds after approval. 2) HRMS Payroll: Blocks payroll generation with 409, auto-creates approval, succeeds after approval. 3) Production Scrap >7%: Correctly calculates 8.7% scrap, blocks with 409, auto-creates approval, succeeds after approval and updates inventory. 4) Production Cancel: Blocks work order cancellation with 409, auto-creates approval, succeeds after approval and sets status to cancelled. All approval requests properly created in approval_requests collection with correct module/entity_type/action. Approvals inbox flow working via GET /approvals/requests and PUT /approvals/requests/{id}/approve endpoints."
 
 ## metadata:
 ##   created_by: "main_agent"
