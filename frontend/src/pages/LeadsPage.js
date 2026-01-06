@@ -229,7 +229,7 @@ const KanbanColumn = ({ status, leads, onEdit, onView, onDelete }) => {
           <Badge className="bg-white/20 text-white border-0">{leads.length}</Badge>
         </div>
       </div>
-      <Droppable droppableId={status}>
+      <Droppable droppableId={status} isDropDisabled={false}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
@@ -307,7 +307,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         pincode: lead.pincode || '',
         customer_type: lead.customer_type || '',
         pipeline: lead.pipeline || 'main',
-        assigned_to: lead.assigned_to || '',
+        assigned_to: lead.assigned_to ? lead.assigned_to : 'unassigned',
         source: lead.source || 'IndiaMART',
         industry: lead.industry || '',
         product_interest: lead.product_interest || '',
@@ -320,7 +320,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
       setFormData({
         company_name: '', contact_person: '', email: '', phone: '', mobile: '',
         address: '', country: 'India', state: '', district: '', city: '', pincode: '',
-        customer_type: '', pipeline: 'main', assigned_to: '',
+        customer_type: '', pipeline: 'main', assigned_to: 'unassigned',
         source: 'IndiaMART', industry: '', product_interest: '',
         estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
       });
@@ -380,6 +380,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     try {
       const payload = {
         ...formData,
+        assigned_to: (formData.assigned_to === 'unassigned' || !formData.assigned_to) ? null : formData.assigned_to,
         estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null,
         status: formData.status || (lead?.status || 'new')
       };

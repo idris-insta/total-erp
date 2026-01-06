@@ -96,19 +96,19 @@ async def get_data_filter(current_user: dict, module: str) -> dict:
             team_user_ids.append(user_id)
             return {"$or": [
                 {"assigned_to": {"$in": team_user_ids}},
-                {"assigned_to": None, "created_by": {"$in": team_user_ids}}
+                {"assigned_to": {"$in": [None, ""]}, "created_by": {"$in": team_user_ids}}
             ]}
 
         if role == "salesperson":
             return {"$or": [
                 {"assigned_to": user_id},
-                {"assigned_to": None, "created_by": user_id}
+                {"assigned_to": {"$in": [None, ""]}, "created_by": user_id}
             ]}
 
         # Default: if user isn't in sales hierarchy, show only own/assigned
         return {"$or": [
             {"assigned_to": user_id},
-            {"assigned_to": None, "created_by": user_id}
+            {"assigned_to": {"$in": [None, ""]}, "created_by": user_id}
         ]}
     
     # Check user's custom access config
@@ -567,6 +567,10 @@ async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_cu
 
     lead_payload = lead_data.model_dump()
 
+    # Normalize assignment
+    if lead_payload.get('assigned_to') in ['', 'unassigned']:
+        lead_payload['assigned_to'] = None
+
     # If India PIN is provided, auto-fill geo fields
     if (lead_payload.get('country') or 'India').strip().lower() == 'india' and lead_payload.get('pincode'):
         geo = await lookup_india_pincode(lead_payload.get('pincode'))
@@ -802,6 +806,11 @@ async def update_lead(lead_id: str, lead_data: LeadUpdate, current_user: dict = 
         raise HTTPException(status_code=404, detail="Lead not found")
 
     update_dict = {k: v for k, v in lead_data.model_dump().items() if v is not None}
+
+    # Normalize assignment
+    if update_dict.get('assigned_to') in ['', 'unassigned']:
+        update_dict['assigned_to'] = None
+
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
 
     # If India PIN is provided/changed, auto-fill geo fields
