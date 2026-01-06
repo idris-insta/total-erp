@@ -309,6 +309,19 @@ async def get_warehouse(wh_id: str, current_user: dict = Depends(get_current_use
 @router.post("/stock/entry")
 async def create_stock_entry(entry: StockEntry, current_user: dict = Depends(get_current_user)):
     """Record a stock transaction"""
+
+    # WORKBOOK APPROVAL: block negative adjustments until approved
+    if entry.transaction_type in ["adjustment", "adjustment_out"]:
+        base_approval = await db.approval_requests.find_one({
+            "module": "Inventory",
+            "entity_type": "StockEntry",
+            "entity_id": entry.reference_id or "",
+            "action": "Stock Adjustment",
+            "status": "approved",
+        }, {"_id": 0})
+        if not base_approval:
+            raise HTTPException(status_code=409, detail="Approval required: Stock Adjustment")
+
     entry_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
