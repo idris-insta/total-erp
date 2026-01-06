@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
   Plus, Search, Edit, Trash2, Eye, Phone, Mail, Calendar, 
   Building2, MoreVertical, Filter, LayoutGrid, List, RefreshCw, FileText
