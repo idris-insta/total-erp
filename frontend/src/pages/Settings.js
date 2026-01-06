@@ -179,6 +179,16 @@ const UserManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="team" className="font-inter">Team (Optional)</Label>
+                  <Input id="team" value={formData.team} onChange={(e) => setFormData({...formData, team: e.target.value})} placeholder="e.g., West Sales" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reports_to" className="font-inter">Reports To (User ID) (Optional)</Label>
+                  <Input id="reports_to" value={formData.reports_to} onChange={(e) => setFormData({...formData, reports_to: e.target.value})} placeholder="Manager user_id" />
+                </div>
+
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800 font-medium font-inter mb-1">Permissions for {ROLES.find(r => r.value === formData.role)?.label}:</p>
