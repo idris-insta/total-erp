@@ -485,7 +485,7 @@ async def create_ledger(ledger_data: LedgerCreate, current_user: dict = Depends(
 @router.get("/coa/ledgers", response_model=List[Ledger])
 async def list_ledgers(current_user: dict = Depends(get_current_user)):
     ledgers = await db.ledgers.find({}, {"_id": 0}).sort("name", 1).to_list(5000)
-    return [Ledger(**l) for l in ledgers]
+    return [Ledger(**ledger) for ledger in ledgers]
 
 
 @router.post("/coa/bootstrap-default")
@@ -589,23 +589,23 @@ async def create_journal_entry(entry: JournalEntryCreate, current_user: dict = D
     entry_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
 
-    total_debit = sum((l.debit or 0) for l in entry.lines)
-    total_credit = sum((l.credit or 0) for l in entry.lines)
+    total_debit = sum((line.debit or 0) for line in entry.lines)
+    total_credit = sum((line.credit or 0) for line in entry.lines)
 
     if round(total_debit, 2) != round(total_credit, 2):
         raise HTTPException(status_code=400, detail="Journal not balanced (Dr must equal Cr)")
 
     lines = []
-    for l in entry.lines:
-        led = await db.ledgers.find_one({"id": l.ledger_id}, {"_id": 0})
+    for line in entry.lines:
+        led = await db.ledgers.find_one({"id": line.ledger_id}, {"_id": 0})
         if not led:
             raise HTTPException(status_code=400, detail="Invalid ledger in journal")
         lines.append({
-            "ledger_id": l.ledger_id,
+            "ledger_id": line.ledger_id,
             "ledger_name": led.get("name"),
-            "debit": l.debit or 0,
-            "credit": l.credit or 0,
-            "narration": l.narration,
+            "debit": line.debit or 0,
+            "credit": line.credit or 0,
+            "narration": line.narration,
         })
 
     entry_number = f"JV-{now.strftime('%Y%m')}-{str(uuid.uuid4())[:6].upper()}"
@@ -649,13 +649,13 @@ async def trial_balance(current_user: dict = Depends(get_current_user)):
     gmap = {g["id"]: g for g in groups}
 
     rows = []
-    for l in ledgers:
-        g = gmap.get(l.get("group_id")) or {}
-        bal = l.get("current_balance", 0)
-        bal_type = l.get("current_balance_type", "debit")
+    for ledger in ledgers:
+        g = gmap.get(ledger.get("group_id")) or {}
+        bal = ledger.get("current_balance", 0)
+        bal_type = ledger.get("current_balance_type", "debit")
         rows.append({
-            "ledger_id": l.get("id"),
-            "ledger_name": l.get("name"),
+            "ledger_id": ledger.get("id"),
+            "ledger_name": ledger.get("name"),
             "group_name": g.get("name", ""),
             "category": g.get("category", ""),
             "debit": bal if bal_type == "debit" else 0,
