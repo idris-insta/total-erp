@@ -265,6 +265,15 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
   });
 
+  const loadSalesUsers = useCallback(async () => {
+    try {
+      const res = await api.get('/crm/users/sales');
+      setSalesUsers(res.data || []);
+    } catch (e) {
+      // Non-blocking
+    }
+  }, []);
+
   useEffect(() => {
     if (lead) {
       // editing mode
@@ -290,23 +299,23 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         notes: lead.notes || '',
         next_followup_date: lead.next_followup_date || '',
         followup_activity: lead.followup_activity || ''
+      });
+    } else {
+      setFormData({
+        company_name: '', contact_person: '', email: '', phone: '', mobile: '',
+        address: '', country: 'India', state: '', district: '', city: '', pincode: '',
+        customer_type: '', pipeline: 'main', assigned_to: '',
+        source: 'IndiaMART', industry: '', product_interest: '',
+        estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
+      });
+    }
+  }, [lead, open]);
 
   useEffect(() => {
     if (formData.assigned_to === 'unassigned') {
       setFormData((prev) => ({ ...prev, assigned_to: '' }));
     }
   }, [formData.assigned_to]);
-
-      });
-
-  const loadSalesUsers = useCallback(async () => {
-    try {
-      const res = await api.get('/crm/users/sales');
-      setSalesUsers(res.data || []);
-    } catch (e) {
-      // Non-blocking
-    }
-  }, []);
 
   const loadStates = useCallback(async (country) => {
     if (!country) return;
