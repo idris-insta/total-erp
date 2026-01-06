@@ -129,6 +129,62 @@ class JournalEntry(BaseModel):
     created_at: str
 
 # ==================== INVOICE ENDPOINTS ====================
+
+# ==================== CHART OF ACCOUNTS MODELS ====================
+class LedgerGroupCreate(BaseModel):
+    name: str
+    parent: Optional[str] = None
+    category: str  # Assets, Liabilities, Income, Expenses
+
+class LedgerGroup(BaseModel):
+    id: str
+    name: str
+    parent: Optional[str] = None
+    category: str
+    is_system: bool = False
+    created_at: str
+
+class LedgerCreate(BaseModel):
+    name: str
+    group_id: str
+    code: Optional[str] = None
+    opening_balance: float = 0
+    opening_balance_type: str = "debit"  # debit/credit
+    gst_applicable: bool = False
+    gstin: Optional[str] = None
+    pan: Optional[str] = None
+
+class Ledger(BaseModel):
+    id: str
+    name: str
+    group_id: str
+    group_name: Optional[str] = None
+    code: Optional[str] = None
+    opening_balance: float
+    opening_balance_type: str
+    gst_applicable: bool
+    gstin: Optional[str] = None
+    pan: Optional[str] = None
+    current_balance: float = 0
+    current_balance_type: str = "debit"
+    is_system: bool = False
+    created_at: str
+
+class JournalEntryCreate(BaseModel):
+    entry_date: str
+    reference_type: Optional[str] = None
+    reference_id: Optional[str] = None
+    narration: str
+    lines: List[JournalLine]
+
+class TrialBalanceRow(BaseModel):
+    ledger_id: str
+    ledger_name: str
+    group_name: str
+    category: str
+    debit: float
+    credit: float
+
 def calculate_invoice_totals(items: List[dict]) -> dict:
     subtotal = 0
     total_discount = 0
