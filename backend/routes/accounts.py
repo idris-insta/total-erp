@@ -177,6 +177,10 @@ class TrialBalanceRow(BaseModel):
 
 def calculate_invoice_totals(items: List[dict]) -> dict:
     subtotal = 0
+
+    # Attachments (LR / loading photos etc.) will be stored in Documents module
+    # module=Accounts, entity=Invoice, entity_id=inv_id
+
     total_discount = 0
     total_tax = 0
     calculated_items = []
