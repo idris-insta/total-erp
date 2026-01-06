@@ -251,6 +251,12 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [stateOptions, setStateOptions] = useState([]);
 
+
+  const CUSTOMER_TYPES = [
+    'Manufacturer', 'Wholesaler', 'Retailer', 'Converter', 'End User',
+    'Competitor', 'Export', 'Merchant Exporter'
+  ];
+
   const [formData, setFormData] = useState({
     company_name: '', contact_person: '', email: '', phone: '', mobile: '',
     address: '', country: 'India', state: '', district: '', city: '', pincode: '',
