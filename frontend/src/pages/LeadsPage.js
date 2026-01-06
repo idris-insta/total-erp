@@ -290,6 +290,13 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         notes: lead.notes || '',
         next_followup_date: lead.next_followup_date || '',
         followup_activity: lead.followup_activity || ''
+
+  useEffect(() => {
+    if (formData.assigned_to === 'unassigned') {
+      setFormData((prev) => ({ ...prev, assigned_to: '' }));
+    }
+  }, [formData.assigned_to]);
+
       });
 
   const loadSalesUsers = useCallback(async () => {
