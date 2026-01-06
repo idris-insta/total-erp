@@ -72,13 +72,7 @@ const UserManagement = () => {
     }
   }, [currentUser]);
 
-    try {
-      const response = await api.get('/settings/users');
-      setUsers(response.data);
-    } catch (error) {
-      toast.error('Failed to load users');
-    }
-  };
+  // (removed duplicate fetchUsers block)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
