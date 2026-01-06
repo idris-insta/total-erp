@@ -480,7 +480,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
               <Select value={formData.assigned_to} onValueChange={(v) => setFormData({...formData, assigned_to: v})}>
                 <SelectTrigger><SelectValue placeholder="Select salesperson" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
                   {salesUsers.map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
                   ))}
