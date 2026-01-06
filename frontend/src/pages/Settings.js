@@ -47,7 +47,9 @@ const UserManagement = () => {
     name: '',
     role: 'viewer',
     location: '',
-    department: ''
+    department: '',
+    team: '',
+    reports_to: ''
   });
   const { user: currentUser } = useAuth();
 
