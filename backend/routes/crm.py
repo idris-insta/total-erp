@@ -690,30 +690,6 @@ async def create_quotation_from_lead(lead_id: str, current_user: dict = Depends(
     await db.quotations.insert_one(quote_doc)
     return {'message': 'Quotation created from lead', 'quotation_id': quote_id, 'quote_number': quote_number}
 
-    if industry:
-        query['industry'] = industry
-    if city:
-        query['city'] = {"$regex": city, "$options": "i"}
-    if state:
-        query['state'] = {"$regex": state, "$options": "i"}
-    if search:
-        query['$or'] = [
-            {'company_name': {"$regex": search, "$options": "i"}},
-            {'contact_person': {"$regex": search, "$options": "i"}},
-            {'email': {"$regex": search, "$options": "i"}},
-            {'phone': {"$regex": search, "$options": "i"}}
-        ]
-    if date_from:
-        query['created_at'] = {"$gte": date_from}
-    if date_to:
-        if 'created_at' in query:
-            query['created_at']['$lte'] = date_to
-        else:
-            query['created_at'] = {"$lte": date_to}
-    
-    leads = await db.leads.find(query, {'_id': 0}).sort('created_at', -1).to_list(1000)
-    return [Lead(**lead) for lead in leads]
-
 @router.get("/leads/kanban/view")
 async def get_leads_kanban(current_user: dict = Depends(get_current_user)):
     """Get leads organized by status for Kanban view"""
