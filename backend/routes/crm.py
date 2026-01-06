@@ -526,10 +526,21 @@ class Followup(BaseModel):
 async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_current_user)):
     lead_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
-    
+
+    lead_payload = lead_data.model_dump()
+
+    # If India PIN is provided, auto-fill geo fields
+    if (lead_payload.get('country') or 'India').strip().lower() == 'india' and lead_payload.get('pincode'):
+        geo = await lookup_india_pincode(lead_payload.get('pincode'))
+        if geo:
+            lead_payload['country'] = geo.get('country') or lead_payload.get('country')
+            lead_payload['state'] = geo.get('state') or lead_payload.get('state')
+            lead_payload['district'] = geo.get('district') or lead_payload.get('district')
+            lead_payload['city'] = geo.get('city') or lead_payload.get('city')
+
     lead_doc = {
         'id': lead_id,
-        **lead_data.model_dump(),
+        **lead_payload,
         'status': 'new',
         'lead_score': 0,
         'last_contacted': None,
@@ -537,7 +548,7 @@ async def create_lead(lead_data: LeadCreate, current_user: dict = Depends(get_cu
         'created_at': now,
         'updated_at': now
     }
-    
+
     await db.leads.insert_one(lead_doc)
     return Lead(**{k: v for k, v in lead_doc.items() if k != '_id'})
 
