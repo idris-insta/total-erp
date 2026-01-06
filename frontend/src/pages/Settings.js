@@ -113,7 +113,7 @@ const UserManagement = () => {
     return (
       <Card className="border-slate-200 shadow-sm">
         <CardContent className="p-6">
-          <p className="text-slate-600 font-inter">You don't have permission to manage users. Contact your administrator.</p>
+          <p className="text-slate-600 font-inter">You don’t have permission to manage users. Contact your administrator.</p>
         </CardContent>
       </Card>
     );
