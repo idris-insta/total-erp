@@ -100,31 +100,21 @@ class Payment(BaseModel):
 
 # ==================== JOURNAL ENTRY MODEL ====================
 class JournalLine(BaseModel):
-    account_head: str
+    ledger_id: str
     debit: float = 0
     credit: float = 0
     narration: Optional[str] = None
-
-class JournalEntryCreate(BaseModel):
-    entry_date: str
-    entry_type: str  # manual, auto
-    reference_type: Optional[str] = None
-    reference_id: Optional[str] = None
-    lines: List[JournalLine]
-    narration: str
 
 class JournalEntry(BaseModel):
     id: str
     entry_number: str
     entry_date: str
-    entry_type: str
     reference_type: Optional[str] = None
     reference_id: Optional[str] = None
+    narration: str
     lines: List[dict]
     total_debit: float
     total_credit: float
-    narration: str
-    status: str
     created_by: str
     created_at: str
 
