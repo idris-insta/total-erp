@@ -247,9 +247,14 @@ const KanbanColumn = ({ status, leads, onEdit, onView, onDelete }) => {
 
 // ==================== LEAD FORM DIALOG ====================
 const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
+  const [salesUsers, setSalesUsers] = useState([]);
+  const [loadingGeo, setLoadingGeo] = useState(false);
+  const [stateOptions, setStateOptions] = useState([]);
+
   const [formData, setFormData] = useState({
     company_name: '', contact_person: '', email: '', phone: '', mobile: '',
-    address: '', city: '', state: '', pincode: '',
+    address: '', country: 'India', state: '', district: '', city: '', pincode: '',
+    customer_type: '', pipeline: 'main', assigned_to: '',
     source: 'IndiaMART', industry: '', product_interest: '',
     estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
   });
