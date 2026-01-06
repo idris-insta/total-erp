@@ -284,6 +284,58 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         next_followup_date: lead.next_followup_date || '',
         followup_activity: lead.followup_activity || ''
       });
+
+  const loadSalesUsers = useCallback(async () => {
+    try {
+      const res = await api.get('/crm/users/sales');
+      setSalesUsers(res.data || []);
+    } catch (e) {
+      // Non-blocking
+    }
+  }, []);
+
+  const loadStates = useCallback(async (country) => {
+    if (!country) return;
+    try {
+      const res = await api.get(`/crm/geo/states?country=${encodeURIComponent(country)}`);
+      setStateOptions(res.data?.states || []);
+    } catch (e) {
+      setStateOptions([]);
+    }
+  }, []);
+
+  const tryAutoFillFromPincode = useCallback(async (pincode) => {
+    if (!pincode || pincode.length !== 6) return;
+    setLoadingGeo(true);
+    try {
+      const res = await api.get(`/crm/geo/pincode/${pincode}`);
+      setFormData((prev) => ({
+        ...prev,
+        country: res.data?.country || prev.country,
+        state: res.data?.state || prev.state,
+        district: res.data?.district || prev.district,
+        city: res.data?.city || prev.city
+      }));
+    } catch (e) {
+      // ignore if not found
+    } finally {
+      setLoadingGeo(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    loadSalesUsers();
+    loadStates(formData.country || 'India');
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    loadStates(formData.country || 'India');
+    // Reset state if country changed
+    setFormData((prev) => ({ ...prev, state: '' }));
+  }, [formData.country]);
+
     } else {
       setFormData({
         company_name: '', contact_person: '', email: '', phone: '', mobile: '',
