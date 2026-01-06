@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2 } from 'lucide-react';
+import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
@@ -19,6 +19,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Accounts', href: '/accounts', icon: Calculator },
     { name: 'HRMS', href: '/hrms', icon: Users },
     { name: 'Quality', href: '/quality', icon: Shield },
+    { name: 'Approvals', href: '/approvals', icon: ClipboardCheck },
+    { name: 'Reports', href: '/reports', icon: BarChart3 },
     { name: 'Customization', href: '/customization', icon: Wand2 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];

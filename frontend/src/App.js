@@ -49,6 +49,8 @@ const AppRoutes = () => {
                 <Route path="/hrms/*" element={<HRMS />} />
                 <Route path="/quality/*" element={<Quality />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/approvals" element={<Approvals />} />
+                <Route path="/reports" element={<Reports />} />
                 <Route path="/customization" element={<Customization />} />
               </Routes>
             </MainLayout>
