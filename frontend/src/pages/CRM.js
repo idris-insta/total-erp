@@ -1954,29 +1954,68 @@ const SamplesList = () => {
                   <Label className="font-inter">Contact Person</Label>
                   <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} />
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Product Name *</Label>
-                  <Input value={formData.product_name} onChange={(e) => setFormData({...formData, product_name: e.target.value})} required data-testid="sample-product-name" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Product Specs *</Label>
-                  <Input value={formData.product_specs} onChange={(e) => setFormData({...formData, product_specs: e.target.value})} placeholder="48mm x 65mtr, Brown..." required data-testid="sample-specs" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Quantity *</Label>
-                  <Input type="number" value={formData.quantity} onChange={(e) => setFormData({...formData, quantity: e.target.value})} required min="1" data-testid="sample-quantity" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-inter">Unit</Label>
-                  <Select value={formData.unit} onValueChange={(value) => setFormData({...formData, unit: value})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pcs">Pcs</SelectItem>
-                      <SelectItem value="Rolls">Rolls</SelectItem>
-                      <SelectItem value="Box">Box</SelectItem>
-                      <SelectItem value="Kg">Kg</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="col-span-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-inter">Sample Items *</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setFormData((prev) => ({
+                      ...prev,
+                      items: [...(prev.items || []), { product_name: '', product_specs: '', quantity: 1, unit: 'Pcs' }]
+                    }))}>
+                      <Plus className="h-4 w-4 mr-2" /> Add Item
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(formData.items || []).map((it, idx) => (
+                      <div key={idx} className="grid grid-cols-6 gap-2 border border-slate-200 rounded-lg p-3">
+                        <div className="col-span-2 space-y-1">
+                          <Label className="text-xs text-slate-600">Product Name</Label>
+                          <Input value={it.product_name} onChange={(e) => setFormData((prev) => ({
+                            ...prev,
+                            items: prev.items.map((x, i) => i === idx ? { ...x, product_name: e.target.value } : x)
+                          }))} required />
+                        </div>
+                        <div className="col-span-2 space-y-1">
+                          <Label className="text-xs text-slate-600">Specs</Label>
+                          <Input value={it.product_specs} onChange={(e) => setFormData((prev) => ({
+                            ...prev,
+                            items: prev.items.map((x, i) => i === idx ? { ...x, product_specs: e.target.value } : x)
+                          }))} required />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-slate-600">Qty</Label>
+                          <Input type="number" min="1" value={it.quantity} onChange={(e) => setFormData((prev) => ({
+                            ...prev,
+                            items: prev.items.map((x, i) => i === idx ? { ...x, quantity: e.target.value } : x)
+                          }))} required />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-slate-600">Unit</Label>
+                          <Select value={it.unit} onValueChange={(value) => setFormData((prev) => ({
+                            ...prev,
+                            items: prev.items.map((x, i) => i === idx ? { ...x, unit: value } : x)
+                          }))}>
+                            <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pcs">Pcs</SelectItem>
+                              <SelectItem value="Rolls">Rolls</SelectItem>
+                              <SelectItem value="Box">Box</SelectItem>
+                              <SelectItem value="Kg">Kg</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="col-span-6 flex justify-end">
+                          <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setFormData((prev) => ({
+                            ...prev,
+                            items: prev.items.filter((_, i) => i !== idx)
+                          }))} disabled={(formData.items || []).length <= 1}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="font-inter">From Location *</Label>
