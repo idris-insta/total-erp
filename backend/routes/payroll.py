@@ -87,31 +87,31 @@ class PayrollCreate(BaseModel):
 
 class Payroll(BaseModel):
     id: str
-    payroll_no: str
-    payroll_month: str
-    employee_id: str
+    payroll_no: Optional[str] = None
+    payroll_month: Optional[str] = None
+    employee_id: Optional[str] = None
     employee_name: Optional[str] = None
     employee_code: Optional[str] = None
     department: Optional[str] = None
     branch_id: Optional[str] = None
     
     # Attendance
-    working_days: int
-    present_days: float
-    leaves_taken: float
+    working_days: int = 0
+    present_days: float = 0
+    leaves_taken: float = 0
     lop_days: float = 0  # Loss of Pay days
     
     # Earnings
-    basic_salary: float
-    basic_earned: float
-    hra: float
-    conveyance: float
-    special_allowance: float
-    other_allowances: float
+    basic_salary: float = 0
+    basic_earned: float = 0
+    hra: float = 0
+    conveyance: float = 0
+    special_allowance: float = 0
+    other_allowances: float = 0
     overtime_amount: float = 0
     incentive_amount: float = 0
     bonus_amount: float = 0
-    gross_salary: float
+    gross_salary: float = 0
     
     # Deductions
     pf_employee: float = 0
