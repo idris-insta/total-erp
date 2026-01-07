@@ -1410,6 +1410,13 @@ const QuotationsList = () => {
   };
 
   const removeItem = (idx) => {
+    if (formData.items.length > 1) {
+      setFormData({
+        ...formData,
+        items: formData.items.filter((_, i) => i !== idx)
+      });
+    }
+  };
 
   const handleEditQuotation = (quote) => {
     setEditingQuotation(quote);
