@@ -414,13 +414,19 @@
 
 ## test_plan:
 ##   current_focus:
-##     - "Test all new backend modules from Master Technical Summary"
 ##     - "Director Command Center endpoints"
-##     - "Branches and Gatepass modules"
-##     - "Payroll and Employee Vault modules"
-##     - "Sales Incentives module"
-##     - "Import Bridge with Landing Cost"
-##     - "Production V2 (Coating/Converting)"
-##   stuck_tasks: []
+##     - "Branches module with multi-GST support"
+##     - "Gatepass system with transporter tracking"
+##     - "Expenses module with 12 default buckets"
+##     - "Payroll module with statutory calculations"
+##     - "Employee Vault with document management"
+##     - "Sales Incentives with 5 default slabs"
+##     - "Import Bridge with landing cost calculation"
+##     - "Production V2 with coating and converting"
+##     - "Inventory UOM conversion utility"
+##   stuck_tasks:
+##     - "Payroll module with statutory calculations"
+##     - "Import Bridge with landing cost calculation"
+##     - "Inventory UOM conversion utility"
 ##   test_all: false
 ##   test_priority: "high_first"
