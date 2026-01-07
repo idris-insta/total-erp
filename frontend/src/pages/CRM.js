@@ -1320,6 +1320,8 @@ const QuotationsList = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingQuotation, setEditingQuotation] = useState(null);
+
   const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
     account_id: '', contact_person: '', reference: '',
