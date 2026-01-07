@@ -480,14 +480,21 @@ async def get_sales_users(current_user: dict = Depends(get_current_user)):
 
 
 # ==================== SAMPLE MODELS ====================
-class SampleCreate(BaseModel):
-    account_id: str
-    contact_person: Optional[str] = None
-    quotation_id: Optional[str] = None
+class SampleItem(BaseModel):
     product_name: str
     product_specs: str
     quantity: float
     unit: str = "Pcs"
+
+
+class SampleCreate(BaseModel):
+    account_id: str
+    contact_person: Optional[str] = None
+    quotation_id: Optional[str] = None
+
+    # Multi-item (requested)
+    items: List[SampleItem]
+
     from_location: str
     courier: Optional[str] = None
     tracking_number: Optional[str] = None
@@ -496,12 +503,13 @@ class SampleCreate(BaseModel):
     purpose: Optional[str] = None
     notes: Optional[str] = None
 
+
 class SampleUpdate(BaseModel):
     contact_person: Optional[str] = None
-    product_name: Optional[str] = None
-    product_specs: Optional[str] = None
-    quantity: Optional[float] = None
-    unit: Optional[str] = None
+    quotation_id: Optional[str] = None
+
+    items: Optional[List[SampleItem]] = None
+
     from_location: Optional[str] = None
     courier: Optional[str] = None
     tracking_number: Optional[str] = None
@@ -516,6 +524,7 @@ class SampleUpdate(BaseModel):
     return_date: Optional[str] = None
     return_condition: Optional[str] = None
 
+
 class Sample(BaseModel):
     id: str
     sample_number: str
@@ -523,10 +532,9 @@ class Sample(BaseModel):
     account_name: Optional[str] = None
     contact_person: Optional[str] = None
     quotation_id: Optional[str] = None
-    product_name: str
-    product_specs: str
-    quantity: float
-    unit: str
+
+    items: List[dict]
+
     from_location: str
     courier: Optional[str] = None
     tracking_number: Optional[str] = None
@@ -1358,12 +1366,20 @@ async def create_sample(sample_data: SampleCreate, current_user: dict = Depends(
     now = datetime.now(timezone.utc).isoformat()
     sample_number = f"SMP-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
     
+    sample_payload = sample_data.model_dump()
+
+    # Persist a flattened summary for quick display/search
+    summary_product = sample_payload.get('items')[0].get('product_name') if sample_payload.get('items') else None
+    summary_specs = sample_payload.get('items')[0].get('product_specs') if sample_payload.get('items') else None
+
     sample_doc = {
         'id': sample_id,
         'sample_number': sample_number,
         'account_id': sample_data.account_id,
         'account_name': account.get('customer_name'),
-        **sample_data.model_dump(),
+        **sample_payload,
+        'product_name': summary_product,
+        'product_specs': summary_specs,
         'status': 'created',
         'feedback_status': 'pending',
         'feedback_notes': None,
@@ -1407,6 +1423,12 @@ async def get_sample(sample_id: str, current_user: dict = Depends(get_current_us
 @router.put("/samples/{sample_id}", response_model=Sample)
 async def update_sample(sample_id: str, sample_data: SampleUpdate, current_user: dict = Depends(get_current_user)):
     update_dict = {k: v for k, v in sample_data.model_dump().items() if v is not None}
+
+    # Keep flattened summary in sync if items updated
+    if 'items' in update_dict and update_dict.get('items'):
+        update_dict['product_name'] = update_dict['items'][0].get('product_name')
+        update_dict['product_specs'] = update_dict['items'][0].get('product_specs')
+
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
     
     result = await db.samples.update_one(
