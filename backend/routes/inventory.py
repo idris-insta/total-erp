@@ -228,12 +228,58 @@ async def create_item(item_data: ItemCreate, current_user: dict = Depends(get_cu
         "id": item_id,
         **item_data.model_dump(),
         "current_stock": 0,
+        "stock_kg": 0,
+        "stock_sqm": 0,
+        "stock_pcs": 0,
         "created_at": now,
         "updated_at": now
     }
     
     await db.items.insert_one(item_doc)
     return Item(**{k: v for k, v in item_doc.items() if k != '_id'})
+
+
+# ==================== UOM CONVERSION ENDPOINT ====================
+@router.get("/items/{item_id}/convert-uom")
+async def convert_item_uom(
+    item_id: str,
+    quantity: float,
+    from_uom: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Convert quantity between UOMs for an item using Dimensional Physics Engine
+    Supports: KG, SQM, PCS, ROLL, MTR
+    """
+    item = await db.items.find_one({"id": item_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    width_mm = item.get('width', 0)
+    length_m = item.get('length', 0)
+    gsm = item.get('gsm')
+    item_type = item.get('item_type', 'BOPP')
+    
+    if not width_mm or not length_m:
+        raise HTTPException(
+            status_code=400, 
+            detail="Item dimensions (width, length) required for UOM conversion"
+        )
+    
+    result = convert_all_uom(quantity, from_uom, width_mm, length_m, gsm, item_type)
+    
+    return {
+        'item_code': item['item_code'],
+        'item_name': item['item_name'],
+        'input': {'quantity': quantity, 'uom': from_uom},
+        'converted': result,
+        'dimensions': {
+            'width_mm': width_mm,
+            'length_m': length_m,
+            'gsm': gsm or 'default'
+        }
+    }
+
 
 @router.get("/items", response_model=List[Item])
 async def get_items(
