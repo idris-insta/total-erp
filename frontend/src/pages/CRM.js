@@ -1881,10 +1881,12 @@ const SamplesList = () => {
       account_id: sample.account_id || '',
       contact_person: sample.contact_person || '',
       quotation_id: sample.quotation_id || '',
-      product_name: sample.product_name || '',
-      product_specs: sample.product_specs || '',
-      quantity: sample.quantity || 1,
-      unit: sample.unit || 'Pcs',
+      items: (sample.items && sample.items.length > 0) ? sample.items.map((it) => ({
+        product_name: it.product_name || '',
+        product_specs: it.product_specs || '',
+        quantity: it.quantity || 1,
+        unit: it.unit || 'Pcs'
+      })) : [{ product_name: sample.product_name || '', product_specs: sample.product_specs || '', quantity: sample.quantity || 1, unit: sample.unit || 'Pcs' }],
       from_location: sample.from_location || '',
       courier: sample.courier || '',
       tracking_number: sample.tracking_number || '',
