@@ -1829,7 +1829,12 @@ const SamplesList = () => {
     try {
       const payload = {
         ...formData,
-        quantity: parseFloat(formData.quantity) || 1
+        items: (formData.items || []).map((it) => ({
+          product_name: it.product_name,
+          product_specs: it.product_specs,
+          quantity: parseFloat(it.quantity) || 1,
+          unit: it.unit || 'Pcs'
+        }))
       };
 
       if (editingSample) {
