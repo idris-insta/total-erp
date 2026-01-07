@@ -126,6 +126,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
 
 from routes import crm, inventory, production, procurement, accounts, hrms, quality, dashboard, settings, customization, documents, master_data, permissions, approvals, reports
+from routes import branches, gatepass, production_v2, expenses, payroll, employee_vault, sales_incentives, import_bridge, director_dashboard
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
@@ -142,6 +143,17 @@ api_router.include_router(master_data.router, prefix="/master-data", tags=["Mast
 api_router.include_router(permissions.router, prefix="/permissions", tags=["Permissions"])
 api_router.include_router(approvals.router, prefix="/approvals", tags=["Approvals"])
 api_router.include_router(reports.router, prefix="/reports", tags=["Reports"])
+
+# New modules from Master Technical Summary
+api_router.include_router(branches.router, prefix="/branches", tags=["Branches"])
+api_router.include_router(gatepass.router, prefix="/gatepass", tags=["Gatepass"])
+api_router.include_router(production_v2.router, prefix="/production-v2", tags=["Production V2 - Coating & Converting"])
+api_router.include_router(expenses.router, prefix="/expenses", tags=["Expenses"])
+api_router.include_router(payroll.router, prefix="/payroll", tags=["Payroll"])
+api_router.include_router(employee_vault.router, prefix="/employee-vault", tags=["Employee Vault"])
+api_router.include_router(sales_incentives.router, prefix="/sales-incentives", tags=["Sales Incentives"])
+api_router.include_router(import_bridge.router, prefix="/imports", tags=["Import Bridge"])
+api_router.include_router(director_dashboard.router, prefix="/director", tags=["Director Command Center"])
 
 app.include_router(api_router)
 
