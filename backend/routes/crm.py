@@ -533,7 +533,7 @@ class Sample(BaseModel):
     contact_person: Optional[str] = None
     quotation_id: Optional[str] = None
 
-    items: List[dict]
+    items: Optional[List[dict]] = []
 
     from_location: str
     courier: Optional[str] = None
