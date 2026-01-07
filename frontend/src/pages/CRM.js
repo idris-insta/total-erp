@@ -751,6 +751,7 @@ const AccountsList = () => {
     } finally {
       setLoading(false);
     }
+  };
 
   const tryAutoFillBillingFromPincode = async (pincode) => {
     if (!pincode || pincode.length !== 6) return;
