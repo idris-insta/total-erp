@@ -1693,7 +1693,7 @@ const QuotationsList = () => {
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm(); }}>Cancel</Button>
-                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="quotation-submit-button">Create Quotation</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="quotation-submit-button">{editingQuotation ? 'Update Quotation' : 'Create Quotation'}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
