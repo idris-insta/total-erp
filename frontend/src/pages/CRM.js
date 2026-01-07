@@ -1476,7 +1476,7 @@ const QuotationsList = () => {
           <h2 className="text-2xl font-bold text-slate-900 font-manrope">Quotations</h2>
           <p className="text-slate-600 mt-1 font-inter">{quotations.length} total quotations</p>
         </div>
-        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
+        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) { setEditingQuotation(null); resetForm(); } }}>
           <DialogTrigger asChild>
             <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-quotation-button">
               <Plus className="h-4 w-4 mr-2" />New Quotation
