@@ -1762,6 +1762,9 @@ const QuotationsList = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditQuotation(quote)} data-testid={`edit-quotation-${quote.id}`}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="sm" onClick={() => handleDelete(quote.id)} className="text-destructive" data-testid={`delete-quotation-${quote.id}`}>
                             <Trash2 className="h-4 w-4" />
