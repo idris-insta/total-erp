@@ -1364,9 +1364,15 @@ const QuotationsList = () => {
         }))
       };
       
-      await api.post('/crm/quotations', payload);
-      toast.success('Quotation created successfully');
+      if (editingQuotation) {
+        await api.put(`/crm/quotations/${editingQuotation.id}`, payload);
+        toast.success('Quotation updated successfully');
+      } else {
+        await api.post('/crm/quotations', payload);
+        toast.success('Quotation created successfully');
+      }
       setOpen(false);
+      setEditingQuotation(null);
       fetchData();
       resetForm();
     } catch (error) {
@@ -1822,10 +1828,18 @@ const SamplesList = () => {
         ...formData,
         quantity: parseFloat(formData.quantity) || 1
       };
+  const [editingSample, setEditingSample] = useState(null);
+
       
-      await api.post('/crm/samples', payload);
-      toast.success('Sample created successfully');
+      if (editingSample) {
+        await api.put(`/crm/samples/${editingSample.id}`, payload);
+        toast.success('Sample updated successfully');
+      } else {
+        await api.post('/crm/samples', payload);
+        toast.success('Sample created successfully');
+      }
       setOpen(false);
+      setEditingSample(null);
       fetchData();
       resetForm();
     } catch (error) {
@@ -1855,6 +1869,28 @@ const SamplesList = () => {
   };
 
   const resetForm = () => {
+
+  const handleEditSample = (sample) => {
+    setEditingSample(sample);
+    setFormData({
+      account_id: sample.account_id || '',
+      contact_person: sample.contact_person || '',
+      quotation_id: sample.quotation_id || '',
+      product_name: sample.product_name || '',
+      product_specs: sample.product_specs || '',
+      quantity: sample.quantity || 1,
+      unit: sample.unit || 'Pcs',
+      from_location: sample.from_location || '',
+      courier: sample.courier || '',
+      tracking_number: sample.tracking_number || '',
+      expected_delivery: sample.expected_delivery || '',
+      feedback_due_date: sample.feedback_due_date || '',
+      purpose: sample.purpose || '',
+      notes: sample.notes || ''
+    });
+    setOpen(true);
+  };
+
     setFormData({
       account_id: '', contact_person: '', product_name: '', product_specs: '',
       quantity: 1, unit: 'Pcs', from_location: '', courier: '', tracking_number: '',
@@ -2065,6 +2101,9 @@ const SamplesList = () => {
                       <td className="px-4 py-3 text-sm text-slate-600 font-mono">{new Date(sample.feedback_due_date).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditSample(sample)} data-testid={`edit-sample-${sample.id}`}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="sm" onClick={() => handleDelete(sample.id)} className="text-destructive" data-testid={`delete-sample-${sample.id}`}>
                             <Trash2 className="h-4 w-4" />
