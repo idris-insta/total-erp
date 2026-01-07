@@ -1410,6 +1410,34 @@ const QuotationsList = () => {
   };
 
   const removeItem = (idx) => {
+
+  const handleEditQuotation = (quote) => {
+    setEditingQuotation(quote);
+    setFormData({
+      account_id: quote.account_id || '',
+      contact_person: quote.contact_person || '',
+      reference: quote.reference || '',
+      valid_until: quote.valid_until || '',
+      transport: quote.transport || '',
+      delivery_terms: quote.delivery_terms || '',
+      payment_terms: quote.payment_terms || '',
+      terms_conditions: quote.terms_conditions || '',
+      notes: quote.notes || '',
+      header_discount_percent: quote.header_discount_percent || 0,
+      items: (quote.items && quote.items.length > 0) ? quote.items.map((it) => ({
+        item_name: it.item_name || '',
+        description: it.description || '',
+        hsn_code: it.hsn_code || '',
+        quantity: it.quantity || 1,
+        unit: it.unit || 'Pcs',
+        unit_price: it.unit_price || 0,
+        discount_percent: it.discount_percent || 0,
+        tax_percent: it.tax_percent || 18
+      })) : [{ item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+    });
+    setOpen(true);
+  };
+
     if (formData.items.length > 1) {
       setFormData({
         ...formData,
