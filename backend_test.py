@@ -1023,11 +1023,514 @@ class APITester:
             error = response.text if response else "Connection failed"
             self.log_test("Create Sample with 2 Items", False, f"Status: {status}, Error: {error}")
 
+    def test_director_dashboard(self):
+        """Test Director Command Center endpoints"""
+        print("\n=== Testing Director Command Center ===")
+        
+        # Test cash pulse
+        response = self.make_request("GET", "/director/cash-pulse")
+        if response and response.status_code == 200:
+            data = response.json()
+            self.log_test("Director Cash Pulse", True, f"AR: {data.get('total_receivables', 0)}, AP: {data.get('total_payables', 0)}")
+        else:
+            self.log_test("Director Cash Pulse", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test production pulse
+        response = self.make_request("GET", "/director/production-pulse")
+        if response and response.status_code == 200:
+            data = response.json()
+            self.log_test("Director Production Pulse", True, f"WO in progress: {data.get('work_orders_in_progress', 0)}")
+        else:
+            self.log_test("Director Production Pulse", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test sales pulse
+        response = self.make_request("GET", "/director/sales-pulse")
+        if response and response.status_code == 200:
+            data = response.json()
+            self.log_test("Director Sales Pulse", True, f"MTD Sales: {data.get('mtd_sales', 0)}")
+        else:
+            self.log_test("Director Sales Pulse", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test alerts
+        response = self.make_request("GET", "/director/alerts")
+        if response and response.status_code == 200:
+            data = response.json()
+            self.log_test("Director Alerts", True, f"Pending approvals: {data.get('pending_approvals', {}).get('count', 0)}")
+        else:
+            self.log_test("Director Alerts", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test summary
+        response = self.make_request("GET", "/director/summary")
+        if response and response.status_code == 200:
+            data = response.json()
+            self.log_test("Director Summary", True, "Complete dashboard summary received")
+        else:
+            self.log_test("Director Summary", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_branches(self):
+        """Test Branches module"""
+        print("\n=== Testing Branches ===")
+        
+        # Create branch
+        branch_data = {
+            "branch_code": "MH",
+            "branch_name": "Maharashtra",
+            "state": "Maharashtra",
+            "gstin": "27AABCU9603R1ZM",
+            "address": "Mumbai",
+            "city": "Mumbai",
+            "pincode": "400001"
+        }
+        
+        response = self.make_request("POST", "/branches/", branch_data)
+        branch_id = None
+        
+        if response and response.status_code == 200:
+            branch = response.json()
+            branch_id = branch.get("id")
+            self.log_test("Create Branch", True, f"Branch: {branch.get('branch_name')} ({branch.get('branch_code')})")
+        else:
+            self.log_test("Create Branch", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # List branches
+        response = self.make_request("GET", "/branches/")
+        if response and response.status_code == 200:
+            branches = response.json()
+            self.log_test("List Branches", True, f"Found {len(branches)} branches")
+        else:
+            self.log_test("List Branches", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get branch dashboard
+        if branch_id:
+            response = self.make_request("GET", f"/branches/{branch_id}/dashboard")
+            if response and response.status_code == 200:
+                dashboard = response.json()
+                self.log_test("Branch Dashboard", True, f"Sales: {dashboard.get('sales', {}).get('total', 0)}")
+            else:
+                self.log_test("Branch Dashboard", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        return branch_id
+
+    def test_gatepass(self):
+        """Test Gatepass module"""
+        print("\n=== Testing Gatepass ===")
+        
+        # Create transporter
+        transporter_data = {
+            "transporter_name": "Reliable Transport Co.",
+            "contact_person": "Suresh Patil",
+            "phone": "9876543210",
+            "gstin": "27AABCU9603R1ZX",
+            "address": "Transport Nagar, Mumbai",
+            "city": "Mumbai",
+            "state": "Maharashtra"
+        }
+        
+        response = self.make_request("POST", "/gatepass/transporters", transporter_data)
+        transporter_id = None
+        
+        if response and response.status_code == 200:
+            transporter = response.json()
+            transporter_id = transporter.get("id")
+            self.log_test("Create Transporter", True, f"Transporter: {transporter.get('transporter_name')}")
+        else:
+            self.log_test("Create Transporter", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # List transporters
+        response = self.make_request("GET", "/gatepass/transporters")
+        if response and response.status_code == 200:
+            transporters = response.json()
+            self.log_test("List Transporters", True, f"Found {len(transporters)} transporters")
+        else:
+            self.log_test("List Transporters", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Create inward gatepass (need warehouse_id)
+        warehouse_id, item_id = self.test_inventory_setup()
+        
+        if warehouse_id and item_id:
+            gatepass_data = {
+                "gatepass_type": "inward",
+                "reference_type": "GRN",
+                "transporter_id": transporter_id,
+                "vehicle_no": "MH01AB1234",
+                "driver_name": "Ramesh Kumar",
+                "driver_phone": "9876543211",
+                "party_name": "ABC Suppliers",
+                "party_address": "Supplier Address",
+                "warehouse_id": warehouse_id,
+                "items": [
+                    {
+                        "item_id": item_id,
+                        "item_name": "Test Item",
+                        "quantity": 100.0,
+                        "uom": "Rolls",
+                        "batch_no": "BATCH001"
+                    }
+                ],
+                "purpose": "Raw material delivery"
+            }
+            
+            response = self.make_request("POST", "/gatepass/", gatepass_data)
+            gatepass_id = None
+            
+            if response and response.status_code == 200:
+                gatepass = response.json()
+                gatepass_id = gatepass.get("id")
+                self.log_test("Create Inward Gatepass", True, f"Gatepass: {gatepass.get('gatepass_no')}")
+            else:
+                self.log_test("Create Inward Gatepass", False, f"Status: {response.status_code if response else 'No response'}")
+            
+            # List gatepasses
+            response = self.make_request("GET", "/gatepass/")
+            if response and response.status_code == 200:
+                gatepasses = response.json()
+                self.log_test("List Gatepasses", True, f"Found {len(gatepasses)} gatepasses")
+            else:
+                self.log_test("List Gatepasses", False, f"Status: {response.status_code if response else 'No response'}")
+            
+            # Get vehicle log
+            response = self.make_request("GET", "/gatepass/vehicle-log")
+            if response and response.status_code == 200:
+                log = response.json()
+                self.log_test("Vehicle Log", True, f"Found {len(log)} vehicle entries")
+            else:
+                self.log_test("Vehicle Log", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_expenses(self):
+        """Test Expenses module"""
+        print("\n=== Testing Expenses ===")
+        
+        # Bootstrap expense buckets
+        response = self.make_request("POST", "/expenses/buckets/bootstrap")
+        if response and response.status_code == 200:
+            data = response.json()
+            self.log_test("Bootstrap Expense Buckets", True, data.get('message', ''))
+        else:
+            self.log_test("Bootstrap Expense Buckets", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # List expense buckets
+        response = self.make_request("GET", "/expenses/buckets")
+        bucket_id = None
+        
+        if response and response.status_code == 200:
+            buckets = response.json()
+            self.log_test("List Expense Buckets", True, f"Found {len(buckets)} buckets")
+            if buckets:
+                bucket_id = buckets[0].get("id")
+        else:
+            self.log_test("List Expense Buckets", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Create expense entry
+        if bucket_id:
+            expense_data = {
+                "bucket_id": bucket_id,
+                "expense_date": "2024-12-20",
+                "amount": 5000.0,
+                "payment_mode": "bank",
+                "vendor_name": "Office Supplies Co.",
+                "description": "Office stationery and supplies",
+                "department": "Admin"
+            }
+            
+            response = self.make_request("POST", "/expenses/entries", expense_data)
+            if response and response.status_code == 200:
+                entry = response.json()
+                self.log_test("Create Expense Entry", True, f"Entry: {entry.get('expense_no')}")
+            else:
+                self.log_test("Create Expense Entry", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get expense analytics
+        response = self.make_request("GET", "/expenses/analytics/by-bucket")
+        if response and response.status_code == 200:
+            analytics = response.json()
+            self.log_test("Expense Analytics", True, f"Found {len(analytics)} bucket analytics")
+        else:
+            self.log_test("Expense Analytics", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_payroll(self):
+        """Test Payroll module"""
+        print("\n=== Testing Payroll ===")
+        
+        # List payrolls
+        response = self.make_request("GET", "/payroll/")
+        if response and response.status_code == 200:
+            payrolls = response.json()
+            self.log_test("List Payrolls", True, f"Found {len(payrolls)} payroll records")
+        else:
+            self.log_test("List Payrolls", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_employee_vault(self):
+        """Test Employee Vault module"""
+        print("\n=== Testing Employee Vault ===")
+        
+        # Get document types
+        response = self.make_request("GET", "/employee-vault/document-types")
+        if response and response.status_code == 200:
+            doc_types = response.json()
+            self.log_test("Employee Document Types", True, f"Found {len(doc_types)} document types")
+        else:
+            self.log_test("Employee Document Types", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get employees first for asset assignment
+        response = self.make_request("GET", "/hrms/employees")
+        employee_id = None
+        
+        if response and response.status_code == 200:
+            employees = response.json()
+            if employees:
+                employee_id = employees[0].get("id")
+        
+        # Assign asset to employee
+        if employee_id:
+            asset_data = {
+                "employee_id": employee_id,
+                "asset_type": "Laptop",
+                "asset_name": "Dell Latitude 5520",
+                "asset_code": "LAP001",
+                "serial_number": "DL123456789",
+                "assigned_date": "2024-12-20",
+                "condition": "New",
+                "value": 65000.0
+            }
+            
+            response = self.make_request("POST", "/employee-vault/assets", asset_data)
+            if response and response.status_code == 200:
+                asset = response.json()
+                self.log_test("Assign Employee Asset", True, f"Asset: {asset.get('asset_name')}")
+            else:
+                self.log_test("Assign Employee Asset", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get expiring documents
+        response = self.make_request("GET", "/employee-vault/documents/expiring")
+        if response and response.status_code == 200:
+            docs = response.json()
+            self.log_test("Expiring Documents", True, f"Found {len(docs)} expiring documents")
+        else:
+            self.log_test("Expiring Documents", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_sales_incentives(self):
+        """Test Sales Incentives module"""
+        print("\n=== Testing Sales Incentives ===")
+        
+        # Get incentive slabs
+        response = self.make_request("GET", "/sales-incentives/slabs")
+        if response and response.status_code == 200:
+            slabs = response.json()
+            self.log_test("Incentive Slabs", True, f"Found {len(slabs)} incentive slabs")
+        else:
+            self.log_test("Incentive Slabs", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get employees for target creation
+        response = self.make_request("GET", "/hrms/employees")
+        employee_id = None
+        
+        if response and response.status_code == 200:
+            employees = response.json()
+            if employees:
+                employee_id = employees[0].get("id")
+        
+        # Create sales target
+        if employee_id:
+            target_data = {
+                "employee_id": employee_id,
+                "target_type": "monthly",
+                "period": "2025-01",
+                "target_amount": 500000.0,
+                "target_quantity": 100,
+                "product_category": "all"
+            }
+            
+            response = self.make_request("POST", "/sales-incentives/targets", target_data)
+            if response and response.status_code == 200:
+                target = response.json()
+                self.log_test("Create Sales Target", True, f"Target: {target.get('target_amount')}")
+            else:
+                self.log_test("Create Sales Target", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # List targets
+        response = self.make_request("GET", "/sales-incentives/targets")
+        if response and response.status_code == 200:
+            targets = response.json()
+            self.log_test("List Sales Targets", True, f"Found {len(targets)} targets")
+        else:
+            self.log_test("List Sales Targets", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get leaderboard
+        response = self.make_request("GET", "/sales-incentives/leaderboard", params={"period": "2025-01"})
+        if response and response.status_code == 200:
+            leaderboard = response.json()
+            self.log_test("Sales Leaderboard", True, f"Found {len(leaderboard)} entries")
+        else:
+            self.log_test("Sales Leaderboard", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_import_bridge(self):
+        """Test Import Bridge module"""
+        print("\n=== Testing Import Bridge ===")
+        
+        # Get exchange rates
+        response = self.make_request("GET", "/imports/exchange-rates")
+        if response and response.status_code == 200:
+            rates = response.json()
+            self.log_test("Exchange Rates", True, f"Base: {rates.get('base', 'N/A')}")
+        else:
+            self.log_test("Exchange Rates", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Create import PO (need supplier first)
+        supplier_data = {
+            "supplier_name": "Global Materials Inc.",
+            "supplier_type": "International",
+            "contact_person": "John Smith",
+            "email": "john@globalmaterials.com",
+            "phone": "+1-555-0123",
+            "address": "123 Industrial Ave, New York, USA",
+            "payment_terms": "LC 90 days",
+            "currency": "USD"
+        }
+        
+        # Create supplier first
+        supplier_response = self.make_request("POST", "/procurement/suppliers", supplier_data)
+        supplier_id = None
+        
+        if supplier_response and supplier_response.status_code == 200:
+            supplier = supplier_response.json()
+            supplier_id = supplier.get("id")
+        
+        # Get item for import PO
+        item_response = self.make_request("GET", "/inventory/items")
+        item_id = None
+        
+        if item_response and item_response.status_code == 200:
+            items = item_response.json()
+            if items:
+                item_id = items[0].get("id")
+        
+        # Create import PO
+        if supplier_id and item_id:
+            import_po_data = {
+                "supplier_id": supplier_id,
+                "po_date": "2024-12-20",
+                "expected_arrival": "2025-01-20",
+                "items": [
+                    {
+                        "item_id": item_id,
+                        "item_name": "Adhesive Raw Material",
+                        "quantity": 1000.0,
+                        "uom": "KG",
+                        "foreign_unit_price": 5.50,
+                        "foreign_currency": "USD"
+                    }
+                ],
+                "foreign_currency": "USD",
+                "exchange_rate": 83.50,
+                "port_of_loading": "New York",
+                "port_of_discharge": "JNPT Mumbai",
+                "shipping_terms": "FOB",
+                "container_type": "20ft",
+                "payment_terms": "LC 90 days"
+            }
+            
+            response = self.make_request("POST", "/imports/purchase-orders", import_po_data)
+            import_po_id = None
+            
+            if response and response.status_code == 200:
+                po = response.json()
+                import_po_id = po.get("id")
+                self.log_test("Create Import PO", True, f"PO: {po.get('po_number')}")
+            else:
+                self.log_test("Create Import PO", False, f"Status: {response.status_code if response else 'No response'}")
+            
+            # List import POs
+            response = self.make_request("GET", "/imports/purchase-orders")
+            if response and response.status_code == 200:
+                pos = response.json()
+                self.log_test("List Import POs", True, f"Found {len(pos)} import POs")
+            else:
+                self.log_test("List Import POs", False, f"Status: {response.status_code if response else 'No response'}")
+            
+            # Calculate landing cost
+            if import_po_id:
+                landing_cost_data = {
+                    "import_po_id": import_po_id,
+                    "basic_customs_duty": 10000.0,
+                    "igst": 15000.0,
+                    "ocean_freight": 25000.0,
+                    "insurance": 5000.0,
+                    "cha_charges": 8000.0,
+                    "port_charges": 3000.0,
+                    "settlement_exchange_rate": 84.0
+                }
+                
+                response = self.make_request("POST", "/imports/landing-cost", landing_cost_data)
+                if response and response.status_code == 200:
+                    cost = response.json()
+                    self.log_test("Calculate Landing Cost", True, f"Landed value: {cost.get('landed_inr_value')}")
+                else:
+                    self.log_test("Calculate Landing Cost", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_production_v2(self):
+        """Test Production V2 module"""
+        print("\n=== Testing Production V2 ===")
+        
+        # Get coating batches
+        response = self.make_request("GET", "/production-v2/coating-batches")
+        if response and response.status_code == 200:
+            batches = response.json()
+            self.log_test("Coating Batches", True, f"Found {len(batches)} coating batches")
+        else:
+            self.log_test("Coating Batches", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get converting jobs
+        response = self.make_request("GET", "/production-v2/converting-jobs")
+        if response and response.status_code == 200:
+            jobs = response.json()
+            self.log_test("Converting Jobs", True, f"Found {len(jobs)} converting jobs")
+        else:
+            self.log_test("Converting Jobs", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Get RM requisitions
+        response = self.make_request("GET", "/production-v2/rm-requisitions")
+        if response and response.status_code == 200:
+            requisitions = response.json()
+            self.log_test("RM Requisitions", True, f"Found {len(requisitions)} RM requisitions")
+        else:
+            self.log_test("RM Requisitions", False, f"Status: {response.status_code if response else 'No response'}")
+
+    def test_inventory_uom_conversion(self):
+        """Test Inventory UOM Conversion if items have dimensions"""
+        print("\n=== Testing Inventory UOM Conversion ===")
+        
+        # Get items to check for dimensions
+        response = self.make_request("GET", "/inventory/items")
+        if response and response.status_code == 200:
+            items = response.json()
+            items_with_dimensions = [item for item in items if item.get('width') and item.get('length')]
+            
+            if items_with_dimensions:
+                item = items_with_dimensions[0]
+                # Test UOM conversion endpoint if it exists
+                conversion_data = {
+                    "item_id": item.get("id"),
+                    "from_uom": "Rolls",
+                    "to_uom": "SqM",
+                    "quantity": 10.0
+                }
+                
+                response = self.make_request("POST", "/inventory/uom-convert", conversion_data)
+                if response and response.status_code == 200:
+                    result = response.json()
+                    self.log_test("UOM Conversion", True, f"Converted: {result.get('converted_quantity', 0)}")
+                else:
+                    self.log_test("UOM Conversion", False, f"Status: {response.status_code if response else 'No response'}")
+            else:
+                self.log_test("UOM Conversion", True, "No items with dimensions found - skipping UOM conversion test")
+        else:
+            self.log_test("Check Items for UOM Conversion", False, f"Status: {response.status_code if response else 'No response'}")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Backend API Tests for Adhesive ERP System - CRM Changes Focus")
+        print("🚀 Starting Backend API Tests for InstaBiz Industrial ERP - New Modules Focus")
         print(f"Base URL: {BASE_URL}")
-        print("=" * 60)
+        print("=" * 80)
         
         # Authentication tests
         if not self.test_auth_login():
@@ -1036,14 +1539,22 @@ class APITester:
         
         self.test_auth_me()
         
-        # CRM specific tests (main focus)
-        self.test_crm_account_address_autofill()
-        self.test_crm_samples_multi_item()
+        # Test all new modules from Master Technical Summary
+        self.test_director_dashboard()
+        self.test_branches()
+        self.test_gatepass()
+        self.test_expenses()
+        self.test_payroll()
+        self.test_employee_vault()
+        self.test_sales_incentives()
+        self.test_import_bridge()
+        self.test_production_v2()
+        self.test_inventory_uom_conversion()
         
         # Summary
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 80)
         print("📊 TEST SUMMARY")
-        print("=" * 60)
+        print("=" * 80)
         
         passed = sum(1 for result in self.test_results if result["success"])
         total = len(self.test_results)
