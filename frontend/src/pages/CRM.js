@@ -1803,6 +1803,8 @@ const SamplesList = () => {
     quantity: 1, unit: 'Pcs', from_location: '', courier: '', tracking_number: '',
     expected_delivery: '', feedback_due_date: '', purpose: '', notes: ''
   });
+  const [editingSample, setEditingSample] = useState(null);
+
 
   useEffect(() => { fetchData(); }, []);
 
@@ -1828,9 +1830,7 @@ const SamplesList = () => {
         ...formData,
         quantity: parseFloat(formData.quantity) || 1
       };
-  const [editingSample, setEditingSample] = useState(null);
 
-      
       if (editingSample) {
         await api.put(`/crm/samples/${editingSample.id}`, payload);
         toast.success('Sample updated successfully');
@@ -1915,7 +1915,7 @@ const SamplesList = () => {
           <h2 className="text-2xl font-bold text-slate-900 font-manrope">Samples Management</h2>
           <p className="text-slate-600 mt-1 font-inter">{samples.length} total samples</p>
         </div>
-        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
+        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) { setEditingSample(null); resetForm(); } }}>
           <DialogTrigger asChild>
             <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-sample-button">
               <Plus className="h-4 w-4 mr-2" />New Sample
