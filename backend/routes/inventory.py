@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import uuid
 from server import db, get_current_user
+from utils.uom_converter import convert_all_uom, calculate_sqm
 
 router = APIRouter()
 
@@ -17,15 +18,20 @@ class ItemCreate(BaseModel):
     uom: str = "Rolls"
     secondary_uom: Optional[str] = None
     conversion_factor: float = 1
-    thickness: Optional[float] = None
-    width: Optional[float] = None
-    length: Optional[float] = None
+    thickness: Optional[float] = None  # Microns
+    width: Optional[float] = None  # MM
+    length: Optional[float] = None  # Meters
     color: Optional[str] = None
     adhesive_type: Optional[str] = None
     base_material: Optional[str] = None
     grade: Optional[str] = None
+    # Dimensional Physics Engine fields
+    gsm: Optional[float] = None  # Grams per Square Meter
+    density: Optional[float] = None  # g/cm3 for thickness-based calc
     standard_cost: float = 0
     selling_price: float = 0
+    min_sale_price: float = 0  # MSP - updated by Import Bridge
+    last_landed_rate: float = 0  # From Import Bridge
     min_order_qty: float = 1
     reorder_level: float = 0
     safety_stock: float = 0
@@ -49,8 +55,12 @@ class ItemUpdate(BaseModel):
     adhesive_type: Optional[str] = None
     base_material: Optional[str] = None
     grade: Optional[str] = None
+    gsm: Optional[float] = None
+    density: Optional[float] = None
     standard_cost: Optional[float] = None
     selling_price: Optional[float] = None
+    min_sale_price: Optional[float] = None
+    last_landed_rate: Optional[float] = None
     min_order_qty: Optional[float] = None
     reorder_level: Optional[float] = None
     safety_stock: Optional[float] = None
@@ -76,8 +86,12 @@ class Item(BaseModel):
     adhesive_type: Optional[str] = None
     base_material: Optional[str] = None
     grade: Optional[str] = None
+    gsm: Optional[float] = None
+    density: Optional[float] = None
     standard_cost: float = 0
     selling_price: float = 0
+    min_sale_price: float = 0
+    last_landed_rate: float = 0
     min_order_qty: float = 1
     reorder_level: float = 0
     safety_stock: float = 0
@@ -86,6 +100,10 @@ class Item(BaseModel):
     storage_conditions: Optional[str] = None
     is_active: bool = True
     current_stock: float = 0
+    # Dual-UOM Stock (Dimensional Physics Engine)
+    stock_kg: float = 0
+    stock_sqm: float = 0
+    stock_pcs: int = 0
     created_at: str
     updated_at: Optional[str] = None
 
