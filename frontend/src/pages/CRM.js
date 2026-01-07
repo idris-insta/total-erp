@@ -1917,7 +1917,7 @@ const SamplesList = () => {
         </div>
         <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) { setEditingSample(null); resetForm(); } }}>
           <DialogTrigger asChild>
-            <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="add-sample-button">
+            <Button className="bg-accent hover:bg-accent/90 font-inter" onClick={() => { setEditingSample(null); resetForm(); }} data-testid="add-sample-button">
               <Plus className="h-4 w-4 mr-2" />New Sample
             </Button>
 
