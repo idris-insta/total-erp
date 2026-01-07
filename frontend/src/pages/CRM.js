@@ -1930,9 +1930,6 @@ const SamplesList = () => {
             <Button className="bg-accent hover:bg-accent/90 font-inter" onClick={() => { setEditingSample(null); resetForm(); }} data-testid="add-sample-button">
               <Plus className="h-4 w-4 mr-2" />New Sample
             </Button>
-
-  // moved handleEditSample above return
-
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
