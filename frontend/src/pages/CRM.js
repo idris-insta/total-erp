@@ -1799,8 +1799,9 @@ const SamplesList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
-    account_id: '', contact_person: '', product_name: '', product_specs: '',
-    quantity: 1, unit: 'Pcs', from_location: '', courier: '', tracking_number: '',
+    account_id: '', contact_person: '', quotation_id: '',
+    items: [{ product_name: '', product_specs: '', quantity: 1, unit: 'Pcs' }],
+    from_location: '', courier: '', tracking_number: '',
     expected_delivery: '', feedback_due_date: '', purpose: '', notes: ''
   });
   const [editingSample, setEditingSample] = useState(null);
