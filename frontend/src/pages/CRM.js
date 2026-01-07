@@ -1868,6 +1868,28 @@ const SamplesList = () => {
     }
   };
 
+
+  const handleEditSample = (sample) => {
+    setEditingSample(sample);
+    setFormData({
+      account_id: sample.account_id || '',
+      contact_person: sample.contact_person || '',
+      quotation_id: sample.quotation_id || '',
+      product_name: sample.product_name || '',
+      product_specs: sample.product_specs || '',
+      quantity: sample.quantity || 1,
+      unit: sample.unit || 'Pcs',
+      from_location: sample.from_location || '',
+      courier: sample.courier || '',
+      tracking_number: sample.tracking_number || '',
+      expected_delivery: sample.expected_delivery || '',
+      feedback_due_date: sample.feedback_due_date || '',
+      purpose: sample.purpose || '',
+      notes: sample.notes || ''
+    });
+    setOpen(true);
+  };
+
   const resetForm = () => {
     setFormData({
       account_id: '', contact_person: '', product_name: '', product_specs: '',
