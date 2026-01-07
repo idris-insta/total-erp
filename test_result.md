@@ -150,6 +150,26 @@
 ##       - working: true
 ##         agent: "main"
 ##         comment: "Validated /api/crm/geo/pincode/110001 returns city/state/district. Created Lead with status=proposal auto-filled geo fields and successfully created quotation via POST /api/crm/leads/{id}/create-quotation."
+##   - task: "CRM account address auto-fill with pincode"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/routes/crm.py"
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "testing"
+##         comment: "✅ VERIFIED: Account creation with billing_pincode=110001 correctly auto-fills billing_city=New Delhi, billing_state=Delhi, billing_district=Central Delhi. Account update with billing_pincode=400001 correctly updates to billing_city=Mumbai, billing_state=Maharashtra, billing_district=Mumbai. Pincode geo lookup integration working perfectly."
+##   - task: "CRM samples multi-item functionality"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/routes/crm.py"
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##       - working: true
+##         agent: "testing"
+##         comment: "✅ VERIFIED: Sample creation with items array containing 2 items successful. Sample list fetch returns correct sample with 2 items. Sample update (PUT) to change second item quantity from 10.0 to 15.0 persists correctly. Multi-item sample functionality working as expected. Fixed database compatibility issue with old samples missing items field."
 ##
 ## frontend:
 ##   - task: "Leads UI: District field before City + State dropdown + PIN autofill + customer type + assign to + create quotation option"
