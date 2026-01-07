@@ -1910,7 +1910,8 @@ const SamplesList = () => {
   const filteredSamples = samples.filter(sample => {
     const matchesSearch = sample.sample_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sample.account_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sample.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      sample.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (sample.items || []).some((it) => (it.product_name || '').toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || sample.feedback_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
