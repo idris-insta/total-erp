@@ -729,9 +729,11 @@ const AccountsList = () => {
   const [editingAccount, setEditingAccount] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ industry: 'all', state: 'all', hasOutstanding: 'all' });
+  const [loadingGeo, setLoadingGeo] = useState(false);
+
   const [formData, setFormData] = useState({
     customer_name: '', account_type: 'Customer', gstin: '', pan: '',
-    billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
+    billing_address: '', billing_country: 'India', billing_state: '', billing_district: '', billing_city: '', billing_pincode: '',
     shipping_addresses: [{ label: 'Default', address: '', city: '', state: '', pincode: '', country: 'India' }],
     contacts: [{ name: '', designation: '', email: '', phone: '', mobile: '', is_primary: true }],
     credit_limit: '', credit_days: '30', credit_control: 'Warn',
@@ -749,6 +751,28 @@ const AccountsList = () => {
     } finally {
       setLoading(false);
     }
+
+  const tryAutoFillBillingFromPincode = async (pincode) => {
+    if (!pincode || pincode.length !== 6) return;
+    if ((formData.billing_country || 'India').toLowerCase() !== 'india') return;
+
+    setLoadingGeo(true);
+    try {
+      const res = await api.get(`/crm/geo/pincode/${pincode}`);
+      setFormData((prev) => ({
+        ...prev,
+        billing_country: res.data?.country || prev.billing_country,
+        billing_state: res.data?.state || prev.billing_state,
+        billing_district: res.data?.district || prev.billing_district,
+        billing_city: res.data?.city || prev.billing_city
+      }));
+    } catch (e) {
+      // ignore
+    } finally {
+      setLoadingGeo(false);
+    }
+  };
+
   };
 
   const handleSubmit = async (e) => {
@@ -784,8 +808,10 @@ const AccountsList = () => {
       gstin: account.gstin || '',
       pan: account.pan || '',
       billing_address: account.billing_address || '',
-      billing_city: account.billing_city || '',
+      billing_country: account.billing_country || 'India',
       billing_state: account.billing_state || '',
+      billing_district: account.billing_district || '',
+      billing_city: account.billing_city || '',
       billing_pincode: account.billing_pincode || '',
       shipping_addresses: account.shipping_addresses?.length > 0 ? account.shipping_addresses : [{ label: 'Default', address: '', city: '', state: '', pincode: '', country: 'India' }],
       contacts: account.contacts?.length > 0 ? account.contacts : [{ name: '', designation: '', email: '', phone: '', mobile: '', is_primary: true }],
@@ -815,7 +841,7 @@ const AccountsList = () => {
   const resetForm = () => {
     setFormData({
       customer_name: '', account_type: 'Customer', gstin: '', pan: '',
-      billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
+      billing_address: '', billing_country: 'India', billing_state: '', billing_district: '', billing_city: '', billing_pincode: '',
       shipping_addresses: [{ label: 'Default', address: '', city: '', state: '', pincode: '', country: 'India' }],
       contacts: [{ name: '', designation: '', email: '', phone: '', mobile: '', is_primary: true }],
       credit_limit: '', credit_days: '30', credit_control: 'Warn',
@@ -953,16 +979,31 @@ const AccountsList = () => {
                         <Textarea value={formData.billing_address} onChange={(e) => setFormData({...formData, billing_address: e.target.value})} required rows={2} />
                       </div>
                       <div className="space-y-2">
-                        <Label className="font-inter">City</Label>
-                        <Input value={formData.billing_city} onChange={(e) => setFormData({...formData, billing_city: e.target.value})} />
+                        <Label className="font-inter">Country</Label>
+                        <Input value={formData.billing_country} onChange={(e) => setFormData({...formData, billing_country: e.target.value})} placeholder="India" />
                       </div>
                       <div className="space-y-2">
                         <Label className="font-inter">State</Label>
                         <Input value={formData.billing_state} onChange={(e) => setFormData({...formData, billing_state: e.target.value})} />
                       </div>
                       <div className="space-y-2">
+                        <Label className="font-inter">District</Label>
+                        <Input value={formData.billing_district} onChange={(e) => setFormData({...formData, billing_district: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-inter">City</Label>
+                        <Input value={formData.billing_city} onChange={(e) => setFormData({...formData, billing_city: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
                         <Label className="font-inter">Pincode</Label>
-                        <Input value={formData.billing_pincode} onChange={(e) => setFormData({...formData, billing_pincode: e.target.value})} />
+                        <Input value={formData.billing_pincode} onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+                          setFormData({...formData, billing_pincode: v});
+                          if (v.length === 6) {
+                            tryAutoFillBillingFromPincode(v);
+                          }
+                        }} />
+                        {loadingGeo && <div className="text-xs text-slate-500">Auto-filling location…</div>}
                       </div>
                     </div>
                   </div>
