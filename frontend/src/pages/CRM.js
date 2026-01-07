@@ -783,16 +783,16 @@ const AccountsList = () => {
         credit_days: parseInt(formData.credit_days) || 30
       };
       
-      if (editingAccount) {
-        await api.put(`/crm/accounts/${editingAccount.id}`, payload);
-        toast.success('Account updated successfully');
+      if (editingQuotation) {
+        await api.put(`/crm/quotations/${editingQuotation.id}`, payload);
+        toast.success('Quotation updated successfully');
       } else {
-        await api.post('/crm/accounts', payload);
-        toast.success('Account created successfully');
+        await api.post('/crm/quotations', payload);
+        toast.success('Quotation created successfully');
       }
       setOpen(false);
-      setEditingAccount(null);
-      fetchAccounts();
+      setEditingQuotation(null);
+      fetchData();
       resetForm();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save account');
