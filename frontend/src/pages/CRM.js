@@ -1717,23 +1717,6 @@ const QuotationsList = () => {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-  const fetchData = async () => {
-    try {
-      const [quotesRes, accountsRes, itemsRes] = await Promise.all([
-        api.get('/crm/quotations'),
-        api.get('/crm/accounts'),
-        api.get('/inventory/items')
-      ]);
-      setQuotations(quotesRes.data);
-      setAccounts(accountsRes.data);
-      setInventoryItems(itemsRes.data);
-    } catch (error) {
-      toast.error('Failed to load quotations data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Quote #</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Customer</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase font-inter">Date</th>
