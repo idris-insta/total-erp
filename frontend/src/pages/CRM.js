@@ -1445,14 +1445,6 @@ const QuotationsList = () => {
     setOpen(true);
   };
 
-    if (formData.items.length > 1) {
-      setFormData({
-        ...formData,
-        items: formData.items.filter((_, i) => i !== idx)
-      });
-    }
-  };
-
   const calculateTotals = () => {
     let subtotal = 0;
     formData.items.forEach(item => {
