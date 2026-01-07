@@ -2018,7 +2018,7 @@ const SamplesList = () => {
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => { setOpen(false); resetForm(); }}>Cancel</Button>
-                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="sample-submit-button">Create Sample</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="sample-submit-button">{editingSample ? 'Update Sample' : 'Create Sample'}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
