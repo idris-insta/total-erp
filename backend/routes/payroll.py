@@ -123,16 +123,16 @@ class Payroll(BaseModel):
     advance_deduction: float = 0
     loan_deduction: float = 0
     other_deductions: float = 0
-    total_deductions: float
+    total_deductions: float = 0
     
     # Net
-    net_salary: float
-    ctc: float  # Cost to Company (including employer contributions)
+    net_salary: float = 0
+    ctc: float = 0  # Cost to Company (including employer contributions)
     
-    status: str  # draft, pending_approval, approved, paid
+    status: Optional[str] = None  # draft, pending_approval, approved, paid
     remarks: Optional[str] = None
-    created_at: str
-    created_by: str
+    created_at: Optional[str] = None
+    created_by: Optional[str] = None
     approved_by: Optional[str] = None
     approved_at: Optional[str] = None
     paid_at: Optional[str] = None
