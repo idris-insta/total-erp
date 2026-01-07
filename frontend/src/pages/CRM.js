@@ -174,6 +174,8 @@ const CRMOverview = () => {
             <p className="text-xs text-slate-500 mt-1">Awaiting feedback</p>
           </CardContent>
         </Card>
+  // Quotation + Samples editing
+
       </div>
 
       {/* Charts Row */}
