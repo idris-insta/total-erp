@@ -772,12 +772,6 @@ const AccountsList = () => {
     } finally {
       setLoadingGeo(false);
     }
-  };
-
-  };
-
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
