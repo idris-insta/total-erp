@@ -163,7 +163,7 @@ class LandingCost(BaseModel):
     # Final Calculations
     total_landing_cost: float
     landed_inr_value: float  # PO value + all costs
-    landed_rate_per_unit: Dict[str, float]  # Per item landed rate
+    landed_rate_per_unit: Dict[str, Any]  # Per item landed rate details
     
     notes: Optional[str] = None
     status: str  # draft, calculated, finalized
