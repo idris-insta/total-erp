@@ -832,9 +832,200 @@ class APITester:
         else:
             self.log_test("Create Work Order for Cancel Test", False, f"Status: {response.status_code if response else 'No response'}")
 
+    def test_crm_account_address_autofill(self):
+        """Test CRM Account creation/update with pincode auto-fill"""
+        print("\n=== Testing CRM Account Address Auto-fill ===")
+        
+        # Create account with billing_pincode=110001
+        account_data = {
+            "customer_name": "Test Customer for Address Auto-fill",
+            "account_type": "Customer",
+            "gstin": "07AABCU9603R1ZX",  # Valid Delhi GSTIN
+            "billing_address": "Test Address, Connaught Place",
+            "billing_pincode": "110001",  # New Delhi pincode
+            "credit_limit": 50000.0,
+            "credit_days": 30,
+            "credit_control": "Warn",
+            "payment_terms": "30 days"
+        }
+        
+        response = self.make_request("POST", "/crm/accounts", account_data)
+        
+        if response and response.status_code == 200:
+            account = response.json()
+            account_id = account.get("id")
+            
+            # Check if geo fields were auto-filled
+            billing_city = account.get("billing_city")
+            billing_state = account.get("billing_state")
+            billing_district = account.get("billing_district")
+            
+            auto_fill_success = (
+                billing_city and billing_state and billing_district and
+                "delhi" in billing_state.lower()
+            )
+            
+            self.log_test("Create Account with Pincode Auto-fill", auto_fill_success, 
+                         f"City: {billing_city}, State: {billing_state}, District: {billing_district}")
+            
+            if account_id:
+                # Test update with different pincode
+                update_data = {
+                    "billing_pincode": "400001"  # Mumbai pincode
+                }
+                
+                response = self.make_request("PUT", f"/crm/accounts/{account_id}", update_data)
+                
+                if response and response.status_code == 200:
+                    updated_account = response.json()
+                    updated_city = updated_account.get("billing_city")
+                    updated_state = updated_account.get("billing_state")
+                    updated_district = updated_account.get("billing_district")
+                    
+                    update_success = (
+                        updated_city and updated_state and updated_district and
+                        "maharashtra" in updated_state.lower()
+                    )
+                    
+                    self.log_test("Update Account Pincode Auto-fill", update_success,
+                                 f"Updated - City: {updated_city}, State: {updated_state}, District: {updated_district}")
+                    return account_id
+                else:
+                    self.log_test("Update Account Pincode Auto-fill", False, 
+                                 f"Status: {response.status_code if response else 'No response'}")
+            else:
+                self.log_test("Create Account with Pincode Auto-fill", False, "No account ID returned")
+        else:
+            status = response.status_code if response else "No response"
+            error = response.text if response else "Connection failed"
+            self.log_test("Create Account with Pincode Auto-fill", False, f"Status: {status}, Error: {error}")
+        
+        return None
+    
+    def test_crm_samples_multi_item(self):
+        """Test CRM Samples with multi-item functionality"""
+        print("\n=== Testing CRM Samples Multi-Item ===")
+        
+        # First create an account for the sample
+        account_data = {
+            "customer_name": "Sample Test Customer",
+            "account_type": "Customer", 
+            "gstin": "27AABCU9603R1ZX",  # Valid Maharashtra GSTIN
+            "billing_address": "Sample Test Address",
+            "billing_pincode": "400001",
+            "credit_limit": 25000.0,
+            "credit_days": 30,
+            "credit_control": "Warn",
+            "payment_terms": "30 days"
+        }
+        
+        response = self.make_request("POST", "/crm/accounts", account_data)
+        
+        if not response or response.status_code != 200:
+            self.log_test("Create Account for Sample Test", False, "Failed to create test account")
+            return
+            
+        account = response.json()
+        account_id = account.get("id")
+        self.log_test("Create Account for Sample Test", True, f"Account ID: {account_id}")
+        
+        # Create sample with 2 items
+        sample_data = {
+            "account_id": account_id,
+            "contact_person": "John Doe",
+            "items": [
+                {
+                    "product_name": "Double Sided Tape",
+                    "product_specs": "25mm x 50m, Clear, Acrylic adhesive",
+                    "quantity": 5.0,
+                    "unit": "Rolls"
+                },
+                {
+                    "product_name": "Foam Tape",
+                    "product_specs": "12mm x 25m, Black, PE foam base",
+                    "quantity": 10.0,
+                    "unit": "Rolls"
+                }
+            ],
+            "from_location": "Mumbai Warehouse",
+            "feedback_due_date": "2024-12-31",
+            "purpose": "Product evaluation and testing",
+            "notes": "Customer wants to test adhesion on cardboard packaging"
+        }
+        
+        response = self.make_request("POST", "/crm/samples", sample_data)
+        
+        if response and response.status_code == 200:
+            sample = response.json()
+            sample_id = sample.get("id")
+            items = sample.get("items", [])
+            
+            # Verify 2 items were created
+            items_count_correct = len(items) == 2
+            self.log_test("Create Sample with 2 Items", items_count_correct, 
+                         f"Sample ID: {sample_id}, Items count: {len(items)}")
+            
+            if sample_id:
+                # Fetch samples list and confirm the sample has 2 items
+                response = self.make_request("GET", "/crm/samples")
+                
+                if response and response.status_code == 200:
+                    samples_list = response.json()
+                    created_sample = next((s for s in samples_list if s.get("id") == sample_id), None)
+                    
+                    if created_sample:
+                        fetched_items = created_sample.get("items", [])
+                        fetch_success = len(fetched_items) == 2
+                        self.log_test("Fetch Sample List - Verify 2 Items", fetch_success,
+                                     f"Fetched items count: {len(fetched_items)}")
+                        
+                        # Update sample - change second item quantity
+                        if len(fetched_items) >= 2:
+                            updated_items = fetched_items.copy()
+                            updated_items[1]["quantity"] = 15.0  # Change from 10.0 to 15.0
+                            
+                            update_data = {
+                                "items": updated_items,
+                                "notes": "Updated second item quantity for testing"
+                            }
+                            
+                            response = self.make_request("PUT", f"/crm/samples/{sample_id}", update_data)
+                            
+                            if response and response.status_code == 200:
+                                updated_sample = response.json()
+                                updated_items = updated_sample.get("items", [])
+                                
+                                # Verify the update persisted
+                                if len(updated_items) >= 2:
+                                    second_item_qty = updated_items[1].get("quantity")
+                                    update_success = second_item_qty == 15.0
+                                    self.log_test("Update Sample Second Item Quantity", update_success,
+                                                 f"Second item quantity: {second_item_qty} (expected: 15.0)")
+                                else:
+                                    self.log_test("Update Sample Second Item Quantity", False, 
+                                                 "Updated sample doesn't have 2 items")
+                            else:
+                                self.log_test("Update Sample Second Item Quantity", False,
+                                             f"Status: {response.status_code if response else 'No response'}")
+                        else:
+                            self.log_test("Update Sample Second Item Quantity", False, 
+                                         "Sample doesn't have 2 items to update")
+                    else:
+                        self.log_test("Fetch Sample List - Verify 2 Items", False, 
+                                     "Created sample not found in list")
+                else:
+                    self.log_test("Fetch Sample List - Verify 2 Items", False,
+                                 f"Status: {response.status_code if response else 'No response'}")
+            else:
+                self.log_test("Create Sample with 2 Items", False, "No sample ID returned")
+        else:
+            status = response.status_code if response else "No response"
+            error = response.text if response else "Connection failed"
+            self.log_test("Create Sample with 2 Items", False, f"Status: {status}, Error: {error}")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Backend API Tests for Adhesive ERP System - Approval Enforcement Focus")
+        print("🚀 Starting Backend API Tests for Adhesive ERP System - CRM Changes Focus")
         print(f"Base URL: {BASE_URL}")
         print("=" * 60)
         
@@ -845,16 +1036,9 @@ class APITester:
         
         self.test_auth_me()
         
-        # Setup required data
-        warehouse_id, item_id = self.test_inventory_setup()
-        machine_id = self.test_production_setup()
-        employee_id = self.test_hrms_employees()
-        
-        # Approval enforcement tests (main focus)
-        self.test_stock_transfer_approval(warehouse_id, item_id)
-        self.test_hrms_payroll_approval(employee_id)
-        self.test_production_scrap_approval(item_id, machine_id)
-        self.test_production_cancel_approval(item_id, machine_id)
+        # CRM specific tests (main focus)
+        self.test_crm_account_address_autofill()
+        self.test_crm_samples_multi_item()
         
         # Summary
         print("\n" + "=" * 60)
