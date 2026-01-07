@@ -383,7 +383,6 @@ async def get_director_alerts(current_user: dict = Depends(get_current_user)):
     ).to_list(20)
     
     # Expiring documents
-    from datetime import timedelta
     thirty_days_later = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()[:10]
     today_str = datetime.now(timezone.utc).isoformat()[:10]
     expiring_docs = await db.employee_documents.find(
