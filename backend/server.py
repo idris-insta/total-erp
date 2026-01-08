@@ -156,6 +156,11 @@ api_router.include_router(sales_incentives.router, prefix="/sales-incentives", t
 api_router.include_router(import_bridge.router, prefix="/imports", tags=["Import Bridge"])
 api_router.include_router(director_dashboard.router, prefix="/director", tags=["Director Command Center"])
 
+# Advanced Modules - Powerhouse Features
+api_router.include_router(gst_compliance.router, prefix="/gst", tags=["GST Compliance"])
+api_router.include_router(inventory_advanced.router, prefix="/inventory-advanced", tags=["Advanced Inventory"])
+api_router.include_router(reports_analytics.router, prefix="/analytics", tags=["Reports & Analytics"])
+
 app.include_router(api_router)
 
 app.add_middleware(
