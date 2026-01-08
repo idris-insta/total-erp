@@ -1689,8 +1689,7 @@ class APITester:
                                          f"Notes: {updated_po.get('notes')}, Expected Date: {updated_po.get('expected_date')}")
                             
                             # Change PO status to "received" to test edit restriction
-                            status_data = {"status": "received"}
-                            response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}/status", status_data)
+                            response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}/status", params={"status": "received"})
                             if response and response.status_code == 200:
                                 self.log_test("Change PO Status to Received", True, "Status changed successfully")
                                 
