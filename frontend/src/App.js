@@ -58,6 +58,9 @@ const AppRoutes = () => {
                 <Route path="/approvals" element={<Approvals />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/customization" element={<Customization />} />
+                <Route path="/director" element={<DirectorDashboard />} />
+                <Route path="/gatepass" element={<Gatepass />} />
+                <Route path="/payroll" element={<PayrollPage />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
