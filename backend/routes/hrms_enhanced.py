@@ -316,17 +316,16 @@ async def list_leave_types(current_user: dict = Depends(get_current_user)):
     if not types:
         # Create default leave types
         defaults = [
-            {"name": "Casual Leave", "code": "CL", "annual_quota": 12, "carry_forward": False, "is_paid": True},
-            {"name": "Sick Leave", "code": "SL", "annual_quota": 12, "carry_forward": False, "is_paid": True},
-            {"name": "Earned Leave", "code": "EL", "annual_quota": 15, "carry_forward": True, "max_carry_forward": 30, "is_paid": True},
-            {"name": "Loss of Pay", "code": "LOP", "annual_quota": 0, "carry_forward": False, "is_paid": False},
-            {"name": "Maternity Leave", "code": "ML", "annual_quota": 182, "carry_forward": False, "is_paid": True},
-            {"name": "Paternity Leave", "code": "PL", "annual_quota": 15, "carry_forward": False, "is_paid": True}
+            {"name": "Casual Leave", "code": "CL", "annual_quota": 12, "carry_forward": False, "is_paid": True, "max_carry_forward": 0, "requires_approval": True},
+            {"name": "Sick Leave", "code": "SL", "annual_quota": 12, "carry_forward": False, "is_paid": True, "max_carry_forward": 0, "requires_approval": True},
+            {"name": "Earned Leave", "code": "EL", "annual_quota": 15, "carry_forward": True, "max_carry_forward": 30, "is_paid": True, "requires_approval": True},
+            {"name": "Loss of Pay", "code": "LOP", "annual_quota": 0, "carry_forward": False, "is_paid": False, "max_carry_forward": 0, "requires_approval": True},
+            {"name": "Maternity Leave", "code": "ML", "annual_quota": 182, "carry_forward": False, "is_paid": True, "max_carry_forward": 0, "requires_approval": True},
+            {"name": "Paternity Leave", "code": "PL", "annual_quota": 15, "carry_forward": False, "is_paid": True, "max_carry_forward": 0, "requires_approval": True}
         ]
         for d in defaults:
             d["id"] = str(uuid.uuid4())
             d["is_active"] = True
-            d["requires_approval"] = True
             d["created_at"] = datetime.now(timezone.utc).isoformat()
         await db.leave_types.insert_many(defaults)
         types = defaults
