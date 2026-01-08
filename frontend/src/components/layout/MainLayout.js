@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart } from 'lucide-react';
+import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
