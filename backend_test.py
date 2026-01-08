@@ -832,6 +832,268 @@ class APITester:
         else:
             self.log_test("Create Work Order for Cancel Test", False, f"Status: {response.status_code if response else 'No response'}")
 
+    def test_procurement_enhancements(self):
+        """Test ERP Procurement Enhancements as per review request"""
+        print("\n=== Testing ERP Procurement Enhancements ===")
+        
+        # Test 1: Procurement - Pincode Auto-Fill API
+        print("\n--- Testing Pincode Auto-Fill API ---")
+        
+        # Test with valid pincode 400001 (Mumbai)
+        response = self.make_request("GET", "/procurement/geo/pincode/400001")
+        if response and response.status_code == 200:
+            data = response.json()
+            expected_fields = ["city", "state", "district", "country"]
+            has_all_fields = all(field in data for field in expected_fields)
+            is_mumbai = "mumbai" in data.get("city", "").lower() and "maharashtra" in data.get("state", "").lower()
+            self.log_test("Pincode Auto-Fill - Valid 400001", has_all_fields and is_mumbai, 
+                         f"City: {data.get('city')}, State: {data.get('state')}, District: {data.get('district')}")
+        else:
+            self.log_test("Pincode Auto-Fill - Valid 400001", False, 
+                         f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test with valid pincode 110001 (Delhi)
+        response = self.make_request("GET", "/procurement/geo/pincode/110001")
+        if response and response.status_code == 200:
+            data = response.json()
+            expected_fields = ["city", "state", "district", "country"]
+            has_all_fields = all(field in data for field in expected_fields)
+            is_delhi = "delhi" in data.get("state", "").lower()
+            self.log_test("Pincode Auto-Fill - Valid 110001", has_all_fields and is_delhi,
+                         f"City: {data.get('city')}, State: {data.get('state')}, District: {data.get('district')}")
+        else:
+            self.log_test("Pincode Auto-Fill - Valid 110001", False,
+                         f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test with invalid pincode
+        response = self.make_request("GET", "/procurement/geo/pincode/12345")
+        if response and response.status_code == 404:
+            self.log_test("Pincode Auto-Fill - Invalid 12345", True, "404 error returned as expected")
+        else:
+            self.log_test("Pincode Auto-Fill - Invalid 12345", False,
+                         f"Expected 404, got {response.status_code if response else 'No response'}")
+        
+        # Test 2: Procurement - GSTIN Validation API
+        print("\n--- Testing GSTIN Validation API ---")
+        
+        # Test with valid GSTIN 27AAACR4849M1Z7 (Maharashtra)
+        response = self.make_request("GET", "/procurement/gstin/validate/27AAACR4849M1Z7")
+        if response and response.status_code == 200:
+            data = response.json()
+            is_valid = data.get("valid") == True
+            has_state = "maharashtra" in data.get("state", "").lower()
+            has_pan = data.get("pan") == "AAACR4849M"
+            self.log_test("GSTIN Validation - Valid 27AAACR4849M1Z7", is_valid and has_state and has_pan,
+                         f"Valid: {data.get('valid')}, State: {data.get('state')}, PAN: {data.get('pan')}")
+        else:
+            self.log_test("GSTIN Validation - Valid 27AAACR4849M1Z7", False,
+                         f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test with valid GSTIN 07AAACR4849M1ZK (Delhi)
+        response = self.make_request("GET", "/procurement/gstin/validate/07AAACR4849M1ZK")
+        if response and response.status_code == 200:
+            data = response.json()
+            is_valid = data.get("valid") == True
+            has_state = "delhi" in data.get("state", "").lower()
+            has_pan = data.get("pan") == "AAACR4849M"
+            self.log_test("GSTIN Validation - Valid 07AAACR4849M1ZK", is_valid and has_state and has_pan,
+                         f"Valid: {data.get('valid')}, State: {data.get('state')}, PAN: {data.get('pan')}")
+        else:
+            self.log_test("GSTIN Validation - Valid 07AAACR4849M1ZK", False,
+                         f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test with invalid GSTIN
+        response = self.make_request("GET", "/procurement/gstin/validate/12345678901234X")
+        if response and response.status_code == 400:
+            self.log_test("GSTIN Validation - Invalid 12345678901234X", True, "400 error returned as expected")
+        else:
+            self.log_test("GSTIN Validation - Invalid 12345678901234X", False,
+                         f"Expected 400, got {response.status_code if response else 'No response'}")
+        
+        # Test 3: Get suppliers for TDS info test
+        print("\n--- Testing Supplier TDS/TCS Info API ---")
+        
+        response = self.make_request("GET", "/procurement/suppliers")
+        supplier_id = None
+        if response and response.status_code == 200:
+            suppliers = response.json()
+            if suppliers:
+                supplier_id = suppliers[0].get("id")
+                self.log_test("Get Suppliers List", True, f"Found {len(suppliers)} suppliers")
+            else:
+                # Create a test supplier if none exist
+                supplier_data = {
+                    "supplier_name": "Test Supplier for TDS",
+                    "contact_person": "John Doe",
+                    "email": "john@testsupplier.com",
+                    "phone": "9876543210",
+                    "address": "Test Address",
+                    "pincode": "400001",
+                    "gstin": "27AAACR4849M1Z7",
+                    "payment_terms": "30 days"
+                }
+                
+                response = self.make_request("POST", "/procurement/suppliers", supplier_data)
+                if response and response.status_code == 200:
+                    supplier = response.json()
+                    supplier_id = supplier.get("id")
+                    self.log_test("Create Test Supplier", True, f"Supplier ID: {supplier_id}")
+                else:
+                    self.log_test("Create Test Supplier", False, f"Status: {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("Get Suppliers List", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test TDS/TCS Info API
+        if supplier_id:
+            response = self.make_request("GET", f"/procurement/suppliers/{supplier_id}/tds-info")
+            if response and response.status_code == 200:
+                data = response.json()
+                required_fields = ["cumulative_purchase_value", "threshold", "threshold_exceeded", "tds_rate", "tds_applicable", "message"]
+                has_all_fields = all(field in data for field in required_fields)
+                self.log_test("Supplier TDS/TCS Info", has_all_fields,
+                             f"Cumulative: ₹{data.get('cumulative_purchase_value', 0)}, Threshold: ₹{data.get('threshold', 0)}, TDS Rate: {data.get('tds_rate', 0)}%")
+            else:
+                self.log_test("Supplier TDS/TCS Info", False,
+                             f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test 4: Purchase Order Edit API
+        print("\n--- Testing Purchase Order Edit API ---")
+        
+        # First get warehouses and items for PO creation
+        warehouse_id, item_id = self.test_inventory_setup()
+        
+        if warehouse_id and item_id and supplier_id:
+            # Create a draft PO
+            po_data = {
+                "supplier_id": supplier_id,
+                "warehouse_id": warehouse_id,
+                "items": [
+                    {
+                        "item_id": item_id,
+                        "quantity": 100.0,
+                        "unit_price": 50.0,
+                        "tax_percent": 18.0
+                    }
+                ],
+                "notes": "Original PO notes",
+                "expected_date": "2024-12-31"
+            }
+            
+            response = self.make_request("POST", "/procurement/purchase-orders", po_data)
+            if response and response.status_code == 200:
+                po = response.json()
+                po_id = po.get("id")
+                self.log_test("Create Draft PO for Edit Test", True, f"PO: {po.get('po_number')}")
+                
+                # Edit the PO (update notes and expected_date)
+                edit_data = {
+                    "notes": "Updated PO notes for testing",
+                    "expected_date": "2025-01-15"
+                }
+                
+                response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}", edit_data)
+                if response and response.status_code == 200:
+                    updated_po = response.json()
+                    notes_updated = updated_po.get("notes") == "Updated PO notes for testing"
+                    date_updated = updated_po.get("expected_date") == "2025-01-15"
+                    self.log_test("Edit Draft PO", notes_updated and date_updated,
+                                 f"Notes: {updated_po.get('notes')}, Expected Date: {updated_po.get('expected_date')}")
+                    
+                    # Change status to received and try to edit (should fail)
+                    response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}", {"status": "received"})
+                    if response and response.status_code == 200:
+                        # Now try to edit received PO (should return 400)
+                        response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}", {"notes": "Should not work"})
+                        if response and response.status_code == 400:
+                            self.log_test("Block Edit of Received PO", True, "400 error returned as expected")
+                        else:
+                            self.log_test("Block Edit of Received PO", False,
+                                         f"Expected 400, got {response.status_code if response else 'No response'}")
+                    else:
+                        self.log_test("Change PO Status to Received", False,
+                                     f"Status: {response.status_code if response else 'No response'}")
+                else:
+                    self.log_test("Edit Draft PO", False,
+                                 f"Status: {response.status_code if response else 'No response'}")
+            else:
+                self.log_test("Create Draft PO for Edit Test", False,
+                             f"Status: {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("PO Edit Test Setup", False, "Missing warehouse_id, item_id, or supplier_id")
+
+    def test_accounts_credit_note(self):
+        """Test Accounts - Credit Note Creation"""
+        print("\n=== Testing Accounts Credit Note Creation ===")
+        
+        # First get or create an account
+        response = self.make_request("GET", "/crm/accounts")
+        account_id = None
+        
+        if response and response.status_code == 200:
+            accounts = response.json()
+            if accounts:
+                account_id = accounts[0].get("id")
+                self.log_test("Get Accounts for Credit Note", True, f"Found {len(accounts)} accounts")
+            else:
+                # Create test account
+                account_data = {
+                    "customer_name": "Test Customer for Credit Note",
+                    "account_type": "Customer",
+                    "gstin": "27AAACR4849M1Z7",
+                    "billing_address": "Test Address",
+                    "billing_pincode": "400001",
+                    "credit_limit": 50000.0,
+                    "credit_days": 30,
+                    "payment_terms": "30 days"
+                }
+                
+                response = self.make_request("POST", "/crm/accounts", account_data)
+                if response and response.status_code == 200:
+                    account = response.json()
+                    account_id = account.get("id")
+                    self.log_test("Create Test Account for Credit Note", True, f"Account ID: {account_id}")
+                else:
+                    self.log_test("Create Test Account for Credit Note", False,
+                                 f"Status: {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("Get Accounts for Credit Note", False,
+                         f"Status: {response.status_code if response else 'No response'}")
+        
+        # Create Credit Note
+        if account_id:
+            credit_note_data = {
+                "invoice_type": "Credit Note",
+                "account_id": account_id,
+                "items": [
+                    {
+                        "description": "Product Return - Defective Item",
+                        "hsn_code": "39191090",
+                        "quantity": 5.0,
+                        "unit": "Pcs",
+                        "unit_price": 100.0,
+                        "tax_percent": 18.0
+                    }
+                ],
+                "invoice_date": "2024-12-20",
+                "due_date": "2024-12-20",
+                "notes": "Credit note for defective product return"
+            }
+            
+            response = self.make_request("POST", "/accounts/invoices", credit_note_data)
+            if response and response.status_code == 200:
+                credit_note = response.json()
+                invoice_number = credit_note.get("invoice_number", "")
+                starts_with_cn = invoice_number.startswith("CN-")
+                is_credit_note_type = credit_note.get("invoice_type") == "Credit Note"
+                
+                self.log_test("Create Credit Note", starts_with_cn and is_credit_note_type,
+                             f"Invoice Number: {invoice_number}, Type: {credit_note.get('invoice_type')}")
+            else:
+                self.log_test("Create Credit Note", False,
+                             f"Status: {response.status_code if response else 'No response'}")
+        else:
+            self.log_test("Create Credit Note", False, "No account_id available")
+
     def test_crm_account_address_autofill(self):
         """Test CRM Account creation/update with pincode auto-fill"""
         print("\n=== Testing CRM Account Address Auto-fill ===")
