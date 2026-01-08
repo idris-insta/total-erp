@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
@@ -12,12 +12,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Director Center', href: '/director', icon: Gauge },
     { name: 'CRM', href: '/crm', icon: TrendingUp },
     { name: 'Inventory', href: '/inventory', icon: Boxes },
     { name: 'Production', href: '/production', icon: Factory },
     { name: 'Procurement', href: '/procurement', icon: ShoppingCart },
     { name: 'Accounts', href: '/accounts', icon: Calculator },
     { name: 'HRMS', href: '/hrms', icon: Users },
+    { name: 'Payroll', href: '/payroll', icon: Banknote },
+    { name: 'Gatepass', href: '/gatepass', icon: Truck },
     { name: 'Quality', href: '/quality', icon: Shield },
     { name: 'Approvals', href: '/approvals', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
