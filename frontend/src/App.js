@@ -24,6 +24,7 @@ import EmployeeVault from './pages/EmployeeVault';
 import SalesIncentives from './pages/SalesIncentives';
 import GSTCompliance from './pages/GSTCompliance';
 import ReportsDashboard from './pages/ReportsDashboard';
+import HRMSDashboard from './pages/HRMSDashboard';
 
 
 const PrivateRoute = ({ children }) => {
