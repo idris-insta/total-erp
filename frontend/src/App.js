@@ -16,6 +16,9 @@ import Settings from './pages/Settings';
 import Customization from './pages/Customization';
 import Approvals from './pages/Approvals';
 import Reports from './pages/Reports';
+import DirectorDashboard from './pages/DirectorDashboard';
+import Gatepass from './pages/Gatepass';
+import PayrollPage from './pages/PayrollPage';
 
 
 const PrivateRoute = ({ children }) => {
