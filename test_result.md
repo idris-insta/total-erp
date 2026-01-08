@@ -526,6 +526,17 @@
     message: "✅ PROCUREMENT MODULE ENHANCEMENTS TESTING COMPLETE: Comprehensive testing of procurement module enhancements completed successfully. SUCCESS RATE: 80% (12/15 tests passed). WORKING FEATURES: 1) Pincode Auto-Fill API - Valid pincodes 400001 (Mumbai) and 110001 (Delhi) return correct city/state/district/country data. 2) GSTIN Validation API - Valid GSTINs 27AAACR4849M1Z7 (Maharashtra) and 07AAACR4849M1ZK (Delhi) return correct validation with state and PAN extraction. 3) Supplier Create with Auto-Fill - Successfully creates supplier with pincode=400001 and gstin=27AAACR4849M1Z7, auto-fills city=Mumbai, state=Maharashtra, pan=AAACR4849M. 4) PO Edit API - Successfully creates draft PO, edits notes/expected_date, changes status to received. MINOR ISSUES: 3 test cases showed 'No response' in test script but backend logs confirm correct behavior: invalid pincode 12345 returns 404, invalid GSTIN returns 400, editing received PO returns 400. All core functionality working as expected."
 
 ## backend:
+  - task: "Procurement Module Enhancements - TDS/TCS Info API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/procurement.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: TDS/TCS Info API working correctly. GET /api/procurement/suppliers/{supplier_id}/tds-info returns all required fields: cumulative_purchase_value, threshold, threshold_exceeded, tds_rate, tds_applicable, message. Correctly calculates TDS threshold of ₹50 Lakh and provides appropriate TDS rates (0.1% with PAN, 5% without PAN) as per Section 194Q."
   - task: "Procurement Module Enhancements - Pincode Auto-Fill API"
     implemented: true
     working: true
@@ -570,3 +581,14 @@
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: PO edit API working correctly. Successfully created draft PO, edited notes and expected_date fields, verified updates persisted. Changed PO status to 'received' and confirmed editing received PO correctly returns 400 error (confirmed in backend logs). Edit restrictions properly enforced for non-draft/sent status POs."
+  - task: "Accounts Module Enhancements - Credit Note Creation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/accounts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Credit Note creation working correctly. Successfully created Credit Note with invoice_type='Credit Note' and verified invoice_number starts with 'CN-' prefix as required. Invoice Number: CN-202601-A37607, Type: Credit Note. All credit note functionality working as expected."
