@@ -19,6 +19,9 @@ import Reports from './pages/Reports';
 import DirectorDashboard from './pages/DirectorDashboard';
 import Gatepass from './pages/Gatepass';
 import PayrollPage from './pages/PayrollPage';
+import ImportBridge from './pages/ImportBridge';
+import EmployeeVault from './pages/EmployeeVault';
+import SalesIncentives from './pages/SalesIncentives';
 
 
 const PrivateRoute = ({ children }) => {
@@ -61,6 +64,9 @@ const AppRoutes = () => {
                 <Route path="/director" element={<DirectorDashboard />} />
                 <Route path="/gatepass" element={<Gatepass />} />
                 <Route path="/payroll" element={<PayrollPage />} />
+                <Route path="/import-bridge" element={<ImportBridge />} />
+                <Route path="/employee-vault" element={<EmployeeVault />} />
+                <Route path="/sales-incentives" element={<SalesIncentives />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
