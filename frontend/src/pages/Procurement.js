@@ -809,9 +809,11 @@ const PurchaseOrdersList = () => {
     setFormData({
       supplier_id: '', po_type: 'Standard', warehouse_id: '',
       items: [{ item_id: '', quantity: '', unit_price: '', tax_percent: '18', discount_percent: '0' }],
-      payment_terms: '', delivery_terms: '', shipping_address: '', expected_date: '', notes: ''
+      payment_terms: '', delivery_terms: '', shipping_address: '', expected_date: '', notes: '',
+      apply_tds: false, tds_rate: 0, tds_amount: 0
     });
     setEditingPO(null);
+    setTdsInfo(null);
   };
 
   const addPOItem = () => {
