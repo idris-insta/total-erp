@@ -274,10 +274,10 @@
 ##         comment: "✅ VERIFIED: All 4 approval workflows tested and working perfectly. 1) Stock Transfer: Auto-creates approval request, blocks issue with 409 until approved, succeeds after approval. 2) HRMS Payroll: Blocks payroll generation with 409, auto-creates approval, succeeds after approval. 3) Production Scrap >7%: Correctly calculates 8.7% scrap, blocks with 409, auto-creates approval, succeeds after approval and updates inventory. 4) Production Cancel: Blocks work order cancellation with 409, auto-creates approval, succeeds after approval and sets status to cancelled. All approval requests properly created in approval_requests collection with correct module/entity_type/action. Approvals inbox flow working via GET /approvals/requests and PUT /approvals/requests/{id}/approve endpoints."
 
 ## metadata:
-##   created_by: "main_agent"
-##   version: "1.0"
-##   test_sequence: 1
-##   run_ui: false
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 2
+  run_ui: false
 
 ## test_plan:
 ##   current_focus:
