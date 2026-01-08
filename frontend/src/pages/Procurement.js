@@ -930,18 +930,17 @@ const PurchaseOrdersList = () => {
                       {formData.items.map((item, idx) => (
                         <tr key={idx} className="border-t">
                           <td className="px-2 py-2">
-                            <Select value={item.item_id} onValueChange={(v) => {
-                              const newItems = [...formData.items];
-                              newItems[idx].item_id = v;
-                              setFormData({...formData, items: newItems});
-                            }}>
-                              <SelectTrigger className="h-9"><SelectValue placeholder="Select item" /></SelectTrigger>
-                              <SelectContent>
-                                {items.map(i => (
-                                  <SelectItem key={i.id} value={i.id}>{i.item_code} - {i.item_name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <ItemSearchSelect
+                              value={item.item_id}
+                              onChange={(v) => {
+                                const newItems = [...formData.items];
+                                newItems[idx].item_id = v;
+                                setFormData({...formData, items: newItems});
+                              }}
+                              onItemSelect={(itemData) => handlePOItemSelect(idx, itemData)}
+                              placeholder="Search item..."
+                              className="h-9"
+                            />
                           </td>
                           <td className="px-2 py-2">
                             <Input type="number" className="h-9" value={item.quantity} onChange={(e) => {
