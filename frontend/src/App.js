@@ -25,6 +25,7 @@ import SalesIncentives from './pages/SalesIncentives';
 import GSTCompliance from './pages/GSTCompliance';
 import ReportsDashboard from './pages/ReportsDashboard';
 import HRMSDashboard from './pages/HRMSDashboard';
+import AdvancedInventory from './pages/AdvancedInventory';
 
 
 const PrivateRoute = ({ children }) => {
@@ -55,6 +56,7 @@ const AppRoutes = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/crm/*" element={<CRM />} />
                 <Route path="/inventory/*" element={<Inventory />} />
+                <Route path="/advanced-inventory" element={<AdvancedInventory />} />
                 <Route path="/production/*" element={<Production />} />
                 <Route path="/procurement/*" element={<Procurement />} />
                 <Route path="/accounts/*" element={<Accounts />} />
