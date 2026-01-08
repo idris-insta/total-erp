@@ -139,16 +139,16 @@ async def get_production_analytics(current_user: dict = Depends(get_current_user
     
     by_machine = {}
     for entry in production_entries:
-        wo = await db.work_orders.find_one({'id': entry['wo_id']}, {'_id': 0})
+        wo = await db.work_orders.find_one({'id': entry.get('wo_id')}, {'_id': 0})
         if wo:
-            machine_id = wo['machine_id']
+            machine_id = wo.get('machine_id', 'unknown')
             if machine_id not in by_machine:
                 by_machine[machine_id] = {'produced': 0, 'wastage': 0}
-            by_machine[machine_id]['produced'] += entry['quantity_produced']
-            by_machine[machine_id]['wastage'] += entry['wastage']
+            by_machine[machine_id]['produced'] += entry.get('quantity_produced', 0)
+            by_machine[machine_id]['wastage'] += entry.get('wastage', 0)
     
-    total_produced = sum(entry['quantity_produced'] for entry in production_entries)
-    total_wastage = sum(entry['wastage'] for entry in production_entries)
+    total_produced = sum(entry.get('quantity_produced', 0) for entry in production_entries)
+    total_wastage = sum(entry.get('wastage', 0) for entry in production_entries)
     wastage_percentage = (total_wastage / (total_produced + total_wastage) * 100) if (total_produced + total_wastage) > 0 else 0
     
     return {
