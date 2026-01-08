@@ -48,12 +48,12 @@ async def get_dashboard_overview(current_user: dict = Depends(get_current_user))
     low_stock_count = low_stock[0]['count'] if low_stock else 0
     
     work_orders = await db.work_orders.find({}, {'_id': 0}).to_list(10000)
-    wo_in_progress = sum(1 for wo in work_orders if wo['status'] == 'in_progress')
-    wo_completed = sum(1 for wo in work_orders if wo['status'] == 'completed')
+    wo_in_progress = sum(1 for wo in work_orders if wo.get('status') == 'in_progress')
+    wo_completed = sum(1 for wo in work_orders if wo.get('status') == 'completed')
     
     production_entries = await db.production_entries.find({}, {'_id': 0}).to_list(10000)
-    total_wastage = sum(entry['wastage'] for entry in production_entries)
-    total_produced = sum(entry['quantity_produced'] for entry in production_entries)
+    total_wastage = sum(entry.get('wastage', 0) for entry in production_entries)
+    total_produced = sum(entry.get('quantity_produced', 0) for entry in production_entries)
     wastage_percentage = (total_wastage / (total_produced + total_wastage) * 100) if (total_produced + total_wastage) > 0 else 0
     
     employees = await db.employees.count_documents({'status': 'active'})
