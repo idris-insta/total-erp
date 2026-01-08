@@ -1541,14 +1541,12 @@ const QuotationsList = () => {
               <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label className="font-inter">Customer *</Label>
-                  <Select value={formData.account_id} onValueChange={(value) => setFormData({...formData, account_id: value})} required>
-                    <SelectTrigger data-testid="quotation-account"><SelectValue placeholder="Select customer" /></SelectTrigger>
-                    <SelectContent>
-                      {accounts.map(acc => (
-                        <SelectItem key={acc.id} value={acc.id}>{acc.customer_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CustomerSearchSelect
+                    value={formData.account_id}
+                    onChange={(v) => setFormData({...formData, account_id: v})}
+                    onCustomerSelect={handleCustomerSelect}
+                    placeholder="Search customer..."
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="font-inter">Contact Person</Label>
