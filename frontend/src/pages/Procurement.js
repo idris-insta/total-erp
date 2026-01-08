@@ -405,6 +405,7 @@ const SuppliersList = () => {
       gstin: '', pan: '', payment_terms: '30 days', credit_limit: '',
       bank_name: '', bank_account: '', ifsc_code: '', notes: ''
     });
+    setGstinValidation({ valid: null, message: '' });
   };
 
   const filteredSuppliers = suppliers.filter(s =>
