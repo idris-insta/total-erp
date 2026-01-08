@@ -504,9 +504,9 @@ async def get_statutory_config(current_user: dict = Depends(get_current_user)):
             "esi_employer_percent": 3.25,
             "esi_wage_ceiling": 21000,
             "pt_slabs": [
-                {"from": 0, "to": 10000, "amount": 0},
-                {"from": 10001, "to": 15000, "amount": 150},
-                {"from": 15001, "to": 999999999, "amount": 200}
+                {"from_amt": 0, "to_amt": 10000, "amount": 0},
+                {"from_amt": 10001, "to_amt": 15000, "amount": 150},
+                {"from_amt": 15001, "to_amt": 999999999, "amount": 200}
             ],
             "lwf_employee": 20,
             "lwf_employer": 40,
@@ -514,7 +514,6 @@ async def get_statutory_config(current_user: dict = Depends(get_current_user)):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.statutory_config.insert_one(config)
-    
     return config
 
 @router.post("/statutory/config")
