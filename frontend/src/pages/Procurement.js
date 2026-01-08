@@ -262,6 +262,7 @@ const SuppliersList = () => {
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ supplier_type: 'all', state: 'all' });
+  const [gstinValidation, setGstinValidation] = useState({ valid: null, message: '' });
   const [formData, setFormData] = useState({
     supplier_code: '', supplier_name: '', supplier_type: 'Raw Material',
     contact_person: '', email: '', phone: '', mobile: '',
@@ -283,6 +284,54 @@ const SuppliersList = () => {
       toast.error('Failed to load suppliers');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Pincode auto-fetch
+  const handlePincodeChange = async (pincode) => {
+    setFormData({...formData, pincode: pincode});
+    if (pincode.length === 6 && /^\d{6}$/.test(pincode)) {
+      try {
+        const res = await api.get(`/procurement/geo/pincode/${pincode}`);
+        if (res.data) {
+          setFormData(prev => ({
+            ...prev,
+            pincode: pincode,
+            city: res.data.city || prev.city,
+            state: res.data.state || prev.state,
+            country: res.data.country || 'India'
+          }));
+          toast.success('Address auto-filled from pincode');
+        }
+      } catch (error) {
+        // Silently ignore - pincode not found
+      }
+    }
+  };
+
+  // GSTIN validation and auto-fill
+  const handleGstinChange = async (gstin) => {
+    const upperGstin = gstin.toUpperCase();
+    setFormData({...formData, gstin: upperGstin});
+    setGstinValidation({ valid: null, message: '' });
+    
+    if (upperGstin.length === 15) {
+      try {
+        const res = await api.get(`/procurement/gstin/validate/${upperGstin}`);
+        if (res.data.valid) {
+          setGstinValidation({ valid: true, message: `Valid - State: ${res.data.state}` });
+          setFormData(prev => ({
+            ...prev,
+            gstin: upperGstin,
+            state: res.data.state || prev.state,
+            pan: res.data.pan || prev.pan
+          }));
+          toast.success(`GSTIN valid - State: ${res.data.state}`);
+        }
+      } catch (error) {
+        setGstinValidation({ valid: false, message: error.response?.data?.detail || 'Invalid GSTIN' });
+        toast.error(error.response?.data?.detail || 'Invalid GSTIN format');
+      }
     }
   };
 
