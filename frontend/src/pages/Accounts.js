@@ -482,62 +482,170 @@ const InvoicesList = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 font-manrope">Invoices</h2>
-          <p className="text-slate-600 mt-1 font-inter">{invoices.length} invoices</p>
+          <p className="text-slate-600 mt-1 font-inter">{invoices.length} {activeTab === 'sales' ? 'Sales' : 'Purchase'} invoices</p>
         </div>
-        <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent hover:bg-accent/90" data-testid="create-invoice-button">
-              <Plus className="h-4 w-4 mr-2" />Create Invoice
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-manrope">Create Invoice</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-4 gap-4">
+        <div className="flex items-center gap-2">
+          {/* Credit/Debit Note Button */}
+          <Dialog open={creditNoteOpen} onOpenChange={(val) => { setCreditNoteOpen(val); if (!val) resetCreditNoteForm(); }}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <FileMinus className="h-4 w-4" />CN/DN
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle className="font-manrope">Create Credit/Debit Note</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreditNoteSubmit} className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Note Type *</Label>
+                    <Select value={creditNoteData.note_type} onValueChange={(v) => setCreditNoteData({...creditNoteData, note_type: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Credit">Credit Note</SelectItem>
+                        <SelectItem value="Debit">Debit Note</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Reference Invoice</Label>
+                    <Select value={creditNoteData.reference_invoice_id} onValueChange={(v) => setCreditNoteData({...creditNoteData, reference_invoice_id: v})}>
+                      <SelectTrigger><SelectValue placeholder="Select invoice" /></SelectTrigger>
+                      <SelectContent>
+                        {invoices.map(inv => (
+                          <SelectItem key={inv.id} value={inv.id}>{inv.invoice_number} - ₹{inv.total_amount?.toLocaleString('en-IN')}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date *</Label>
+                    <Input type="date" value={creditNoteData.note_date} onChange={(e) => setCreditNoteData({...creditNoteData, note_date: e.target.value})} required />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label>Invoice Type *</Label>
-                  <Select value={formData.invoice_type} onValueChange={(v) => setFormData({...formData, invoice_type: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Label>Reason *</Label>
+                  <Select value={creditNoteData.reason} onValueChange={(v) => setCreditNoteData({...creditNoteData, reason: v})}>
+                    <SelectTrigger><SelectValue placeholder="Select reason" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Sales">Sales Invoice</SelectItem>
-                      <SelectItem value="Purchase">Purchase Invoice</SelectItem>
-                      <SelectItem value="Credit Note">Credit Note</SelectItem>
-                      <SelectItem value="Debit Note">Debit Note</SelectItem>
+                      <SelectItem value="Sales Return">Sales Return</SelectItem>
+                      <SelectItem value="Rate Difference">Rate Difference</SelectItem>
+                      <SelectItem value="Quality Issue">Quality Issue</SelectItem>
+                      <SelectItem value="Shortage">Shortage</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2 col-span-2">
-                  <Label>Customer/Supplier *</Label>
-                  <Select value={formData.account_id} onValueChange={(v) => setFormData({...formData, account_id: v})}>
-                    <SelectTrigger><SelectValue placeholder="Select account" /></SelectTrigger>
-                    <SelectContent>
-                      {accounts.map(acc => (
-                        <SelectItem key={acc.id} value={acc.id}>{acc.customer_name} - {acc.gstin || 'No GSTIN'}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2">
+                  <Label>Items</Label>
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Description</th>
+                          <th className="px-3 py-2 text-left w-20">Qty</th>
+                          <th className="px-3 py-2 text-left w-24">Amount</th>
+                          <th className="px-3 py-2 text-left w-20">GST %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {creditNoteData.items.map((item, idx) => (
+                          <tr key={idx} className="border-t">
+                            <td className="px-3 py-2">
+                              <Input value={item.description} onChange={(e) => {
+                                const newItems = [...creditNoteData.items];
+                                newItems[idx].description = e.target.value;
+                                setCreditNoteData({...creditNoteData, items: newItems});
+                              }} className="h-8" placeholder="Description" />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input type="number" value={item.quantity} onChange={(e) => {
+                                const newItems = [...creditNoteData.items];
+                                newItems[idx].quantity = e.target.value;
+                                setCreditNoteData({...creditNoteData, items: newItems});
+                              }} className="h-8" />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input type="number" value={item.unit_price} onChange={(e) => {
+                                const newItems = [...creditNoteData.items];
+                                newItems[idx].unit_price = e.target.value;
+                                setCreditNoteData({...creditNoteData, items: newItems});
+                              }} className="h-8" placeholder="₹" />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input type="number" value={item.tax_percent} onChange={(e) => {
+                                const newItems = [...creditNoteData.items];
+                                newItems[idx].tax_percent = e.target.value;
+                                setCreditNoteData({...creditNoteData, items: newItems});
+                              }} className="h-8" />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setCreditNoteData({...creditNoteData, items: [...creditNoteData.items, { description: '', quantity: '1', unit_price: '', tax_percent: '18' }]})}>
+                    <Plus className="h-4 w-4 mr-1" />Add Item
+                  </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label>Order Reference</Label>
-                  <Input value={formData.order_id} onChange={(e) => setFormData({...formData, order_id: e.target.value})} placeholder="SO-001" />
+                  <Label>Notes</Label>
+                  <Textarea value={creditNoteData.notes} onChange={(e) => setCreditNoteData({...creditNoteData, notes: e.target.value})} rows={2} />
                 </div>
-              </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setCreditNoteOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="bg-accent hover:bg-accent/90">Create {creditNoteData.note_type} Note</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-              <div className="grid grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label>Invoice Date *</Label>
-                  <Input type="date" value={formData.invoice_date} onChange={(e) => setFormData({...formData, invoice_date: e.target.value})} required />
+          {/* Create Invoice Button */}
+          <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent hover:bg-accent/90" data-testid="create-invoice-button">
+                <Plus className="h-4 w-4 mr-2" />Create {activeTab === 'sales' ? 'Sales' : 'Purchase'} Invoice
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="font-manrope">Create {activeTab === 'sales' ? 'Sales' : 'Purchase'} Invoice</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="space-y-2 col-span-2">
+                    <Label>{activeTab === 'sales' ? 'Customer' : 'Supplier'} *</Label>
+                    <CustomerSearchSelect
+                      value={formData.account_id}
+                      onChange={(v) => setFormData({...formData, account_id: v})}
+                      onCustomerSelect={handleCustomerSelect}
+                      placeholder={`Search ${activeTab === 'sales' ? 'customer' : 'supplier'}...`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Order Reference</Label>
+                    <Input value={formData.order_id} onChange={(e) => setFormData({...formData, order_id: e.target.value})} placeholder="SO-001" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>GSTIN</Label>
+                    <Input value={formData.gstin} disabled className="bg-slate-50" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Due Date *</Label>
-                  <Input type="date" value={formData.due_date} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Payment Terms</Label>
-                  <Select value={formData.payment_terms} onValueChange={(v) => setFormData({...formData, payment_terms: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label>Invoice Date *</Label>
+                    <Input type="date" value={formData.invoice_date} onChange={(e) => setFormData({...formData, invoice_date: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Due Date *</Label>
+                    <Input type="date" value={formData.due_date} onChange={(e) => setFormData({...formData, due_date: e.target.value})} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Payment Terms</Label>
+                    <Select value={formData.payment_terms} onValueChange={(v) => setFormData({...formData, payment_terms: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Immediate">Immediate</SelectItem>
                       <SelectItem value="7 days">7 Days</SelectItem>
