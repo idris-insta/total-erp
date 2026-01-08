@@ -851,7 +851,7 @@ const PurchaseOrdersList = () => {
           </DialogTrigger>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-manrope">Create Purchase Order</DialogTitle>
+              <DialogTitle className="font-manrope">{editingPO ? `Edit Purchase Order - ${editingPO.po_number}` : 'Create Purchase Order'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-4 gap-4">
