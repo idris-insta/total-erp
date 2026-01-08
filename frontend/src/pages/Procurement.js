@@ -539,7 +539,13 @@ const SuppliersList = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>Pincode</Label>
-                      <Input value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value})} />
+                      <Input 
+                        value={formData.pincode} 
+                        onChange={(e) => handlePincodeChange(e.target.value)}
+                        placeholder="Enter 6-digit pincode"
+                        maxLength={6}
+                      />
+                      <span className="text-xs text-slate-500">Auto-fills city & state</span>
                     </div>
                     <div className="space-y-2">
                       <Label>Country</Label>
