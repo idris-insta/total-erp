@@ -69,6 +69,8 @@ const AppRoutes = () => {
                 <Route path="/import-bridge" element={<ImportBridge />} />
                 <Route path="/employee-vault" element={<EmployeeVault />} />
                 <Route path="/sales-incentives" element={<SalesIncentives />} />
+                <Route path="/gst-compliance" element={<GSTCompliance />} />
+                <Route path="/analytics" element={<ReportsDashboard />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
