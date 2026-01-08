@@ -791,7 +791,20 @@ const InvoicesList = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Sale/Purchase Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="sales" className="gap-2">
+            <ArrowUpRight className="h-4 w-4" />Sales Invoices
+          </TabsTrigger>
+          <TabsTrigger value="purchase" className="gap-2">
+            <ArrowDownRight className="h-4 w-4" />Purchase Invoices
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
@@ -799,16 +812,6 @@ const InvoicesList = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input placeholder="Search invoices..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
-        <Select value={filters.invoice_type} onValueChange={(v) => setFilters({...filters, invoice_type: v})}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Type" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="Sales">Sales</SelectItem>
-            <SelectItem value="Purchase">Purchase</SelectItem>
-            <SelectItem value="Credit Note">Credit Note</SelectItem>
-            <SelectItem value="Debit Note">Debit Note</SelectItem>
-          </SelectContent>
-        </Select>
         <Select value={filters.status} onValueChange={(v) => setFilters({...filters, status: v})}>
           <SelectTrigger className="w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
