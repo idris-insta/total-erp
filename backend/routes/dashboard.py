@@ -22,10 +22,10 @@ async def get_dashboard_overview(current_user: dict = Depends(get_current_user))
     samples_count = await db.samples.count_documents({'created_at': {'$gte': start_of_month.isoformat()}})
     
     invoices = await db.invoices.find({'created_at': {'$gte': start_of_month.isoformat()}}, {'_id': 0}).to_list(10000)
-    total_revenue = sum(inv['total_amount'] for inv in invoices)
+    total_revenue = sum(inv.get('total_amount', 0) for inv in invoices)
     
-    paid_invoices = [inv for inv in invoices if inv['status'] == 'paid']
-    revenue_received = sum(inv['total_amount'] for inv in paid_invoices)
+    paid_invoices = [inv for inv in invoices if inv.get('status') == 'paid']
+    revenue_received = sum(inv.get('total_amount', 0) for inv in paid_invoices)
     
     low_stock = await db.stock.aggregate([
         {
