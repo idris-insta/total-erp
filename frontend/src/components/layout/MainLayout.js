@@ -24,6 +24,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Import Bridge', href: '/import-bridge', icon: Ship },
     { name: 'Employee Vault', href: '/employee-vault', icon: FolderLock },
     { name: 'Sales Incentives', href: '/sales-incentives', icon: Trophy },
+    { name: 'GST Compliance', href: '/gst-compliance', icon: Receipt },
+    { name: 'Analytics', href: '/analytics', icon: PieChart },
     { name: 'Quality', href: '/quality', icon: Shield },
     { name: 'Approvals', href: '/approvals', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
