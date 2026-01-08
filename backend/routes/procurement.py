@@ -143,6 +143,7 @@ class Supplier(BaseModel):
     delivery_rating: float = 0
     total_orders: int = 0
     total_value: float = 0
+    cumulative_purchase_value: float = 0  # For TDS/TCS threshold tracking
     is_active: bool = True
     created_at: str
     updated_at: Optional[str] = None
