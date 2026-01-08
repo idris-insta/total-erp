@@ -368,7 +368,7 @@ async def create_bin_location(
     }
     
     await db.bin_locations.insert_one(bin_doc)
-    return bin_doc
+    return {k: v for k, v in bin_doc.items() if k != '_id'}
 
 @router.get("/bin-locations")
 async def list_bin_locations(

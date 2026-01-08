@@ -59,7 +59,7 @@ async def create_notification(data: NotificationCreate, current_user: dict = Dep
     }
     
     await db.notifications.insert_one(notif_doc)
-    return notif_doc
+    return {k: v for k, v in notif_doc.items() if k != '_id'}
 
 @router.get("/notifications")
 async def list_notifications(
@@ -295,7 +295,7 @@ async def log_activity(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.activity_logs.insert_one(log_doc)
-    return log_doc
+    return {k: v for k, v in log_doc.items() if k != '_id'}
 
 @router.get("/activity-log")
 async def get_activity_log(
