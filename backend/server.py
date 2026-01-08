@@ -161,6 +161,8 @@ api_router.include_router(director_dashboard.router, prefix="/director", tags=["
 api_router.include_router(gst_compliance.router, prefix="/gst", tags=["GST Compliance"])
 api_router.include_router(inventory_advanced.router, prefix="/inventory-advanced", tags=["Advanced Inventory"])
 api_router.include_router(reports_analytics.router, prefix="/analytics", tags=["Reports & Analytics"])
+api_router.include_router(hrms_enhanced.router, prefix="/hrms-enhanced", tags=["HRMS Enhanced"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 
 app.include_router(api_router)
 
