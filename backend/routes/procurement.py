@@ -608,6 +608,68 @@ async def validate_gstin_endpoint(gstin: str, current_user: dict = Depends(get_c
         raise HTTPException(status_code=400, detail=result["error"])
     return result
 
+# ==================== TDS/TCS COMPLIANCE ENDPOINT ====================
+TDS_THRESHOLD = 5000000  # 50 Lakh INR
+
+@router.get("/suppliers/{supplier_id}/tds-info")
+async def get_supplier_tds_info(supplier_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Get TDS/TCS information for a supplier.
+    Returns cumulative purchase value and whether TDS/TCS is applicable.
+    Indian Tax Rules:
+    - Section 194Q (TDS): Buyer deducts 0.1% (if PAN) or 5% (no PAN) on purchases > 50 lakh
+    - Section 206C(1H) (TCS): Seller collects 0.1% on sales > 50 lakh
+    """
+    supplier = await db.suppliers.find_one({"id": supplier_id}, {"_id": 0})
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    # Calculate cumulative purchase value from POs in current financial year
+    now = datetime.now(timezone.utc)
+    fy_start = f"{now.year}-04-01" if now.month >= 4 else f"{now.year - 1}-04-01"
+    
+    pipeline = [
+        {"$match": {
+            "supplier_id": supplier_id,
+            "status": {"$in": ["received", "partial"]},
+            "created_at": {"$gte": fy_start}
+        }},
+        {"$group": {
+            "_id": None,
+            "total_purchase_value": {"$sum": "$grand_total"}
+        }}
+    ]
+    
+    result = await db.purchase_orders.aggregate(pipeline).to_list(1)
+    cumulative_value = result[0]["total_purchase_value"] if result else 0
+    
+    # Also add cumulative from supplier record if tracked
+    cumulative_value += supplier.get("cumulative_purchase_value", 0)
+    
+    has_pan = bool(supplier.get("pan"))
+    has_gstin = bool(supplier.get("gstin"))
+    is_gst_registered = has_gstin
+    threshold_exceeded = cumulative_value >= TDS_THRESHOLD
+    
+    # TDS Rate: 0.1% if PAN available, 5% otherwise (Section 194Q)
+    tds_rate = 0.1 if has_pan else 5.0
+    
+    return {
+        "supplier_id": supplier_id,
+        "supplier_name": supplier.get("supplier_name"),
+        "gstin": supplier.get("gstin"),
+        "pan": supplier.get("pan"),
+        "is_gst_registered": is_gst_registered,
+        "cumulative_purchase_value": round(cumulative_value, 2),
+        "threshold": TDS_THRESHOLD,
+        "threshold_exceeded": threshold_exceeded,
+        "tds_applicable": threshold_exceeded and is_gst_registered,
+        "tds_rate": tds_rate if threshold_exceeded else 0,
+        "tds_rate_description": f"TDS @ {tds_rate}% {'(with PAN)' if has_pan else '(without PAN)'}" if threshold_exceeded else "Not applicable",
+        "remaining_before_threshold": max(0, TDS_THRESHOLD - cumulative_value),
+        "message": f"{'⚠️ TDS/TCS applicable - purchases exceed ₹50 Lakh' if threshold_exceeded else f'₹{(TDS_THRESHOLD - cumulative_value):,.0f} remaining before TDS threshold'}"
+    }
+
 # ==================== GRN ENDPOINTS ====================
 @router.post("/grn", response_model=GRN)
 async def create_grn(grn_data: GRNCreate, current_user: dict = Depends(get_current_user)):
