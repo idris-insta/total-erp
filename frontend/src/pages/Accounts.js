@@ -4,7 +4,8 @@ import {
   Plus, Search, Edit, Trash2, Eye, FileText, CreditCard, Receipt,
   TrendingUp, TrendingDown, AlertTriangle, RefreshCw, Download,
   Building, Calendar, CheckCircle, Clock, DollarSign, BarChart3,
-  PieChart, ArrowUpRight, ArrowDownRight, Filter, Send, Printer
+  PieChart, ArrowUpRight, ArrowDownRight, Filter, Send, Printer,
+  FileDown, FileMinus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -17,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Textarea } from '../components/ui/textarea';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import ItemSearchSelect from '../components/ItemSearchSelect';
+import CustomerSearchSelect from '../components/CustomerSearchSelect';
 
 // ==================== ACCOUNTS DASHBOARD ====================
 const AccountsDashboard = () => {
