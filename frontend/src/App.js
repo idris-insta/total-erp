@@ -22,6 +22,8 @@ import PayrollPage from './pages/PayrollPage';
 import ImportBridge from './pages/ImportBridge';
 import EmployeeVault from './pages/EmployeeVault';
 import SalesIncentives from './pages/SalesIncentives';
+import GSTCompliance from './pages/GSTCompliance';
+import ReportsDashboard from './pages/ReportsDashboard';
 
 
 const PrivateRoute = ({ children }) => {
