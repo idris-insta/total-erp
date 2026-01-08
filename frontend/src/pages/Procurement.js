@@ -1012,7 +1012,7 @@ const PurchaseOrdersList = () => {
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" className="bg-accent hover:bg-accent/90">Create PO</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90">{editingPO ? 'Update PO' : 'Create PO'}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
