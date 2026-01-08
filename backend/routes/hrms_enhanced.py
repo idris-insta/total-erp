@@ -617,7 +617,7 @@ async def create_loan(data: LoanCreate, current_user: dict = Depends(get_current
     loan_doc["emi_schedule"] = emi_schedule
     
     await db.loans.insert_one(loan_doc)
-    return loan_doc
+    return {k: v for k, v in loan_doc.items() if k != '_id'}
 
 @router.get("/loans")
 async def list_loans(
