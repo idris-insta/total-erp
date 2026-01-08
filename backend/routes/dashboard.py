@@ -59,7 +59,7 @@ async def get_dashboard_overview(current_user: dict = Depends(get_current_user))
     employees = await db.employees.count_documents({'status': 'active'})
     
     qc_inspections = await db.qc_inspections.find({}, {'_id': 0}).to_list(10000)
-    qc_pass_rate = (sum(1 for insp in qc_inspections if insp['result'] == 'pass') / len(qc_inspections) * 100) if qc_inspections else 0
+    qc_pass_rate = (sum(1 for insp in qc_inspections if insp.get('result') == 'pass') / len(qc_inspections) * 100) if qc_inspections else 0
     
     open_complaints = await db.customer_complaints.count_documents({'status': 'open'})
     
