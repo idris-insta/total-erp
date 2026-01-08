@@ -891,10 +891,41 @@ const PurchaseOrdersList = () => {
               <DialogTitle className="font-manrope">{editingPO ? `Edit Purchase Order - ${editingPO.po_number}` : 'Create Purchase Order'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* TDS/TCS Warning Banner */}
+              {tdsInfo && tdsInfo.threshold_exceeded && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-amber-800">TDS/TCS Applicable (Section 194Q)</h4>
+                      <p className="text-sm text-amber-700 mt-1">
+                        Cumulative purchases from this supplier: <span className="font-bold">₹{tdsInfo.cumulative_purchase_value?.toLocaleString('en-IN')}</span> (exceeds ₹50 Lakh threshold)
+                      </p>
+                      <div className="mt-3 flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={formData.apply_tds} 
+                            onChange={(e) => setFormData({...formData, apply_tds: e.target.checked, tds_rate: e.target.checked ? tdsInfo.tds_rate : 0})}
+                            className="rounded border-amber-300"
+                          />
+                          <span className="text-sm font-medium text-amber-800">Apply TDS Deduction</span>
+                        </label>
+                        {formData.apply_tds && (
+                          <span className="text-sm text-amber-700">
+                            @ <span className="font-bold">{tdsInfo.tds_rate}%</span> {tdsInfo.pan ? '(with PAN)' : '(without PAN - higher rate)'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-2 col-span-2">
                   <Label>Supplier *</Label>
-                  <Select value={formData.supplier_id} onValueChange={(v) => setFormData({...formData, supplier_id: v})}>
+                  <Select value={formData.supplier_id} onValueChange={handleSupplierSelect}>
                     <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
                     <SelectContent>
                       {suppliers.map(s => (
