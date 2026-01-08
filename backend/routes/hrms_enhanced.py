@@ -515,6 +515,8 @@ async def get_statutory_config(current_user: dict = Depends(get_current_user)):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.statutory_config.insert_one(config)
+        # Re-fetch to get clean data without _id
+        config = await db.statutory_config.find_one({"financial_year": fy, "is_active": True}, {"_id": 0})
     return config
 
 @router.post("/statutory/config")
