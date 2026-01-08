@@ -1526,9 +1526,200 @@ class APITester:
         else:
             self.log_test("Check Items for UOM Conversion", False, f"Status: {response.status_code if response else 'No response'}")
 
+    def test_procurement_enhancements(self):
+        """Test Procurement Module Enhancements as per review request"""
+        print("\n=== Testing Procurement Module Enhancements ===")
+        
+        # Test 1: Pincode Auto-Fill API
+        print("\n--- Testing Pincode Auto-Fill API ---")
+        
+        # Test valid pincode: 400001 (Mumbai)
+        response = self.make_request("GET", "/procurement/geo/pincode/400001")
+        if response and response.status_code == 200:
+            data = response.json()
+            mumbai_success = (
+                data.get("city") and data.get("state") and data.get("district") and 
+                data.get("country") == "India" and "mumbai" in data.get("city", "").lower()
+            )
+            self.log_test("Pincode 400001 (Mumbai)", mumbai_success, 
+                         f"City: {data.get('city')}, State: {data.get('state')}, District: {data.get('district')}")
+        else:
+            self.log_test("Pincode 400001 (Mumbai)", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test valid pincode: 110001 (Delhi)
+        response = self.make_request("GET", "/procurement/geo/pincode/110001")
+        if response and response.status_code == 200:
+            data = response.json()
+            delhi_success = (
+                data.get("city") and data.get("state") and data.get("district") and 
+                data.get("country") == "India" and "delhi" in data.get("state", "").lower()
+            )
+            self.log_test("Pincode 110001 (Delhi)", delhi_success, 
+                         f"City: {data.get('city')}, State: {data.get('state')}, District: {data.get('district')}")
+        else:
+            self.log_test("Pincode 110001 (Delhi)", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test invalid pincode: 12345
+        response = self.make_request("GET", "/procurement/geo/pincode/12345")
+        if response and response.status_code == 404:
+            self.log_test("Invalid Pincode 12345", True, "Correctly returned 404 for invalid pincode")
+        else:
+            self.log_test("Invalid Pincode 12345", False, f"Expected 404, got {response.status_code if response else 'No response'}")
+        
+        # Test 2: GSTIN Validation API
+        print("\n--- Testing GSTIN Validation API ---")
+        
+        # Test valid GSTIN: 27AAACR4849M1Z7 (Maharashtra)
+        response = self.make_request("GET", "/procurement/gstin/validate/27AAACR4849M1Z7")
+        if response and response.status_code == 200:
+            data = response.json()
+            mh_gstin_success = (
+                data.get("valid") == True and 
+                "maharashtra" in data.get("state", "").lower() and
+                data.get("pan") == "AAACR4849M"
+            )
+            self.log_test("Valid GSTIN 27AAACR4849M1Z7 (Maharashtra)", mh_gstin_success, 
+                         f"Valid: {data.get('valid')}, State: {data.get('state')}, PAN: {data.get('pan')}")
+        else:
+            self.log_test("Valid GSTIN 27AAACR4849M1Z7 (Maharashtra)", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test valid GSTIN: 07AAACR4849M1ZK (Delhi)
+        response = self.make_request("GET", "/procurement/gstin/validate/07AAACR4849M1ZK")
+        if response and response.status_code == 200:
+            data = response.json()
+            delhi_gstin_success = (
+                data.get("valid") == True and 
+                "delhi" in data.get("state", "").lower() and
+                data.get("pan") == "AAACR4849M"
+            )
+            self.log_test("Valid GSTIN 07AAACR4849M1ZK (Delhi)", delhi_gstin_success, 
+                         f"Valid: {data.get('valid')}, State: {data.get('state')}, PAN: {data.get('pan')}")
+        else:
+            self.log_test("Valid GSTIN 07AAACR4849M1ZK (Delhi)", False, f"Status: {response.status_code if response else 'No response'}")
+        
+        # Test invalid GSTIN: 12345678901234X
+        response = self.make_request("GET", "/procurement/gstin/validate/12345678901234X")
+        if response and response.status_code == 400:
+            self.log_test("Invalid GSTIN 12345678901234X", True, "Correctly returned 400 for invalid GSTIN")
+        else:
+            self.log_test("Invalid GSTIN 12345678901234X", False, f"Expected 400, got {response.status_code if response else 'No response'}")
+        
+        # Test 3: Supplier Create with Auto-Fill
+        print("\n--- Testing Supplier Create with Auto-Fill ---")
+        
+        supplier_data = {
+            "supplier_name": "Test Auto-Fill Supplier",
+            "supplier_type": "Raw Material",
+            "contact_person": "Rajesh Sharma",
+            "email": f"rajesh.{uuid.uuid4().hex[:8]}@testautofill.com",
+            "phone": "9876543210",
+            "address": "Test Address, Industrial Area",
+            "pincode": "400001",  # Mumbai pincode for auto-fill
+            "gstin": "27AAACR4849M1Z7",  # Valid Maharashtra GSTIN for auto-fill
+            "payment_terms": "30 days",
+            "credit_limit": 100000.0
+        }
+        
+        response = self.make_request("POST", "/procurement/suppliers", supplier_data)
+        if response and response.status_code == 200:
+            supplier = response.json()
+            supplier_id = supplier.get("id")
+            
+            # Check auto-fill from pincode and GSTIN
+            city_filled = supplier.get("city") and "mumbai" in supplier.get("city", "").lower()
+            state_filled = supplier.get("state") and "maharashtra" in supplier.get("state", "").lower()
+            pan_filled = supplier.get("pan") == "AAACR4849M"
+            
+            autofill_success = city_filled and state_filled and pan_filled
+            
+            self.log_test("Supplier Create with Auto-Fill", autofill_success, 
+                         f"ID: {supplier_id}, City: {supplier.get('city')}, State: {supplier.get('state')}, PAN: {supplier.get('pan')}")
+            
+            # Test 4: PO Edit API
+            print("\n--- Testing PO Edit API ---")
+            
+            if supplier_id:
+                # First, ensure we have a warehouse and item
+                warehouse_id, item_id = self.test_inventory_setup()
+                
+                if warehouse_id and item_id:
+                    # Create a draft PO
+                    po_data = {
+                        "supplier_id": supplier_id,
+                        "po_type": "Standard",
+                        "warehouse_id": warehouse_id,
+                        "items": [
+                            {
+                                "item_id": item_id,
+                                "quantity": 100.0,
+                                "unit_price": 50.0,
+                                "tax_percent": 18.0,
+                                "discount_percent": 0.0,
+                                "delivery_date": "2025-01-15",
+                                "notes": "Test item for PO edit"
+                            }
+                        ],
+                        "currency": "INR",
+                        "payment_terms": "30 days",
+                        "delivery_terms": "FOB",
+                        "notes": "Original PO notes",
+                        "expected_date": "2025-01-15"
+                    }
+                    
+                    response = self.make_request("POST", "/procurement/purchase-orders", po_data)
+                    if response and response.status_code == 200:
+                        po = response.json()
+                        po_id = po.get("id")
+                        self.log_test("Create Draft PO for Edit Test", True, f"PO: {po.get('po_number')}, Status: {po.get('status')}")
+                        
+                        # Test editing draft PO (should succeed)
+                        edit_data = {
+                            "notes": "Updated PO notes for testing",
+                            "expected_date": "2025-01-20"
+                        }
+                        
+                        response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}", edit_data)
+                        if response and response.status_code == 200:
+                            updated_po = response.json()
+                            edit_success = (
+                                updated_po.get("notes") == "Updated PO notes for testing" and
+                                updated_po.get("expected_date") == "2025-01-20"
+                            )
+                            self.log_test("Edit Draft PO", edit_success, 
+                                         f"Notes: {updated_po.get('notes')}, Expected Date: {updated_po.get('expected_date')}")
+                            
+                            # Change PO status to "received" to test edit restriction
+                            status_data = {"status": "received"}
+                            response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}/status", status_data)
+                            if response and response.status_code == 200:
+                                self.log_test("Change PO Status to Received", True, "Status changed successfully")
+                                
+                                # Try to edit received PO (should fail with 400)
+                                edit_data_2 = {
+                                    "notes": "This edit should fail"
+                                }
+                                
+                                response = self.make_request("PUT", f"/procurement/purchase-orders/{po_id}", edit_data_2)
+                                if response and response.status_code == 400:
+                                    self.log_test("Edit Received PO (Should Fail)", True, "Correctly returned 400 for editing received PO")
+                                else:
+                                    self.log_test("Edit Received PO (Should Fail)", False, f"Expected 400, got {response.status_code if response else 'No response'}")
+                            else:
+                                self.log_test("Change PO Status to Received", False, f"Status: {response.status_code if response else 'No response'}")
+                        else:
+                            self.log_test("Edit Draft PO", False, f"Status: {response.status_code if response else 'No response'}")
+                    else:
+                        self.log_test("Create Draft PO for Edit Test", False, f"Status: {response.status_code if response else 'No response'}")
+                else:
+                    self.log_test("PO Edit Test Setup", False, "Missing warehouse_id or item_id")
+            else:
+                self.log_test("PO Edit Test Setup", False, "No supplier_id from auto-fill test")
+        else:
+            self.log_test("Supplier Create with Auto-Fill", False, f"Status: {response.status_code if response else 'No response'}")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Backend API Tests for InstaBiz Industrial ERP - New Modules Focus")
+        print("🚀 Starting Backend API Tests for InstaBiz Industrial ERP - Procurement Module Enhancements")
         print(f"Base URL: {BASE_URL}")
         print("=" * 80)
         
@@ -1539,17 +1730,20 @@ class APITester:
         
         self.test_auth_me()
         
-        # Test all new modules from Master Technical Summary
-        self.test_director_dashboard()
-        self.test_branches()
-        self.test_gatepass()
-        self.test_expenses()
-        self.test_payroll()
-        self.test_employee_vault()
-        self.test_sales_incentives()
-        self.test_import_bridge()
-        self.test_production_v2()
-        self.test_inventory_uom_conversion()
+        # Test procurement module enhancements as per review request
+        self.test_procurement_enhancements()
+        
+        # Test other modules if needed
+        # self.test_director_dashboard()
+        # self.test_branches()
+        # self.test_gatepass()
+        # self.test_expenses()
+        # self.test_payroll()
+        # self.test_employee_vault()
+        # self.test_sales_incentives()
+        # self.test_import_bridge()
+        # self.test_production_v2()
+        # self.test_inventory_uom_conversion()
         
         # Summary
         print("\n" + "=" * 80)
