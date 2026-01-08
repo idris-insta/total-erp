@@ -252,10 +252,10 @@ Format: Provide estimated revenue range and key factors affecting it.
         
         item_demand = {}
         for wo in work_orders:
-            item_id = wo['item_id']
+            item_id = wo.get('item_id', 'unknown')
             if item_id not in item_demand:
                 item_demand[item_id] = 0
-            item_demand[item_id] += wo['quantity_to_make']
+            item_demand[item_id] += wo.get('quantity_to_make', 0)
         
         context = f"""
 Based on the last 90 days of production demand:
