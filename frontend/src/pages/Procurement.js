@@ -702,6 +702,7 @@ const PurchaseOrdersList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingPO, setEditingPO] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ status: 'all', supplier_id: 'all' });
   const [formData, setFormData] = useState({
@@ -748,14 +749,47 @@ const PurchaseOrdersList = () => {
           discount_percent: parseFloat(i.discount_percent) || 0
         }))
       };
-      await api.post('/procurement/purchase-orders', payload);
-      toast.success('Purchase order created');
+      
+      if (editingPO) {
+        await api.put(`/procurement/purchase-orders/${editingPO.id}`, payload);
+        toast.success('Purchase order updated');
+      } else {
+        await api.post('/procurement/purchase-orders', payload);
+        toast.success('Purchase order created');
+      }
       setOpen(false);
+      setEditingPO(null);
       fetchData();
       resetForm();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to create PO');
+      toast.error(error.response?.data?.detail || 'Failed to save PO');
     }
+  };
+
+  const handleEditPO = (po) => {
+    if (po.status !== 'draft' && po.status !== 'sent') {
+      toast.error('Can only edit POs in draft or sent status');
+      return;
+    }
+    setEditingPO(po);
+    setFormData({
+      supplier_id: po.supplier_id || '',
+      po_type: po.po_type || 'Standard',
+      warehouse_id: po.warehouse_id || '',
+      items: po.items?.length > 0 ? po.items.map(i => ({
+        item_id: i.item_id || '',
+        quantity: i.quantity?.toString() || '',
+        unit_price: i.unit_price?.toString() || '',
+        tax_percent: i.tax_percent?.toString() || '18',
+        discount_percent: i.discount_percent?.toString() || '0'
+      })) : [{ item_id: '', quantity: '', unit_price: '', tax_percent: '18', discount_percent: '0' }],
+      payment_terms: po.payment_terms || '',
+      delivery_terms: po.delivery_terms || '',
+      shipping_address: po.shipping_address || '',
+      expected_date: po.expected_date || '',
+      notes: po.notes || ''
+    });
+    setOpen(true);
   };
 
   const handleStatusChange = async (poId, status) => {
@@ -774,6 +808,7 @@ const PurchaseOrdersList = () => {
       items: [{ item_id: '', quantity: '', unit_price: '', tax_percent: '18', discount_percent: '0' }],
       payment_terms: '', delivery_terms: '', shipping_address: '', expected_date: '', notes: ''
     });
+    setEditingPO(null);
   };
 
   const addPOItem = () => {
