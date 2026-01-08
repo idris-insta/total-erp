@@ -1447,14 +1447,17 @@ const QuotationsList = () => {
       account_id: '', contact_person: '', reference: '',
       valid_until: '', transport: '', delivery_terms: '', payment_terms: '',
       terms_conditions: '', notes: '', header_discount_percent: 0,
-      items: [{ item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+      billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
+      shipping_address: '', shipping_city: '', shipping_state: '', shipping_pincode: '',
+      gstin: '',
+      items: [{ item_id: '', item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
     });
   };
 
   const addItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+      items: [...formData.items, { item_id: '', item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
     });
   };
 
