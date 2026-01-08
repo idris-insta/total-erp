@@ -354,3 +354,200 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 5. Build UI for Employee Document Vault
 6. Build UI for Sales Incentives
 7. Enhance Inventory UI with dual-UOM view
+
+---
+
+## Recent Updates (January 2026)
+
+### "Powerhouse ERP" Enhancement - New Modules Added
+
+#### Module 11: GST Compliance ✅ NEW
+**File:** `/app/backend/routes/gst_compliance.py`
+
+**Features:**
+- GSTR-1 (Outward Supplies) Report Generation with B2B, B2C, CDNR tables
+- GSTR-3B Summary Report with tax calculation
+- E-Invoice Generation (IRN + QR Code)
+- E-Way Bill Generation with validity tracking
+- Input Tax Credit (ITC) Tracking & Reconciliation
+- HSN Summary Reports
+
+**Endpoints:**
+- `GET /api/gst/gstr1/{period}` - Generate GSTR-1 (period format: MMYYYY)
+- `GET /api/gst/gstr3b/{period}` - Generate GSTR-3B
+- `GET /api/gst/itc/{period}` - ITC summary
+- `POST /api/gst/e-invoice/generate/{invoice_id}` - Generate E-Invoice
+- `POST /api/gst/eway-bill/generate/{invoice_id}` - Generate E-Way Bill
+- `GET /api/gst/hsn-summary/{period}` - HSN summary
+
+---
+
+#### Module 12: Advanced Inventory ✅ NEW
+**File:** `/app/backend/routes/inventory_advanced.py`
+
+**Features:**
+- Batch Tracking (lot number, manufacturing date, expiry date)
+- Serial Number Assignment
+- Bin Location Management (warehouse zones)
+- Stock Aging Analysis
+- Auto Reorder System with PO generation
+- Barcode Lookup
+- Multi-method Stock Valuation (FIFO, LIFO, Weighted Avg)
+
+**Endpoints:**
+- `POST /api/inventory-advanced/batches` - Create batch
+- `GET /api/inventory-advanced/batches/expiring` - Expiring batches
+- `POST /api/inventory-advanced/serial-numbers` - Generate serial numbers
+- `POST /api/inventory-advanced/bin-locations` - Create bin location
+- `GET /api/inventory-advanced/stock-aging` - Stock aging report
+- `GET /api/inventory-advanced/reorder-alerts` - Low stock alerts
+- `GET /api/inventory-advanced/stock-valuation` - Stock valuation
+
+---
+
+#### Module 13: Reports & Analytics ✅ NEW
+**File:** `/app/backend/routes/reports_analytics.py`
+
+**Features:**
+- Sales Analytics (Daily, Weekly, Monthly, YoY comparison)
+- Purchase Analytics with top suppliers
+- Inventory Reports (summary, movement)
+- Financial Reports (P&L, Cash Flow)
+- Top Products & Customers reports
+- Dashboard KPIs
+
+**Endpoints:**
+- `GET /api/analytics/dashboard/kpis` - All KPIs
+- `GET /api/analytics/sales/summary?period={period}` - Sales summary with growth
+- `GET /api/analytics/sales/trend` - Sales trend
+- `GET /api/analytics/sales/top-products` - Top selling products
+- `GET /api/analytics/sales/top-customers` - Top customers
+- `GET /api/analytics/purchases/summary` - Purchase summary
+- `GET /api/analytics/inventory/summary` - Inventory summary
+- `GET /api/analytics/financial/profit-loss` - P&L report
+- `GET /api/analytics/financial/cash-flow` - Cash flow report
+
+---
+
+#### Module 14: Enhanced HRMS ✅ NEW
+**File:** `/app/backend/routes/hrms_enhanced.py`
+
+**Features:**
+- Attendance Tracking (Check-in/Check-out with working hours calculation)
+- Leave Management (6 default types: CL, SL, EL, LOP, ML, PL)
+- Leave Balance Tracking
+- Statutory Compliance (PF/ESI/PT/LWF calculation)
+- Loan & Advance Management with EMI schedules
+- Holiday Calendar
+
+**Endpoints:**
+- `POST /api/hrms-enhanced/attendance` - Mark attendance
+- `POST /api/hrms-enhanced/attendance/check-in` - Self check-in
+- `GET /api/hrms-enhanced/attendance/summary/{emp_id}/{month}` - Monthly summary
+- `GET /api/hrms-enhanced/leave-types` - List leave types
+- `POST /api/hrms-enhanced/leave-applications` - Apply leave
+- `PUT /api/hrms-enhanced/leave-applications/{id}/approve` - Approve leave
+- `GET /api/hrms-enhanced/leave-balance/{employee_id}` - Leave balance
+- `GET /api/hrms-enhanced/statutory/config` - Statutory config
+- `GET /api/hrms-enhanced/statutory/calculate/{emp_id}` - Calculate deductions
+- `POST /api/hrms-enhanced/loans` - Create loan/advance
+- `PUT /api/hrms-enhanced/loans/{id}/pay-emi` - Pay EMI
+- `GET /api/hrms-enhanced/holidays/{year}` - Holiday calendar
+
+---
+
+#### Module 15: Notifications & Alerts ✅ NEW
+**File:** `/app/backend/routes/notifications.py`
+
+**Features:**
+- Payment Due Reminders (3-day and overdue alerts)
+- Low Stock Alerts (critical & warning levels)
+- Pending Approval Notifications
+- Expiring Batch Alerts
+- Activity Logging
+
+**Endpoints:**
+- `GET /api/notifications/notifications` - List notifications
+- `GET /api/notifications/notifications/count` - Unread count
+- `PUT /api/notifications/notifications/{id}/read` - Mark as read
+- `PUT /api/notifications/notifications/read-all` - Mark all read
+- `POST /api/notifications/alerts/generate` - Auto-generate system alerts
+- `GET /api/notifications/reminders/payment-due` - Payment reminders
+- `POST /api/notifications/activity-log` - Log activity
+- `GET /api/notifications/activity-log` - Activity history
+
+---
+
+### Frontend Dashboards Added
+
+1. **GST Compliance Dashboard** (`/gst-compliance`)
+   - GSTR-1/3B tabs with detailed breakdowns
+   - ITC reconciliation view
+   - E-Invoice and E-Way Bill management
+
+2. **Reports & Analytics Dashboard** (`/analytics`)
+   - KPI cards (Today's sales, Month sales, Pending POs, Alerts)
+   - Sales performance with growth comparison
+   - Top products & customers
+   - P&L summary
+   - Inventory overview
+
+3. **HRMS Dashboard** (`/hrms-dashboard`)
+   - Attendance management with quick check-in/out
+   - Leave management with approval workflow
+   - Loans & advances tracking
+   - Statutory compliance overview
+
+---
+
+### Auto-Populate Feature ✅ IMPLEMENTED
+
+**Reusable Components:**
+- `ItemSearchSelect.js` - Debounced search for items with auto-fill
+- `CustomerSearchSelect.js` - Debounced search for customers with auto-fill
+
+**Integrated in:**
+- CRM (Quotations) - Customer & Item auto-populate
+- Procurement (Purchase Orders) - Item auto-populate
+
+---
+
+### Bug Fix: ObjectId Serialization ✅ RESOLVED
+
+**Issue:** MongoDB `_id` field causing serialization errors in API responses
+**Solution:** Added `{"_id": 0}` projection to all `find()` and `find_one()` queries, and filtered `_id` from POST response documents
+
+**Tests:** 36/36 backend tests passed (100% success rate)
+
+---
+
+## Next Steps (Priority Order)
+
+### P0 - Critical
+1. ~~Fix ObjectId serialization bug~~ ✅ DONE
+
+### P1 - High Priority
+1. Build Frontend for Advanced Inventory (batch tracking, barcodes)
+2. Build Notifications UI (notification bell/center in layout)
+3. Extend auto-populate to ALL forms (Invoices, Production, etc.)
+4. Implement Meta-Data Driven UI ("Power Settings" - Custom Field Registry)
+5. Implement HTML Canvas Document Editor for Orders/Invoices
+
+### P2 - Medium Priority
+1. External API Integrations:
+   - Live GST / E-invoice / E-waybill APIs
+   - B2B Portals (IndiaMart, Alibaba)
+   - Payment gateways
+   - WhatsApp/Email notifications
+2. AI-Powered BI Dashboard (LLM integration)
+
+### P3 - Refactoring
+1. Break down `CRM.js` into smaller components
+2. Move Pydantic models to `/app/backend/models/` directory
+3. File cleanup and directory restructuring
+
+---
+
+## Test Files
+- `/app/tests/test_new_modules.py` - 36 tests for new backend modules
+- `/app/test_reports/iteration_2.json` - Latest test report (100% pass)
