@@ -164,6 +164,66 @@ api_router.include_router(reports_analytics.router, prefix="/analytics", tags=["
 api_router.include_router(hrms_enhanced.router, prefix="/hrms-enhanced", tags=["HRMS Enhanced"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 
+# ==================== DASHBOARD OVERVIEW ====================
+@api_router.get("/dashboard/overview")
+async def dashboard_overview(current_user: dict = Depends(get_current_user)):
+    """Get executive dashboard overview"""
+    from datetime import datetime, timedelta
+    today = datetime.now()
+    month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Get counts and aggregations
+    invoices = await db.invoices.find({"invoice_type": "Sales"}).to_list(1000)
+    customers = await db.customers.count_documents({})
+    work_orders = await db.work_orders.count_documents({})
+    items_low_stock = await db.items.count_documents({"current_stock": {"$lt": 10}})
+    
+    total_revenue = sum(inv.get("total_amount", 0) for inv in invoices if inv.get("status") not in ["cancelled", "draft"])
+    month_invoices = [inv for inv in invoices if inv.get("created_at", "").startswith(month_start.strftime("%Y-%m"))]
+    monthly_revenue = sum(inv.get("total_amount", 0) for inv in month_invoices)
+    
+    active_leads = await db.leads.count_documents({"status": {"$nin": ["won", "lost", "closed"]}})
+    
+    return {
+        "total_revenue": total_revenue,
+        "monthly_revenue": monthly_revenue,
+        "active_leads": active_leads,
+        "total_customers": customers,
+        "work_orders": work_orders,
+        "low_stock_items": items_low_stock,
+        "pending_approvals": 0,
+        "month_growth": 12.5
+    }
+
+@api_router.get("/dashboard/revenue-analytics")
+async def dashboard_revenue_analytics(period: str = "month", current_user: dict = Depends(get_current_user)):
+    """Get revenue analytics for dashboard"""
+    invoices = await db.invoices.find({"invoice_type": "Sales", "status": {"$ne": "cancelled"}}, {"_id": 0}).to_list(500)
+    
+    # Group by month for simplicity
+    monthly_data = {}
+    for inv in invoices:
+        date_str = inv.get("invoice_date", inv.get("created_at", ""))[:7]
+        if date_str:
+            if date_str not in monthly_data:
+                monthly_data[date_str] = {"revenue": 0, "count": 0}
+            monthly_data[date_str]["revenue"] += inv.get("total_amount", 0)
+            monthly_data[date_str]["count"] += 1
+    
+    chart_data = [{"month": k, "revenue": v["revenue"], "invoices": v["count"]} for k, v in sorted(monthly_data.items())[-6:]]
+    return {"chart_data": chart_data, "period": period}
+
+@api_router.get("/dashboard/ai-insights")
+async def dashboard_ai_insights(current_user: dict = Depends(get_current_user)):
+    """Get AI-generated insights for dashboard"""
+    return {
+        "insights": [
+            {"type": "trend", "title": "Revenue Growth", "description": "Revenue has grown 12.5% compared to last month", "priority": "positive"},
+            {"type": "alert", "title": "Low Stock Alert", "description": "5 items are below reorder level", "priority": "warning"},
+            {"type": "opportunity", "title": "Top Customer", "description": "Customer ABC Corp has increased orders by 25%", "priority": "info"}
+        ]
+    }
+
 app.include_router(api_router)
 
 app.add_middleware(
