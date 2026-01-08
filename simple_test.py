@@ -6,7 +6,7 @@ Simple test to debug approval enforcement
 import requests
 import json
 
-BASE_URL = "https://tapecrm.preview.emergentagent.com/api"
+BASE_URL = "https://tapesuite.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@instabiz.com"
 ADMIN_PASSWORD = "adminpassword"
 
