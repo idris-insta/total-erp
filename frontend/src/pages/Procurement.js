@@ -813,13 +813,29 @@ const PurchaseOrdersList = () => {
   };
 
   const addPOItem = () => {
-    setFormData({ ...formData, items: [...formData.items, { item_id: '', quantity: '', unit_price: '', tax_percent: '18', discount_percent: '0' }] });
+    setFormData({ ...formData, items: [...formData.items, { item_id: '', item_name: '', hsn_code: '', quantity: '', unit_price: '', tax_percent: '18', discount_percent: '0', uom: 'Pcs' }] });
   };
 
   const removePOItem = (idx) => {
     if (formData.items.length > 1) {
       setFormData({ ...formData, items: formData.items.filter((_, i) => i !== idx) });
     }
+  };
+
+  // Auto-populate item fields when item is selected
+  const handlePOItemSelect = (idx, itemData) => {
+    const newItems = [...formData.items];
+    newItems[idx] = {
+      ...newItems[idx],
+      item_id: itemData.item_id,
+      item_name: itemData.item_name,
+      hsn_code: itemData.hsn_code || '',
+      uom: itemData.uom || 'Pcs',
+      unit_price: itemData.standard_cost || itemData.unit_price || '',
+      tax_percent: '18'
+    };
+    setFormData({ ...formData, items: newItems });
+    toast.success(`Item "${itemData.item_name}" auto-populated`);
   };
 
   const filteredPOs = pos.filter(po =>
