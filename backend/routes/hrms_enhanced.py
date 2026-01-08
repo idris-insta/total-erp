@@ -684,7 +684,8 @@ async def get_holidays(year: int, current_user: dict = Depends(get_current_user)
             h["id"] = str(uuid.uuid4())
             h["year"] = year
         await db.holidays.insert_many(defaults)
-        holidays = defaults
+        # Re-fetch to get clean data without _id
+        holidays = await db.holidays.find({"year": year}, {"_id": 0}).to_list(100)
     return holidays
 
 @router.post("/holidays")
@@ -705,4 +706,4 @@ async def add_holiday(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.holidays.insert_one(doc)
-    return doc
+    return {k: v for k, v in doc.items() if k != '_id'}
