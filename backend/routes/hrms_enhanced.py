@@ -307,7 +307,7 @@ async def create_leave_type(data: LeaveTypeCreate, current_user: dict = Depends(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.leave_types.insert_one(doc)
-    return doc
+    return {k: v for k, v in doc.items() if k != '_id'}
 
 @router.get("/leave-types")
 async def list_leave_types(current_user: dict = Depends(get_current_user)):
@@ -328,7 +328,8 @@ async def list_leave_types(current_user: dict = Depends(get_current_user)):
             d["is_active"] = True
             d["created_at"] = datetime.now(timezone.utc).isoformat()
         await db.leave_types.insert_many(defaults)
-        types = defaults
+        # Re-fetch to get clean data without _id
+        types = await db.leave_types.find({"is_active": True}, {"_id": 0}).to_list(100)
     return types
 
 @router.post("/leave-applications", response_model=LeaveApplication)
