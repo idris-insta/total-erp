@@ -72,6 +72,7 @@ const AppRoutes = () => {
                 <Route path="/sales-incentives" element={<SalesIncentives />} />
                 <Route path="/gst-compliance" element={<GSTCompliance />} />
                 <Route path="/analytics" element={<ReportsDashboard />} />
+                <Route path="/hrms-dashboard" element={<HRMSDashboard />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
