@@ -26,6 +26,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Sales Incentives', href: '/sales-incentives', icon: Trophy },
     { name: 'GST Compliance', href: '/gst-compliance', icon: Receipt },
     { name: 'Analytics', href: '/analytics', icon: PieChart },
+    { name: 'HR Dashboard', href: '/hrms-dashboard', icon: Clock },
     { name: 'Quality', href: '/quality', icon: Shield },
     { name: 'Approvals', href: '/approvals', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
