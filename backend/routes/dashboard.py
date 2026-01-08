@@ -229,10 +229,11 @@ async def get_forecast(metric: str, current_user: dict = Depends(get_current_use
         
         daily_data = {}
         for inv in invoices:
-            date = inv['created_at'][:10]
-            if date not in daily_data:
-                daily_data[date] = 0
-            daily_data[date] += inv['total_amount']
+            date = inv.get('created_at', '')[:10]
+            if date:
+                if date not in daily_data:
+                    daily_data[date] = 0
+                daily_data[date] += inv.get('total_amount', 0)
         
         context = f"""
 Based on the last 90 days of revenue data:
