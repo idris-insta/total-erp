@@ -330,7 +330,9 @@ const InvoicesList = () => {
     try {
       const payload = {
         ...formData,
-        items: formData.items.filter(i => i.description && i.unit_price).map(i => ({
+        invoice_type: activeTab === 'sales' ? 'Sales' : 'Purchase',
+        items: formData.items.filter(i => (i.description || i.item_id) && i.unit_price).map(i => ({
+          item_id: i.item_id || '',
           description: i.description,
           hsn_code: i.hsn_code,
           quantity: parseFloat(i.quantity) || 1,
@@ -350,6 +352,29 @@ const InvoicesList = () => {
     }
   };
 
+  // Handle Credit/Debit Note submission
+  const handleCreditNoteSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...creditNoteData,
+        items: creditNoteData.items.filter(i => i.description && i.unit_price).map(i => ({
+          description: i.description,
+          quantity: parseFloat(i.quantity) || 1,
+          unit_price: parseFloat(i.unit_price) || 0,
+          tax_percent: parseFloat(i.tax_percent) || 18
+        }))
+      };
+      await api.post('/accounts/credit-notes', payload);
+      toast.success(`${creditNoteData.note_type} Note created`);
+      setCreditNoteOpen(false);
+      fetchData();
+      resetCreditNoteForm();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create note');
+    }
+  };
+
   const handleStatusChange = async (invId, status) => {
     try {
       await api.put(`/accounts/invoices/${invId}/status?status=${status}`);
@@ -360,17 +385,58 @@ const InvoicesList = () => {
     }
   };
 
+  // Auto-populate customer fields when customer is selected
+  const handleCustomerSelect = (customerData) => {
+    setFormData(prev => ({
+      ...prev,
+      account_id: customerData.account_id,
+      billing_address: customerData.billing_address || '',
+      billing_city: customerData.billing_city || '',
+      billing_state: customerData.billing_state || '',
+      billing_pincode: customerData.billing_pincode || '',
+      shipping_address: customerData.shipping_address || '',
+      gstin: customerData.gstin || '',
+      payment_terms: customerData.payment_terms || prev.payment_terms
+    }));
+    toast.success('Customer details auto-populated');
+  };
+
+  // Auto-populate item fields when item is selected
+  const handleItemSelect = (idx, itemData) => {
+    const newItems = [...formData.items];
+    newItems[idx] = {
+      ...newItems[idx],
+      item_id: itemData.item_id,
+      description: itemData.item_name,
+      hsn_code: itemData.hsn_code || '',
+      unit: itemData.uom || 'Pcs',
+      unit_price: itemData.unit_price || 0,
+      tax_percent: itemData.tax_percent || 18
+    };
+    setFormData({ ...formData, items: newItems });
+    toast.success(`Item "${itemData.item_name}" auto-populated`);
+  };
+
   const resetForm = () => {
     setFormData({
-      invoice_type: 'Sales', account_id: '', order_id: '',
-      items: [{ description: '', hsn_code: '', quantity: '1', unit: 'Pcs', unit_price: '', discount_percent: '0', tax_percent: '18' }],
+      invoice_type: activeTab === 'sales' ? 'Sales' : 'Purchase', account_id: '', order_id: '',
+      items: [{ item_id: '', description: '', hsn_code: '', quantity: '1', unit: 'Pcs', unit_price: '', discount_percent: '0', tax_percent: '18' }],
       invoice_date: new Date().toISOString().split('T')[0],
-      due_date: '', payment_terms: '30 days', shipping_address: '', notes: ''
+      due_date: '', payment_terms: '30 days', shipping_address: '', notes: '',
+      billing_address: '', billing_city: '', billing_state: '', billing_pincode: '', gstin: ''
+    });
+  };
+
+  const resetCreditNoteForm = () => {
+    setCreditNoteData({
+      note_type: 'Credit', reference_invoice_id: '', account_id: '', reason: '',
+      items: [{ description: '', quantity: '1', unit_price: '', tax_percent: '18' }],
+      note_date: new Date().toISOString().split('T')[0], notes: ''
     });
   };
 
   const addInvoiceItem = () => {
-    setFormData({ ...formData, items: [...formData.items, { description: '', hsn_code: '', quantity: '1', unit: 'Pcs', unit_price: '', discount_percent: '0', tax_percent: '18' }] });
+    setFormData({ ...formData, items: [...formData.items, { item_id: '', description: '', hsn_code: '', quantity: '1', unit: 'Pcs', unit_price: '', discount_percent: '0', tax_percent: '18' }] });
   };
 
   const removeInvoiceItem = (idx) => {
