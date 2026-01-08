@@ -271,10 +271,31 @@ async def create_supplier(supplier_data: SupplierCreate, current_user: dict = De
         "delivery_rating": 0,
         "total_orders": 0,
         "total_value": 0,
+        "cumulative_purchase_value": 0,  # For TDS/TCS tracking
         "is_active": True,
         "created_at": now,
         "updated_at": now
     }
+    
+    # Auto-fill geo fields from pincode (India)
+    if supplier_doc.get("pincode") and len(supplier_doc.get("pincode", "")) == 6:
+        geo = await lookup_india_pincode(supplier_doc["pincode"])
+        if geo:
+            if not supplier_doc.get("city"):
+                supplier_doc["city"] = geo.get("city")
+            if not supplier_doc.get("state"):
+                supplier_doc["state"] = geo.get("state")
+    
+    # Validate and extract state from GSTIN
+    if supplier_doc.get("gstin"):
+        gstin_info = validate_gstin(supplier_doc["gstin"])
+        if gstin_info["valid"]:
+            # Auto-fill state from GSTIN if not already set
+            if not supplier_doc.get("state"):
+                supplier_doc["state"] = gstin_info["state"]
+            # Auto-fill PAN from GSTIN
+            if not supplier_doc.get("pan") and gstin_info.get("pan"):
+                supplier_doc["pan"] = gstin_info["pan"]
     
     await db.suppliers.insert_one(supplier_doc)
     return Supplier(**{k: v for k, v in supplier_doc.items() if k != '_id'})
