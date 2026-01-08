@@ -283,21 +283,30 @@ const InvoicesList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [creditNoteOpen, setCreditNoteOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('sales'); // 'sales' or 'purchase'
   const [filters, setFilters] = useState({ invoice_type: 'all', status: 'all', overdue: false });
   const [formData, setFormData] = useState({
     invoice_type: 'Sales', account_id: '', order_id: '',
-    items: [{ description: '', hsn_code: '', quantity: '1', unit: 'Pcs', unit_price: '', discount_percent: '0', tax_percent: '18' }],
+    items: [{ item_id: '', description: '', hsn_code: '', quantity: '1', unit: 'Pcs', unit_price: '', discount_percent: '0', tax_percent: '18' }],
     invoice_date: new Date().toISOString().split('T')[0],
-    due_date: '', payment_terms: '30 days', shipping_address: '', notes: ''
+    due_date: '', payment_terms: '30 days', shipping_address: '', notes: '',
+    billing_address: '', billing_city: '', billing_state: '', billing_pincode: '', gstin: ''
+  });
+  const [creditNoteData, setCreditNoteData] = useState({
+    note_type: 'Credit', reference_invoice_id: '', account_id: '', reason: '',
+    items: [{ description: '', quantity: '1', unit_price: '', tax_percent: '18' }],
+    note_date: new Date().toISOString().split('T')[0], notes: ''
   });
 
-  useEffect(() => { fetchData(); }, [filters]);
+  useEffect(() => { fetchData(); }, [filters, activeTab]);
 
   const fetchData = async () => {
     try {
       let url = '/accounts/invoices?';
-      if (filters.invoice_type !== 'all') url += `invoice_type=${filters.invoice_type}&`;
+      // Filter by active tab (Sales or Purchase)
+      url += `invoice_type=${activeTab === 'sales' ? 'Sales' : 'Purchase'}&`;
       if (filters.status !== 'all') url += `status=${filters.status}&`;
       if (filters.overdue) url += 'overdue=true&';
 
