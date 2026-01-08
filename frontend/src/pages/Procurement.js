@@ -840,6 +840,24 @@ const PurchaseOrdersList = () => {
     toast.success(`Item "${itemData.item_name}" auto-populated`);
   };
 
+  // Fetch TDS/TCS info when supplier is selected
+  const handleSupplierSelect = async (supplierId) => {
+    setFormData({ ...formData, supplier_id: supplierId, apply_tds: false, tds_rate: 0, tds_amount: 0 });
+    setTdsInfo(null);
+    
+    if (supplierId) {
+      try {
+        const res = await api.get(`/procurement/suppliers/${supplierId}/tds-info`);
+        setTdsInfo(res.data);
+        if (res.data.threshold_exceeded) {
+          toast.warning(`⚠️ TDS applicable - Purchases exceed ₹50 Lakh threshold`, { duration: 5000 });
+        }
+      } catch (error) {
+        // Silently ignore - TDS info not critical
+      }
+    }
+  };
+
   const filteredPOs = pos.filter(po =>
     po.po_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     po.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase())
