@@ -340,6 +340,24 @@ async def update_supplier(supplier_id: str, supplier_data: SupplierUpdate, curre
     update_dict = {k: v for k, v in supplier_data.model_dump().items() if v is not None}
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
+    # Auto-fill geo fields from pincode (India)
+    if update_dict.get("pincode") and len(update_dict.get("pincode", "")) == 6:
+        geo = await lookup_india_pincode(update_dict["pincode"])
+        if geo:
+            if not update_dict.get("city"):
+                update_dict["city"] = geo.get("city")
+            if not update_dict.get("state"):
+                update_dict["state"] = geo.get("state")
+    
+    # Validate and extract state from GSTIN
+    if update_dict.get("gstin"):
+        gstin_info = validate_gstin(update_dict["gstin"])
+        if gstin_info["valid"]:
+            if not update_dict.get("state"):
+                update_dict["state"] = gstin_info["state"]
+            if not update_dict.get("pan") and gstin_info.get("pan"):
+                update_dict["pan"] = gstin_info["pan"]
+    
     result = await db.suppliers.update_one({"id": supplier_id}, {"$set": update_dict})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Supplier not found")
