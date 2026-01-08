@@ -498,6 +498,22 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
    - Loans & advances tracking
    - Statutory compliance overview
 
+4. **Advanced Inventory Dashboard** (`/advanced-inventory`) ✅ NEW
+   - Batch tracking with expiry management
+   - Serial number generation
+   - Bin location management (Aisle/Rack/Shelf)
+   - Stock aging analysis (0-30, 31-60, 61-90, 91-180, 180+ days)
+   - Stock valuation (Weighted Average method)
+   - Reorder alerts with auto PO suggestion
+   - Barcode/Item code lookup
+
+5. **Notification Center** ✅ NEW
+   - Real-time notification bell in header with unread badge
+   - Dropdown notification list with priority badges
+   - Mark as read/Mark all read functionality
+   - Auto-generate system alerts button
+   - Polls for new notifications every 30 seconds
+
 ---
 
 ### Auto-Populate Feature ✅ IMPLEMENTED
@@ -509,6 +525,8 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 **Integrated in:**
 - CRM (Quotations) - Customer & Item auto-populate
 - Procurement (Purchase Orders) - Item auto-populate
+- Production (Work Orders) - Item auto-populate with spec fields ✅ NEW
+- Accounts (Invoices) - Customer & Item auto-populate
 
 ---
 
@@ -519,19 +537,24 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 
 **Tests:** 36/36 backend tests passed (100% success rate)
 
+### Bug Fix: Dashboard KeyError ✅ RESOLVED (January 2026)
+
+**Issue:** Direct dict access causing KeyError in dashboard.py
+**Solution:** Changed `inv['field']` to `inv.get('field', 0)` with defaults
+
 ---
 
 ## Next Steps (Priority Order)
 
 ### P0 - Critical
 1. ~~Fix ObjectId serialization bug~~ ✅ DONE
+2. ~~Build Frontend for Advanced Inventory~~ ✅ DONE
+3. ~~Build Notifications UI~~ ✅ DONE
 
 ### P1 - High Priority
-1. Build Frontend for Advanced Inventory (batch tracking, barcodes)
-2. Build Notifications UI (notification bell/center in layout)
-3. Extend auto-populate to ALL forms (Invoices, Production, etc.)
-4. Implement Meta-Data Driven UI ("Power Settings" - Custom Field Registry)
-5. Implement HTML Canvas Document Editor for Orders/Invoices
+1. ~~Extend auto-populate to Production~~ ✅ DONE
+2. Implement Meta-Data Driven UI ("Power Settings" - Custom Field Registry)
+3. Implement HTML Canvas Document Editor for Orders/Invoices
 
 ### P2 - Medium Priority
 1. External API Integrations:
