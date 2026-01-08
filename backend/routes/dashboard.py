@@ -108,21 +108,22 @@ async def get_revenue_analytics(period: str = "month", current_user: dict = Depe
     
     daily_revenue = {}
     for inv in invoices:
-        date = inv['created_at'][:10]
-        if date not in daily_revenue:
-            daily_revenue[date] = 0
-        daily_revenue[date] += inv['total_amount']
+        date = inv.get('created_at', '')[:10]
+        if date:
+            if date not in daily_revenue:
+                daily_revenue[date] = 0
+            daily_revenue[date] += inv.get('total_amount', 0)
     
     by_location = {}
     for inv in invoices:
         loc = inv.get('location', 'Unknown')
         if loc not in by_location:
             by_location[loc] = 0
-        by_location[loc] += inv['total_amount']
+        by_location[loc] += inv.get('total_amount', 0)
     
     return {
         'period': period,
-        'total_revenue': sum(inv['total_amount'] for inv in invoices),
+        'total_revenue': sum(inv.get('total_amount', 0) for inv in invoices),
         'daily_revenue': daily_revenue,
         'by_location': by_location,
         'invoice_count': len(invoices)
