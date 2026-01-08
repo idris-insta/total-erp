@@ -501,6 +501,73 @@ async def delete_purchase_order(po_id: str, current_user: dict = Depends(get_cur
     await db.purchase_orders.delete_one({"id": po_id})
     return {"message": "Purchase Order deleted"}
 
+@router.put("/purchase-orders/{po_id}", response_model=PurchaseOrder)
+async def update_purchase_order(po_id: str, po_data: PurchaseOrderUpdate, current_user: dict = Depends(get_current_user)):
+    """Edit/Update a Purchase Order (only draft or sent status)"""
+    po = await db.purchase_orders.find_one({"id": po_id}, {"_id": 0})
+    if not po:
+        raise HTTPException(status_code=404, detail="Purchase Order not found")
+    
+    if po.get("status") not in ["draft", "sent"]:
+        raise HTTPException(status_code=400, detail="Can only edit POs in draft or sent status")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_dict = {"updated_at": now}
+    
+    # Update items if provided
+    if po_data.items:
+        items_with_details = []
+        for item in po_data.items:
+            item_doc = await db.items.find_one({"id": item.item_id}, {"item_code": 1, "item_name": 1, "uom": 1, "hsn_code": 1})
+            if item_doc:
+                items_with_details.append({
+                    **item.model_dump(),
+                    "item_code": item_doc.get("item_code"),
+                    "item_name": item_doc.get("item_name"),
+                    "uom": item_doc.get("uom"),
+                    "hsn_code": item_doc.get("hsn_code")
+                })
+        
+        # Recalculate totals
+        totals = calculate_po_totals(items_with_details)
+        update_dict.update(totals)
+    
+    # Update other fields
+    if po_data.payment_terms is not None:
+        update_dict["payment_terms"] = po_data.payment_terms
+    if po_data.delivery_terms is not None:
+        update_dict["delivery_terms"] = po_data.delivery_terms
+    if po_data.shipping_address is not None:
+        update_dict["shipping_address"] = po_data.shipping_address
+    if po_data.notes is not None:
+        update_dict["notes"] = po_data.notes
+    if po_data.expected_date is not None:
+        update_dict["expected_date"] = po_data.expected_date
+    if po_data.status is not None and po_data.status in ["draft", "sent", "cancelled"]:
+        update_dict["status"] = po_data.status
+    
+    await db.purchase_orders.update_one({"id": po_id}, {"$set": update_dict})
+    
+    updated_po = await db.purchase_orders.find_one({"id": po_id}, {"_id": 0})
+    return PurchaseOrder(**updated_po)
+
+# ==================== GEO & GSTIN LOOKUP ENDPOINTS ====================
+@router.get("/geo/pincode/{pincode}")
+async def get_pincode_details(pincode: str, current_user: dict = Depends(get_current_user)):
+    """Lookup city, district, state from Indian pincode"""
+    details = await lookup_india_pincode(pincode)
+    if not details:
+        raise HTTPException(status_code=404, detail="Pincode not found or invalid")
+    return details
+
+@router.get("/gstin/validate/{gstin}")
+async def validate_gstin_endpoint(gstin: str, current_user: dict = Depends(get_current_user)):
+    """Validate GSTIN format and extract state/PAN"""
+    result = validate_gstin(gstin)
+    if not result["valid"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
 # ==================== GRN ENDPOINTS ====================
 @router.post("/grn", response_model=GRN)
 async def create_grn(grn_data: GRNCreate, current_user: dict = Depends(get_current_user)):
