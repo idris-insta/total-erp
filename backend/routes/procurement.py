@@ -3,9 +3,75 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import uuid
+import re
+import httpx
 from server import db, get_current_user
 
 router = APIRouter()
+
+# ==================== PINCODE & GSTIN HELPERS ====================
+PINCODE_API_BASE = "https://api.postalpincode.in/pincode/"
+
+async def lookup_india_pincode(pincode: str) -> Optional[dict]:
+    """Fetch city/state/district from Indian pincode API."""
+    if not pincode or len(pincode) != 6 or not pincode.isdigit():
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{PINCODE_API_BASE}{pincode}")
+            data = resp.json()
+            if data and data[0].get("Status") == "Success":
+                po = data[0]["PostOffice"][0]
+                return {
+                    "city": po.get("Block") or po.get("Name"),
+                    "district": po.get("District"),
+                    "state": po.get("State"),
+                    "country": "India"
+                }
+    except Exception:
+        pass
+    return None
+
+# Indian state code mapping (first 2 digits of GSTIN)
+GSTIN_STATE_CODES = {
+    "01": "Jammu & Kashmir", "02": "Himachal Pradesh", "03": "Punjab",
+    "04": "Chandigarh", "05": "Uttarakhand", "06": "Haryana",
+    "07": "Delhi", "08": "Rajasthan", "09": "Uttar Pradesh",
+    "10": "Bihar", "11": "Sikkim", "12": "Arunachal Pradesh",
+    "13": "Nagaland", "14": "Manipur", "15": "Mizoram",
+    "16": "Tripura", "17": "Meghalaya", "18": "Assam",
+    "19": "West Bengal", "20": "Jharkhand", "21": "Odisha",
+    "22": "Chhattisgarh", "23": "Madhya Pradesh", "24": "Gujarat",
+    "26": "Dadra & Nagar Haveli", "27": "Maharashtra", "29": "Karnataka",
+    "30": "Goa", "31": "Lakshadweep", "32": "Kerala",
+    "33": "Tamil Nadu", "34": "Puducherry", "35": "Andaman & Nicobar",
+    "36": "Telangana", "37": "Andhra Pradesh"
+}
+
+def validate_gstin(gstin: str) -> dict:
+    """Validate GSTIN format and extract state code."""
+    gstin = gstin.upper().strip()
+    result = {"valid": False, "gstin": gstin, "state": None, "pan": None, "error": None}
+    
+    if len(gstin) != 15:
+        result["error"] = "GSTIN must be 15 characters"
+        return result
+    
+    # GSTIN format: 22AAAAA0000A1Z5
+    pattern = r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}[Z]{1}[A-Z0-9]{1}$'
+    if not re.match(pattern, gstin):
+        result["error"] = "Invalid GSTIN format"
+        return result
+    
+    state_code = gstin[:2]
+    if state_code not in GSTIN_STATE_CODES:
+        result["error"] = "Invalid state code in GSTIN"
+        return result
+    
+    result["valid"] = True
+    result["state"] = GSTIN_STATE_CODES[state_code]
+    result["pan"] = gstin[2:12]
+    return result
 
 # ==================== SUPPLIER MODELS ====================
 class SupplierCreate(BaseModel):
