@@ -18,6 +18,8 @@ import { Textarea } from '../components/ui/textarea';
 import api from '../lib/api';
 import { toast } from 'sonner';
 import LeadsPage from './LeadsPage';
+import ItemSearchSelect from '../components/ItemSearchSelect';
+import CustomerSearchSelect from '../components/CustomerSearchSelect';
 
 // ==================== CRM OVERVIEW ====================
 const CRMOverview = () => {
