@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock } from 'lucide-react';
+import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock, Layers } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
+import NotificationCenter from '../NotificationCenter';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
@@ -15,10 +16,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Director Center', href: '/director', icon: Gauge },
     { name: 'CRM', href: '/crm', icon: TrendingUp },
     { name: 'Inventory', href: '/inventory', icon: Boxes },
+    { name: 'Adv. Inventory', href: '/advanced-inventory', icon: Layers },
     { name: 'Production', href: '/production', icon: Factory },
     { name: 'Procurement', href: '/procurement', icon: ShoppingCart },
     { name: 'Accounts', href: '/accounts', icon: Calculator },
     { name: 'HRMS', href: '/hrms', icon: Users },
+    { name: 'HR Dashboard', href: '/hrms-dashboard', icon: Clock },
     { name: 'Payroll', href: '/payroll', icon: Banknote },
     { name: 'Gatepass', href: '/gatepass', icon: Truck },
     { name: 'Import Bridge', href: '/import-bridge', icon: Ship },
@@ -26,7 +29,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Sales Incentives', href: '/sales-incentives', icon: Trophy },
     { name: 'GST Compliance', href: '/gst-compliance', icon: Receipt },
     { name: 'Analytics', href: '/analytics', icon: PieChart },
-    { name: 'HR Dashboard', href: '/hrms-dashboard', icon: Clock },
     { name: 'Quality', href: '/quality', icon: Shield },
     { name: 'Approvals', href: '/approvals', icon: ClipboardCheck },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
@@ -125,6 +127,9 @@ const MainLayout = ({ children }) => {
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
           <div className="flex-1" />
+          <div className="flex items-center gap-3">
+            <NotificationCenter />
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
