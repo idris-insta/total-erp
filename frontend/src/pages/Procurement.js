@@ -1096,6 +1096,11 @@ const PurchaseOrdersList = () => {
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
+                          {(po.status === 'draft' || po.status === 'sent') && (
+                            <Button variant="ghost" size="sm" onClick={() => handleEditPO(po)} data-testid={`edit-po-${po.id}`}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           {po.status === 'draft' && (
                             <Button variant="outline" size="sm" onClick={() => handleStatusChange(po.id, 'sent')}>
                               <Send className="h-4 w-4 mr-1" />Send
