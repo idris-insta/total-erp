@@ -1994,6 +1994,9 @@ class APITester:
         # Test procurement module enhancements as per review request
         self.test_procurement_enhancements()
         
+        # Test accounts credit note creation
+        self.test_accounts_credit_note()
+        
         # Test other modules if needed
         # self.test_director_dashboard()
         # self.test_branches()
