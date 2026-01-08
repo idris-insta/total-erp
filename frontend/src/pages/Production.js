@@ -16,6 +16,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Progress } from '../components/ui/progress';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import ItemSearchSelect from '../components/ItemSearchSelect';
 
 // ==================== PRODUCTION DASHBOARD ====================
 const ProductionDashboard = () => {
@@ -353,14 +354,25 @@ const WorkOrdersList = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Item *</Label>
-                  <Select value={formData.item_id} onValueChange={(v) => setFormData({...formData, item_id: v})}>
-                    <SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger>
-                    <SelectContent>
-                      {items.map(item => (
-                        <SelectItem key={item.id} value={item.id}>{item.item_code} - {item.item_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ItemSearchSelect
+                    value={formData.item_id}
+                    onChange={(item) => {
+                      if (item) {
+                        setFormData({
+                          ...formData,
+                          item_id: item.id,
+                          thickness: item.specifications?.thickness || formData.thickness,
+                          width: item.specifications?.width || formData.width,
+                          length: item.specifications?.length || formData.length,
+                          color: item.specifications?.color || formData.color,
+                          brand: item.brand || formData.brand
+                        });
+                      } else {
+                        setFormData({...formData, item_id: ''});
+                      }
+                    }}
+                    placeholder="Search items..."
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Quantity *</Label>
