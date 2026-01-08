@@ -1331,7 +1331,10 @@ const QuotationsList = () => {
     account_id: '', contact_person: '', reference: '',
     valid_until: '', transport: '', delivery_terms: '', payment_terms: '',
     terms_conditions: '', notes: '', header_discount_percent: 0,
-    items: [{ item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
+    billing_address: '', billing_city: '', billing_state: '', billing_pincode: '',
+    shipping_address: '', shipping_city: '', shipping_state: '', shipping_pincode: '',
+    gstin: '',
+    items: [{ item_id: '', item_name: '', description: '', hsn_code: '', quantity: 1, unit: 'Pcs', unit_price: 0, discount_percent: 0, tax_percent: 18 }]
   });
 
   useEffect(() => { fetchData(); }, []);
@@ -1349,6 +1352,42 @@ const QuotationsList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Auto-populate customer fields when customer is selected
+  const handleCustomerSelect = (customerData) => {
+    setFormData(prev => ({
+      ...prev,
+      account_id: customerData.account_id,
+      contact_person: customerData.contact_person || prev.contact_person,
+      billing_address: customerData.billing_address || '',
+      billing_city: customerData.billing_city || '',
+      billing_state: customerData.billing_state || '',
+      billing_pincode: customerData.billing_pincode || '',
+      shipping_address: customerData.shipping_address || '',
+      shipping_city: customerData.shipping_city || '',
+      shipping_state: customerData.shipping_state || '',
+      shipping_pincode: customerData.shipping_pincode || '',
+      gstin: customerData.gstin || '',
+      payment_terms: customerData.payment_terms || prev.payment_terms
+    }));
+    toast.success('Customer details auto-populated');
+  };
+
+  // Auto-populate item fields when item is selected
+  const handleItemSelect = (idx, itemData) => {
+    const newItems = [...formData.items];
+    newItems[idx] = {
+      ...newItems[idx],
+      item_id: itemData.item_id,
+      item_name: itemData.item_name,
+      hsn_code: itemData.hsn_code || '',
+      unit: itemData.uom || 'Pcs',
+      unit_price: itemData.unit_price || 0,
+      tax_percent: itemData.tax_percent || 18
+    };
+    setFormData({ ...formData, items: newItems });
+    toast.success(`Item "${itemData.item_name}" auto-populated`);
   };
 
   const handleSubmit = async (e) => {
