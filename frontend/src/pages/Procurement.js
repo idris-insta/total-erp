@@ -706,10 +706,12 @@ const PurchaseOrdersList = () => {
   const [editingPO, setEditingPO] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ status: 'all', supplier_id: 'all' });
+  const [tdsInfo, setTdsInfo] = useState(null);  // TDS/TCS compliance info
   const [formData, setFormData] = useState({
     supplier_id: '', po_type: 'Standard', warehouse_id: '',
     items: [{ item_id: '', quantity: '', unit_price: '', tax_percent: '18', discount_percent: '0' }],
-    payment_terms: '', delivery_terms: '', shipping_address: '', expected_date: '', notes: ''
+    payment_terms: '', delivery_terms: '', shipping_address: '', expected_date: '', notes: '',
+    apply_tds: false, tds_rate: 0, tds_amount: 0
   });
 
   useEffect(() => { fetchData(); }, [filters]);
