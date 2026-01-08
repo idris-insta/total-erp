@@ -1590,11 +1590,17 @@ const QuotationsList = () => {
                         return (
                           <tr key={idx}>
                             <td className="px-3 py-2">
-                              <Input value={item.item_name} onChange={(e) => {
-                                const newItems = [...formData.items];
-                                newItems[idx].item_name = e.target.value;
-                                setFormData({...formData, items: newItems});
-                              }} required className="h-8" data-testid={`item-name-${idx}`} />
+                              <ItemSearchSelect
+                                value={item.item_id}
+                                onChange={(v) => {
+                                  const newItems = [...formData.items];
+                                  newItems[idx].item_id = v;
+                                  setFormData({...formData, items: newItems});
+                                }}
+                                onItemSelect={(itemData) => handleItemSelect(idx, itemData)}
+                                placeholder="Search item..."
+                                className="h-8"
+                              />
                             </td>
                             <td className="px-3 py-2">
                               <Input value={item.hsn_code} onChange={(e) => {
