@@ -489,7 +489,19 @@ const SuppliersList = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>GSTIN</Label>
-                      <Input value={formData.gstin} onChange={(e) => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="27XXXXX0000X1ZX" />
+                      <div className="relative">
+                        <Input 
+                          value={formData.gstin} 
+                          onChange={(e) => handleGstinChange(e.target.value)} 
+                          placeholder="27XXXXX0000X1ZX"
+                          className={gstinValidation.valid === true ? 'border-green-500' : gstinValidation.valid === false ? 'border-red-500' : ''}
+                        />
+                        {gstinValidation.valid !== null && (
+                          <span className={`text-xs mt-1 ${gstinValidation.valid ? 'text-green-600' : 'text-red-600'}`}>
+                            {gstinValidation.message}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label>PAN</Label>
