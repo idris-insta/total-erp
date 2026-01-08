@@ -460,10 +460,8 @@
 
 ## test_plan:
   current_focus:
-    - "Procurement Module Enhancements - Pincode Auto-Fill API"
-    - "Procurement Module Enhancements - GSTIN Validation API"
-    - "Procurement Module Enhancements - Supplier Create with Auto-Fill"
-    - "Procurement Module Enhancements - PO Edit API"
+    - "Procurement Module Enhancements - TDS/TCS Info API"
+    - "Accounts Module Enhancements - Credit Note Creation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
