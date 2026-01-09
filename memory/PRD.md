@@ -553,10 +553,10 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 
 ### P1 - High Priority
 1. ~~Extend auto-populate to Production~~ ✅ DONE
-2. Implement Meta-Data Driven UI ("Power Settings" - Custom Field Registry)
-3. Implement HTML Canvas Document Editor for Orders/Invoices
+2. ~~Implement Meta-Data Driven UI ("Power Settings")~~ ✅ DONE
+3. ~~Implement Document Editor for Orders/Invoices~~ ✅ DONE
 
-### P2 - Medium Priority
+### P2 - Medium Priority (NEXT)
 1. External API Integrations:
    - Live GST / E-invoice / E-waybill APIs
    - B2B Portals (IndiaMart, Alibaba)
@@ -571,6 +571,50 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 
 ---
 
+## New Features Added (January 2026 - Session 2)
+
+### Module 16: Power Settings (Custom Field Registry) ✅ NEW
+**Files:** `/app/backend/routes/custom_fields.py`, `/app/frontend/src/pages/PowerSettings.js`
+
+**Features:**
+- 12 module configurations (CRM, Inventory, Production, Accounts, HRMS, Procurement)
+- Dynamic custom field creation (text, number, date, select, multiselect, checkbox, textarea, file)
+- Field properties: required, searchable, filterable, show in list
+- Section grouping for fields
+- Seed default fields for common use cases
+- Drag-and-drop field reordering (visual)
+
+**Endpoints:**
+- `GET /api/custom-fields/modules` - List 12 available modules
+- `GET /api/custom-fields/fields/{module}` - Get fields for a module
+- `POST /api/custom-fields/fields` - Create custom field
+- `PUT /api/custom-fields/fields/{id}` - Update field
+- `DELETE /api/custom-fields/fields/{id}` - Delete field
+- `POST /api/custom-fields/seed-defaults` - Seed default fields
+
+---
+
+### Module 17: Document Editor ✅ NEW
+**Files:** `/app/backend/routes/documents.py`, `/app/frontend/src/pages/DocumentEditor.js`
+
+**Features:**
+- 5 document templates: Sales Invoice, Quotation, Purchase Order, Delivery Challan, Work Order
+- Visual canvas editor with drag-and-drop elements
+- Element types: Text, Data Field, Image/Logo, Table, Line, Rectangle
+- Data field binding (company, customer, document, items, totals, bank details)
+- Properties panel for element customization
+- Zoom, grid, preview, export PDF controls
+- Template save/load functionality
+
+**Endpoints:**
+- `GET /api/documents/templates` - List saved templates
+- `POST /api/documents/templates` - Save template
+- `GET /api/documents/templates/{type}` - Get template by type
+
+---
+
 ## Test Files
-- `/app/tests/test_new_modules.py` - 36 tests for new backend modules
-- `/app/test_reports/iteration_2.json` - Latest test report (100% pass)
+- `/app/tests/test_new_modules.py` - 36 tests for powerhouse modules
+- `/app/tests/test_dashboard_notifications.py` - 7 tests for dashboard & notifications
+- `/app/tests/test_new_features_iteration4.py` - 26 tests for Power Settings & Document Editor
+- `/app/test_reports/iteration_4.json` - Latest test report (100% pass)
