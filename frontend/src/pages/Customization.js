@@ -33,9 +33,10 @@ const CustomFieldsManager = () => {
   const fetchCustomFields = async () => {
     try {
       const response = await api.get('/customization/custom-fields');
-      setCustomFields(response.data);
+      setCustomFields(response.data || []);
     } catch (error) {
-      toast.error('Failed to load custom fields');
+      console.error('Failed to load custom fields:', error);
+      setCustomFields([]);
     }
   };
 
