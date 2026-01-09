@@ -184,6 +184,52 @@ async def get_email_templates(module: Optional[str] = None, current_user: dict =
     return [EmailTemplateResponse(**template) for template in templates]
 
 
+# ==================== DOCUMENT TEMPLATES (for Document Editor) ====================
+class DocumentTemplateCreate(BaseModel):
+    name: str
+    type: str  # invoice, quotation, purchase_order, delivery_challan, work_order
+    elements: List[dict]
+    page_size: str = "A4"
+    orientation: str = "portrait"
+
+@router.get("/templates")
+async def get_document_templates(current_user: dict = Depends(get_current_user)):
+    """Get all saved document templates for the Document Editor"""
+    templates = await db.document_templates.find({}, {'_id': 0}).to_list(100)
+    return templates
+
+@router.post("/templates")
+async def save_document_template(data: DocumentTemplateCreate, current_user: dict = Depends(get_current_user)):
+    """Save a document template from the Document Editor"""
+    template_doc = {
+        'id': str(uuid.uuid4()),
+        'name': data.name,
+        'type': data.type,
+        'elements': data.elements,
+        'page_size': data.page_size,
+        'orientation': data.orientation,
+        'created_by': current_user['id'],
+        'created_at': datetime.now(timezone.utc).isoformat(),
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Upsert by type - one template per type
+    await db.document_templates.update_one(
+        {'type': data.type},
+        {'$set': template_doc},
+        upsert=True
+    )
+    return {'message': 'Template saved successfully', 'template_id': template_doc['id']}
+
+@router.get("/templates/{template_type}")
+async def get_document_template_by_type(template_type: str, current_user: dict = Depends(get_current_user)):
+    """Get a specific document template by type"""
+    template = await db.document_templates.find_one({'type': template_type}, {'_id': 0})
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template
+
+
 @router.post("/notifications/create")
 async def create_notification(
     title: str,
