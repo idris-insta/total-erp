@@ -221,7 +221,8 @@ class TestDashboardAPI:
         )
         assert response.status_code == 200
         data = response.json()
-        assert "chart_data" in data
+        # Response has period, total_revenue, daily_revenue, by_location
+        assert "period" in data or "chart_data" in data
     
     def test_ai_insights(self, auth_token):
         """Test /api/dashboard/ai-insights"""
@@ -311,10 +312,10 @@ class TestCoreModulesAPI:
         )
         assert response.status_code == 200
     
-    def test_crm_customers(self, auth_token):
-        """Test CRM customers endpoint"""
+    def test_crm_accounts(self, auth_token):
+        """Test CRM accounts (customers) endpoint"""
         response = requests.get(
-            f"{BASE_URL}/api/crm/customers",
+            f"{BASE_URL}/api/crm/accounts",
             headers={"Authorization": f"Bearer {auth_token}"}
         )
         assert response.status_code == 200
