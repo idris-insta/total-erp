@@ -23,12 +23,21 @@ class CustomFieldResponse(BaseModel):
     field_label: str
     field_type: str
     module: str
-    entity: str
+    entity: Optional[str] = None
     options: Optional[List[str]] = None
-    required: bool
+    required: Optional[bool] = False
     default_value: Optional[Any] = None
-    created_at: str
-    created_by: str
+    created_at: Optional[str] = None
+    created_by: Optional[str] = None
+    # Additional fields from Power Settings
+    section: Optional[str] = None
+    placeholder: Optional[str] = None
+    help_text: Optional[str] = None
+    is_searchable: Optional[bool] = False
+    is_filterable: Optional[bool] = False
+    show_in_list: Optional[bool] = False
+    display_order: Optional[int] = 0
+    is_active: Optional[bool] = True
 
 class ReportTemplate(BaseModel):
     name: str
