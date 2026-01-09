@@ -26,6 +26,8 @@ import GSTCompliance from './pages/GSTCompliance';
 import ReportsDashboard from './pages/ReportsDashboard';
 import HRMSDashboard from './pages/HRMSDashboard';
 import AdvancedInventory from './pages/AdvancedInventory';
+import PowerSettings from './pages/PowerSettings';
+import DocumentEditor from './pages/DocumentEditor';
 
 
 const PrivateRoute = ({ children }) => {
@@ -75,6 +77,8 @@ const AppRoutes = () => {
                 <Route path="/gst-compliance" element={<GSTCompliance />} />
                 <Route path="/analytics" element={<ReportsDashboard />} />
                 <Route path="/hrms-dashboard" element={<HRMSDashboard />} />
+                <Route path="/power-settings" element={<PowerSettings />} />
+                <Route path="/document-editor" element={<DocumentEditor />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
