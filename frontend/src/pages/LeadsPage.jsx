@@ -573,6 +573,19 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
             </div>
           </div>
 
+          {/* Dynamic Custom Fields from Power Settings */}
+          {customFields.length > 0 && (
+            <div className="border-t pt-4">
+              <DynamicFormFields
+                fields={customFields}
+                values={customFieldValues}
+                onChange={handleCustomFieldChange}
+                columns={2}
+                showSections={true}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Notes</Label>
             <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} />
