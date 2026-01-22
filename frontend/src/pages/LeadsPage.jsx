@@ -387,7 +387,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         ...formData,
         assigned_to: (formData.assigned_to === 'unassigned' || !formData.assigned_to) ? null : formData.assigned_to,
         estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null,
-        status: formData.status || (lead?.status || 'new')
+        status: formData.status || (lead?.status || 'new'),
+        custom_fields: customFieldValues
       };
       
       if (lead) {
@@ -402,6 +403,13 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save lead');
     }
+  };
+  
+  const handleCustomFieldChange = (fieldName, value) => {
+    setCustomFieldValues(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
   };
 
   return (
