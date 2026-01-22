@@ -280,8 +280,29 @@ async def override_redline(
 
 
 # ==================== 3. CRM BUYING DNA - AI PURCHASE PATTERNS ====================
+@router.get("/buying-dna/late-customers")
+async def get_late_customers(current_user: dict = Depends(get_current_user)):
+    """Get all customers who are late on their expected order"""
+    customers = await db.customers.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+    
+    late_customers = []
+    for customer in customers:
+        dna = await get_buying_dna_for_customer(customer["id"], current_user)
+        if dna.get("is_late"):
+            late_customers.append({
+                "customer_id": customer["id"],
+                "customer_name": customer.get("name"),
+                "days_late": dna.get("days_late"),
+                "avg_interval": dna.get("average_order_interval_days"),
+                "avg_order_value": dna.get("average_order_value"),
+                "followup_message": dna.get("followup_message")
+            })
+    
+    return sorted(late_customers, key=lambda x: x["days_late"], reverse=True)
+
+
 @router.get("/buying-dna/{customer_id}")
-async def get_buying_dna(customer_id: str, current_user: dict = Depends(get_current_user)):
+async def get_buying_dna_for_customer(customer_id: str, current_user: dict = Depends(get_current_user)):
     """
     Analyze customer's buying pattern - frequency, items, amounts
     """
