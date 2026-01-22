@@ -49,10 +49,11 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 **Meta-Data Driven Architecture** (100% customizable fields) with a **Dimensional Physics Engine** (KG ↔ SQM ↔ PCS conversions).
 
 ## Tech Stack
-- **Frontend:** React, Tailwind CSS, Shadcn UI, react-beautiful-dnd
+- **Frontend:** React 19, Tailwind CSS, Shadcn UI, react-beautiful-dnd, **Vite** (migrated from CRA/CRACO - January 2026)
 - **Backend:** FastAPI (Python)
 - **Database:** MongoDB
 - **Authentication:** JWT with Role-Based Access Control (RBAC)
+- **AI Integration:** Gemini 3 Flash via Emergent LLM Key
 
 ---
 
