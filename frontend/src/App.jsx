@@ -29,6 +29,10 @@ import AdvancedInventory from './pages/AdvancedInventory';
 import PowerSettings from './pages/PowerSettings';
 import DocumentEditor from './pages/DocumentEditor';
 import AIBIDashboard from './pages/AIBIDashboard';
+import Chat from './pages/Chat';
+import Drive from './pages/Drive';
+import BulkImport from './pages/BulkImport';
+import EInvoice from './pages/EInvoice';
 
 
 const PrivateRoute = ({ children }) => {
