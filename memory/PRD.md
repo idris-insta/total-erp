@@ -604,7 +604,7 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
    - B2B Portals (IndiaMart, Alibaba)
    - Payment gateways
    - WhatsApp/Email notifications
-2. AI-Powered BI Dashboard (LLM integration)
+2. ~~AI-Powered BI Dashboard (LLM integration)~~ ✅ DONE
 
 ### P3 - Refactoring
 1. Break down `CRM.js` into smaller components
