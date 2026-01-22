@@ -659,4 +659,47 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 - `/app/tests/test_new_modules.py` - 36 tests for powerhouse modules
 - `/app/tests/test_dashboard_notifications.py` - 7 tests for dashboard & notifications
 - `/app/tests/test_new_features_iteration4.py` - 26 tests for Power Settings & Document Editor
-- `/app/test_reports/iteration_4.json` - Latest test report (100% pass)
+- `/app/tests/test_ai_bi_dashboard.py` - 24 tests for AI BI Dashboard
+- `/app/test_reports/iteration_6.json` - Latest test report (100% pass)
+
+---
+
+## Module 18: AI Business Intelligence Dashboard ✅ NEW (January 2026)
+**Files:** `/app/backend/routes/ai_bi.py`, `/app/frontend/src/pages/AIBIDashboard.js`
+**AI Provider:** Gemini 3 Flash via Emergent LLM Key
+
+### Features:
+
+**1. Natural Language Queries**
+- Ask questions about business data in plain English
+- Example: "What were our top 5 products this month?"
+- Suggested queries for quick access
+- Query history tracking
+- API: `POST /api/ai/nl-query`
+
+**2. AI-Generated Insights**
+- Auto-analyze sales, inventory, production, finance
+- Structure: Key Findings → Opportunities → Risks → Recommended Actions
+- Focus areas: All, Sales, Inventory, Production, Finance
+- Time periods: Week, Month, Quarter, Year
+- API: `POST /api/ai/generate-insights`
+
+**3. Predictive Analytics**
+- Forecast sales, inventory needs, cash flow
+- Configurable horizon: 7 to 90 days
+- Includes confidence levels and scenarios
+- Historical data visualization
+- API: `POST /api/ai/predict`
+
+**4. Smart Alerts**
+- AI detects anomalies and unusual patterns
+- Alert types: CRITICAL, WARNING, INFO
+- Categories: Sales, Inventory, Production, Finance, Customer
+- Shows summary stats: overdue invoices, low stock, scrap rate
+- API: `POST /api/ai/smart-alerts`
+
+### Frontend Route: `/ai-dashboard`
+- Beautiful purple/indigo gradient theme
+- 4 tabs: Ask AI, Insights, Predict, Smart Alerts
+- Suggested queries, recent queries panel
+- Real-time AI responses
