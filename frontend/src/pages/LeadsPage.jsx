@@ -268,6 +268,10 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
   const [salesUsers, setSalesUsers] = useState([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [stateOptions, setStateOptions] = useState([]);
+  
+  // Dynamic fields from Power Settings
+  const { fields: customFields, loading: loadingCustomFields } = useCustomFields('crm_leads');
+  const [customFieldValues, setCustomFieldValues] = useState({});
 
 
   const CUSTOMER_TYPES = [
