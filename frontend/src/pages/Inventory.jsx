@@ -329,6 +329,7 @@ const ItemsMaster = () => {
       shelf_life_days: item.shelf_life_days?.toString() || '',
       storage_conditions: item.storage_conditions || ''
     });
+    setCustomFieldValues(item.custom_fields || {});
     setOpen(true);
   };
 
