@@ -372,10 +372,11 @@ const EmployeesList = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className={`grid w-full ${customFields.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="work">Work Details</TabsTrigger>
                   <TabsTrigger value="salary">Salary & Statutory</TabsTrigger>
+                  {customFields.length > 0 && <TabsTrigger value="custom">Custom</TabsTrigger>}
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-4">
