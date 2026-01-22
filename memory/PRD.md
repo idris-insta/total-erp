@@ -3,6 +3,48 @@
 ## Overview
 InstaBiz Industrial ERP is a comprehensive enterprise resource planning system specifically designed for the **Adhesive Tapes & Sealants industry**. The system integrates ERP, CRM, HRMS, Accounts, Production, Quality, and AI-powered Business Intelligence modules.
 
+## The 6 Pillars of AdhesiveFlow ERP ✅ COMPLETE
+
+### 1. Physics Engine (The Master Math)
+**File:** `/app/backend/routes/core_engine.py`
+- Auto-converts between Weight (KG), Area (SQM), and Pieces (PCS)
+- Formula: KG = SQM × thickness_m × density
+- Supports: KG, SQM, PCS, ROL, MTR
+- API: `POST /api/core/physics/convert`
+
+### 2. Production Redline (The Guardrail)
+- Hard lock if scrap exceeds 7%
+- Mass-Balance check (raw material vs output)
+- Director override capability
+- APIs: `POST /api/core/redline/check-entry`, `POST /api/core/redline/override`
+
+### 3. CRM Buying DNA (The Hunter)
+- AI learns customer purchase frequency
+- Alerts if customer is 2+ days late
+- Auto-drafts follow-up messages
+- APIs: `GET /api/core/buying-dna/{customer_id}`, `GET /api/core/buying-dna/late-customers`
+
+### 4. Multi-Branch Ledger (The Tax Bridge)
+- Handles GST for Gujarat, Mumbai, Delhi
+- Treats business as one whole, tax records separate
+- Branch-wise and consolidated views
+- API: `GET /api/core/gst-bridge/summary`
+
+### 5. Import Bridge (The Margin Protector)
+- Enter container cost → Auto-calculates Landed Cost
+- Shows MSP (Minimum Selling Price) with 15% margin
+- Shows RSP (Recommended Selling Price) with 25% margin
+- API: `POST /api/core/import-bridge/landed-cost`
+
+### 6. Director Cockpit (The Command Center)
+- Cash Pulse (AR/AP position)
+- Production Pulse (Scrap %, Active WOs, Redline alerts)
+- Sales Pulse (MTD Sales, Orders)
+- Override Queue with approval buttons
+- APIs: `GET /api/core/cockpit/pulse`, `GET /api/core/cockpit/overrides-pending`
+
+---
+
 ## Core Logic
 **Meta-Data Driven Architecture** (100% customizable fields) with a **Dimensional Physics Engine** (KG ↔ SQM ↔ PCS conversions).
 
