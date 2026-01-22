@@ -28,6 +28,7 @@ import HRMSDashboard from './pages/HRMSDashboard';
 import AdvancedInventory from './pages/AdvancedInventory';
 import PowerSettings from './pages/PowerSettings';
 import DocumentEditor from './pages/DocumentEditor';
+import AIBIDashboard from './pages/AIBIDashboard';
 
 
 const PrivateRoute = ({ children }) => {
@@ -79,6 +80,7 @@ const AppRoutes = () => {
                 <Route path="/hrms-dashboard" element={<HRMSDashboard />} />
                 <Route path="/power-settings" element={<PowerSettings />} />
                 <Route path="/document-editor" element={<DocumentEditor />} />
+                <Route path="/ai-dashboard" element={<AIBIDashboard />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
