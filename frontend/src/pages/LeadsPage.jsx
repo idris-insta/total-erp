@@ -322,6 +322,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         next_followup_date: lead.next_followup_date || '',
         followup_activity: lead.followup_activity || ''
       });
+      // Load custom field values
+      setCustomFieldValues(lead.custom_fields || {});
     } else {
       setFormData({
         company_name: '', contact_person: '', email: '', phone: '', mobile: '',
@@ -330,6 +332,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
         source: 'IndiaMART', industry: '', product_interest: '',
         estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
       });
+      setCustomFieldValues({});
     }
   }, [lead, open]);
 
