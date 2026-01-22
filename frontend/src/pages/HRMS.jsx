@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Textarea } from '../components/ui/textarea';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import useCustomFields from '../hooks/useCustomFields';
+import DynamicFormFields from '../components/DynamicFormFields';
 
 // ==================== HRMS DASHBOARD ====================
 const HRMSDashboard = () => {
