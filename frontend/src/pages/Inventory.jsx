@@ -353,6 +353,14 @@ const ItemsMaster = () => {
       reorder_level: '10', safety_stock: '5', lead_time_days: '7',
       shelf_life_days: '', storage_conditions: ''
     });
+    setCustomFieldValues({});
+  };
+  
+  const handleCustomFieldChange = (fieldName, value) => {
+    setCustomFieldValues(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
   };
 
   const filteredItems = items.filter(item =>
