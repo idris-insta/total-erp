@@ -332,6 +332,7 @@ function visualEditsPlugin() {
 export default defineConfig({
   plugins: [
     react({
+      include: '**/*.{jsx,js}',
       babel: {
         plugins: [
           // Babel metadata plugin for visual edits (only in dev)
@@ -345,6 +346,18 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+      },
+    },
+  },
+  esbuild: {
+    loader: 'jsx',
+    include: /src\/.*\.js$/,
+    exclude: [],
   },
   server: {
     port: 3000,
