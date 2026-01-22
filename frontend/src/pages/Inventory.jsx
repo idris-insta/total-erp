@@ -281,7 +281,8 @@ const ItemsMaster = () => {
         reorder_level: parseFloat(formData.reorder_level) || 0,
         safety_stock: parseFloat(formData.safety_stock) || 0,
         lead_time_days: parseInt(formData.lead_time_days) || 7,
-        shelf_life_days: formData.shelf_life_days ? parseInt(formData.shelf_life_days) : null
+        shelf_life_days: formData.shelf_life_days ? parseInt(formData.shelf_life_days) : null,
+        custom_fields: customFieldValues
       };
 
       if (editingItem) {
@@ -293,6 +294,7 @@ const ItemsMaster = () => {
       }
       setOpen(false);
       setEditingItem(null);
+      setCustomFieldValues({});
       fetchItems();
       resetForm();
     } catch (error) {
