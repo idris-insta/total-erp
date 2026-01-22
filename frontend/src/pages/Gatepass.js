@@ -12,7 +12,7 @@ import {
   CheckCircle, Clock, Package, User, Phone, FileText, RefreshCw
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Gatepass = () => {
   const [gatepasses, setGatepasses] = useState([]);

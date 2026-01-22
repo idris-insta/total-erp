@@ -12,7 +12,7 @@ import {
   Clock, RefreshCw, Calendar, Plus, Eye, Printer
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const PayrollPage = () => {
   const [payrolls, setPayrolls] = useState([]);

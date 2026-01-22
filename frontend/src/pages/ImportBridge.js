@@ -12,7 +12,7 @@ import {
   Globe, RefreshCw, TrendingUp, Package, Anchor
 } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const ImportBridge = () => {
   const [importPOs, setImportPOs] = useState([]);

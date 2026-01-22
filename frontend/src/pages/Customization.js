@@ -334,7 +334,7 @@ const Customization = () => {
             </CardHeader>
             <CardContent>
               <div className="bg-slate-900 rounded-lg p-4 font-mono text-sm text-green-400">
-                <p>Base URL: {process.env.REACT_APP_BACKEND_URL}/api</p>
+                <p>Base URL: {import.meta.env.VITE_BACKEND_URL}/api</p>
                 <p className="mt-2">Authentication: Bearer Token (JWT)</p>
                 <p className="mt-4">Available Endpoints:</p>
                 <ul className="mt-2 space-y-1 ml-4">
