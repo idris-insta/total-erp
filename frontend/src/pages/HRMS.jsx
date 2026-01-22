@@ -334,7 +334,6 @@ const EmployeesList = () => {
       [fieldName]: value
     }));
   };
-  };
 
   const filteredEmployees = employees.filter(emp =>
     emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
