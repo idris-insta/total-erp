@@ -595,6 +595,19 @@ const ItemsMaster = () => {
                     </div>
                   </div>
                 </TabsContent>
+                
+                {/* Dynamic Custom Fields Tab */}
+                {customFields.length > 0 && (
+                  <TabsContent value="custom" className="space-y-4 mt-4">
+                    <DynamicFormFields
+                      fields={customFields}
+                      values={customFieldValues}
+                      onChange={handleCustomFieldChange}
+                      columns={2}
+                      showSections={true}
+                    />
+                  </TabsContent>
+                )}
               </Tabs>
 
               <DialogFooter>
