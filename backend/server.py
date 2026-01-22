@@ -132,6 +132,7 @@ from routes import hrms_enhanced, notifications
 from routes import custom_fields
 from routes import core_engine
 from routes import ai_bi
+from routes import chat, drive, bulk_import, einvoice
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
@@ -169,6 +170,12 @@ api_router.include_router(notifications.router, prefix="/notifications", tags=["
 api_router.include_router(custom_fields.router, prefix="/custom-fields", tags=["Custom Fields"])
 api_router.include_router(core_engine.router, prefix="/core", tags=["Core Engine"])
 api_router.include_router(ai_bi.router, prefix="/ai", tags=["AI Business Intelligence"])
+
+# New Feature Modules
+api_router.include_router(chat.router, prefix="/chat", tags=["Internal Chat"])
+api_router.include_router(drive.router, prefix="/drive", tags=["Drive Storage"])
+api_router.include_router(bulk_import.router, prefix="/bulk-import", tags=["Bulk Import"])
+api_router.include_router(einvoice.router, prefix="/einvoice", tags=["GST E-Invoice & E-Way Bill"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
