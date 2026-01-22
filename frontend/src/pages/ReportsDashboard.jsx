@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '../components/ui/dropdown-menu';
 import { 
   TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package,
   BarChart3, PieChart, RefreshCw, Download, ArrowUpRight, ArrowDownRight,
-  Calendar, Target, AlertTriangle
+  Calendar, Target, AlertTriangle, FileText, FileSpreadsheet
 } from 'lucide-react';
 import api from '../lib/api';
 import { toast } from 'sonner';
