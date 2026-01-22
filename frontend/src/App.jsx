@@ -85,6 +85,10 @@ const AppRoutes = () => {
                 <Route path="/power-settings" element={<PowerSettings />} />
                 <Route path="/document-editor" element={<DocumentEditor />} />
                 <Route path="/ai-dashboard" element={<AIBIDashboard />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/drive" element={<Drive />} />
+                <Route path="/bulk-import" element={<BulkImport />} />
+                <Route path="/einvoice" element={<EInvoice />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
