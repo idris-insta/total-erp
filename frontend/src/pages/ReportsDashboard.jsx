@@ -70,6 +70,28 @@ const ReportsDashboard = () => {
     return `${sign}${value?.toFixed(1) || 0}%`;
   };
 
+  const handleExport = async (reportType, format) => {
+    try {
+      toast.info(`Generating ${format.toUpperCase()} report...`);
+      const response = await api.get(`/analytics/export/${format}/${reportType}?period=${period}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.setAttribute('download', `${reportType}_report_${timestamp}.${format === 'pdf' ? 'pdf' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report downloaded!`);
+    } catch (error) {
+      toast.error('Failed to export report');
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
