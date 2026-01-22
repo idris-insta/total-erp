@@ -396,11 +396,12 @@ const ItemsMaster = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className={`grid w-full ${customFields.length > 0 ? 'grid-cols-5' : 'grid-cols-4'}`}>
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="specs">Specifications</TabsTrigger>
                   <TabsTrigger value="pricing">Pricing & MOQ</TabsTrigger>
                   <TabsTrigger value="inventory">Inventory</TabsTrigger>
+                  {customFields.length > 0 && <TabsTrigger value="custom">Custom Fields</TabsTrigger>}
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-4">
