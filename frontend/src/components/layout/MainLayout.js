@@ -1,42 +1,121 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock, Layers, FileEdit, Sliders, Brain } from 'lucide-react';
+import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock, Layers, FileEdit, Sliders, Brain, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import NotificationCenter from '../NotificationCenter';
+
+const NavGroup = ({ group, location, setIsOpen }) => {
+  const [expanded, setExpanded] = useState(
+    group.children.some(child => location.pathname.startsWith(child.href))
+  );
+
+  const isGroupActive = group.children.some(child => location.pathname.startsWith(child.href));
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={cn(
+          "w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
+          isGroupActive
+            ? "bg-gradient-to-r from-accent/10 to-transparent border-l-2 border-accent text-white"
+            : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <group.icon className="h-5 w-5" strokeWidth={1.5} />
+          <span className="font-inter">{group.name}</span>
+        </div>
+        {expanded ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </button>
+      
+      {expanded && (
+        <div className="ml-4 pl-4 border-l border-slate-700 space-y-1">
+          {group.children.map((item) => {
+            const isActive = location.pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
+                  isActive
+                    ? "bg-accent/20 text-white font-medium"
+                    : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                )}
+                onClick={() => setIsOpen(false)}
+              >
+                <item.icon className="h-4 w-4" strokeWidth={1.5} />
+                <span className="font-inter">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // Grouped navigation structure
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Director Center', href: '/director', icon: Gauge },
-    { name: 'CRM', href: '/crm', icon: TrendingUp },
-    { name: 'Inventory', href: '/inventory', icon: Boxes },
-    { name: 'Adv. Inventory', href: '/advanced-inventory', icon: Layers },
-    { name: 'Production', href: '/production', icon: Factory },
-    { name: 'Procurement', href: '/procurement', icon: ShoppingCart },
-    { name: 'Accounts', href: '/accounts', icon: Calculator },
-    { name: 'HRMS', href: '/hrms', icon: Users },
-    { name: 'HR Dashboard', href: '/hrms-dashboard', icon: Clock },
-    { name: 'Payroll', href: '/payroll', icon: Banknote },
-    { name: 'Gatepass', href: '/gatepass', icon: Truck },
-    { name: 'Import Bridge', href: '/import-bridge', icon: Ship },
-    { name: 'Employee Vault', href: '/employee-vault', icon: FolderLock },
-    { name: 'Sales Incentives', href: '/sales-incentives', icon: Trophy },
-    { name: 'GST Compliance', href: '/gst-compliance', icon: Receipt },
-    { name: 'Analytics', href: '/analytics', icon: PieChart },
-    { name: 'AI Dashboard', href: '/ai-dashboard', icon: Brain },
-    { name: 'Quality', href: '/quality', icon: Shield },
-    { name: 'Approvals', href: '/approvals', icon: ClipboardCheck },
-    { name: 'Reports', href: '/reports', icon: BarChart3 },
-    { name: 'Customization', href: '/customization', icon: Wand2 },
-    { name: 'Power Settings', href: '/power-settings', icon: Sliders },
-    { name: 'Doc Editor', href: '/document-editor', icon: FileEdit },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, type: 'link' },
+    { name: 'Director Center', href: '/director', icon: Gauge, type: 'link' },
+    { name: 'CRM', href: '/crm', icon: TrendingUp, type: 'link' },
+    { 
+      name: 'Inventory', 
+      icon: Boxes, 
+      type: 'group',
+      children: [
+        { name: 'Stock & Items', href: '/inventory', icon: Package },
+        { name: 'Advanced', href: '/advanced-inventory', icon: Layers },
+      ]
+    },
+    { name: 'Production', href: '/production', icon: Factory, type: 'link' },
+    { 
+      name: 'Procurement', 
+      icon: ShoppingCart, 
+      type: 'group',
+      children: [
+        { name: 'Purchase Orders', href: '/procurement', icon: ShoppingCart },
+        { name: 'Gatepass', href: '/gatepass', icon: Truck },
+        { name: 'Import Bridge', href: '/import-bridge', icon: Ship },
+      ]
+    },
+    { name: 'Accounts', href: '/accounts', icon: Calculator, type: 'link' },
+    { 
+      name: 'HRMS', 
+      icon: Users, 
+      type: 'group',
+      children: [
+        { name: 'Employees', href: '/hrms', icon: Users },
+        { name: 'HR Dashboard', href: '/hrms-dashboard', icon: Clock },
+        { name: 'Payroll', href: '/payroll', icon: Banknote },
+        { name: 'Employee Vault', href: '/employee-vault', icon: FolderLock },
+      ]
+    },
+    { name: 'Sales Incentives', href: '/sales-incentives', icon: Trophy, type: 'link' },
+    { name: 'GST Compliance', href: '/gst-compliance', icon: Receipt, type: 'link' },
+    { name: 'Analytics', href: '/analytics', icon: PieChart, type: 'link' },
+    { name: 'AI Dashboard', href: '/ai-dashboard', icon: Brain, type: 'link' },
+    { name: 'Quality', href: '/quality', icon: Shield, type: 'link' },
+    { name: 'Approvals', href: '/approvals', icon: ClipboardCheck, type: 'link' },
+    { name: 'Reports', href: '/reports', icon: BarChart3, type: 'link' },
+    { name: 'Customization', href: '/customization', icon: Wand2, type: 'link' },
+    { name: 'Power Settings', href: '/power-settings', icon: Sliders, type: 'link' },
+    { name: 'Doc Editor', href: '/document-editor', icon: FileEdit, type: 'link' },
+    { name: 'Settings', href: '/settings', icon: Settings, type: 'link' },
   ];
 
   const handleLogout = () => {
@@ -67,12 +146,23 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navigation.map((item) => {
+            if (item.type === 'group') {
+              return (
+                <NavGroup 
+                  key={item.name} 
+                  group={item} 
+                  location={location} 
+                  setIsOpen={setIsOpen}
+                />
+              );
+            }
+            
             const isActive = location.pathname.startsWith(item.href);
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                data-testid={`nav-${item.name.toLowerCase()}`}
+                data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
                   isActive
