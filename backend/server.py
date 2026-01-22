@@ -131,6 +131,7 @@ from routes import gst_compliance, inventory_advanced, reports_analytics
 from routes import hrms_enhanced, notifications
 from routes import custom_fields
 from routes import core_engine
+from routes import ai_bi
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
@@ -167,6 +168,7 @@ api_router.include_router(hrms_enhanced.router, prefix="/hrms-enhanced", tags=["
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(custom_fields.router, prefix="/custom-fields", tags=["Custom Fields"])
 api_router.include_router(core_engine.router, prefix="/core", tags=["Core Engine"])
+api_router.include_router(ai_bi.router, prefix="/ai", tags=["AI Business Intelligence"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
