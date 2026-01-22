@@ -18,6 +18,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import useCustomFields from '../hooks/useCustomFields';
+import DynamicFormFields from '../components/DynamicFormFields';
 
 // Status configuration
 const STATUS_CONFIG = {
