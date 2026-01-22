@@ -244,6 +244,10 @@ const ItemsMaster = () => {
     reorder_level: '10', safety_stock: '5', lead_time_days: '7',
     shelf_life_days: '', storage_conditions: ''
   });
+  
+  // Dynamic fields from Power Settings
+  const { fields: customFields } = useCustomFields('inventory_items');
+  const [customFieldValues, setCustomFieldValues] = useState({});
 
   useEffect(() => { fetchItems(); }, [filters]);
 
