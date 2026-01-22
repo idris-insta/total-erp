@@ -245,6 +245,10 @@ const EmployeesList = () => {
     date_of_joining: '', shift_timing: 'General',
     basic_salary: '', hra: '', pf: '12', esi: '0.75', pt: '200'
   });
+  
+  // Dynamic fields from Power Settings
+  const { fields: customFields } = useCustomFields('hrms_employees');
+  const [customFieldValues, setCustomFieldValues] = useState({});
 
   useEffect(() => { fetchEmployees(); }, [filters]);
 
@@ -271,7 +275,8 @@ const EmployeesList = () => {
         hra: parseFloat(formData.hra) || 0,
         pf: parseFloat(formData.pf) || 12,
         esi: parseFloat(formData.esi) || 0.75,
-        pt: parseFloat(formData.pt) || 200
+        pt: parseFloat(formData.pt) || 200,
+        custom_fields: customFieldValues
       };
 
       if (editingEmployee) {
@@ -283,6 +288,7 @@ const EmployeesList = () => {
       }
       setOpen(false);
       setEditingEmployee(null);
+      setCustomFieldValues({});
       fetchEmployees();
       resetForm();
     } catch (error) {
@@ -308,6 +314,7 @@ const EmployeesList = () => {
       esi: employee.esi?.toString() || '0.75',
       pt: employee.pt?.toString() || '200'
     });
+    setCustomFieldValues(employee.custom_fields || {});
     setOpen(true);
   };
 
@@ -318,6 +325,15 @@ const EmployeesList = () => {
       date_of_joining: '', shift_timing: 'General',
       basic_salary: '', hra: '', pf: '12', esi: '0.75', pt: '200'
     });
+    setCustomFieldValues({});
+  };
+  
+  const handleCustomFieldChange = (fieldName, value) => {
+    setCustomFieldValues(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
+  };
   };
 
   const filteredEmployees = employees.filter(emp =>
