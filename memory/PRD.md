@@ -704,3 +704,106 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 - 4 tabs: Ask AI, Insights, Predict, Smart Alerts
 - Suggested queries, recent queries panel
 - Real-time AI responses
+
+---
+
+## Build System Migration: CRA → Vite ✅ COMPLETE (January 2026)
+
+### Migration Details
+- **Old Stack:** Create React App (CRA) + CRACO
+- **New Stack:** Vite 7.3.1 + @vitejs/plugin-react-swc
+
+### Changes Made:
+1. **Installed:** `vite`, `@vitejs/plugin-react-swc`
+2. **Removed:** `react-scripts`, `@craco/craco`, `@babel/plugin-proposal-private-property-in-object`, `cra-template`
+3. **Created:** `/app/frontend/vite.config.js` - Full Vite configuration with:
+   - Visual edits plugin for Emergent integration
+   - Path alias (`@` → `src/`)
+   - JSX loader configuration for `.js` files
+   - Allowed hosts configuration for preview domain
+4. **Moved:** `index.html` from `/public/` to root
+5. **Renamed:** All `.js` files in `src/` to `.jsx` (85 files)
+6. **Updated:** Environment variables from `REACT_APP_*` to `VITE_*`
+7. **Updated:** `package.json` scripts: `start`, `build`, `preview`
+
+### Environment Variables:
+- **Old:** `process.env.REACT_APP_BACKEND_URL`
+- **New:** `import.meta.env.VITE_BACKEND_URL`
+
+### Test Results:
+- All 8 key pages tested and working (100% success rate)
+- Login, Dashboard, CRM, Director Center, AI BI, Inventory, Production, Navigation
+- Test report: `/app/test_reports/iteration_7.json`
+
+### Benefits:
+- Faster hot reload (native ESM)
+- Modern build system
+- Better dependency management
+- No more CRA/CRACO conflicts
+
+---
+
+## File Structure
+
+```
+/app/
+├── backend/
+│   ├── .env
+│   ├── requirements.txt
+│   ├── server.py
+│   └── routes/
+│       ├── core_engine.py     # 6 Pillars implementation
+│       ├── ai_bi.py           # AI Business Intelligence
+│       ├── custom_fields.py   # Power Settings
+│       ├── documents.py       # Document Editor
+│       ├── gst_compliance.py
+│       ├── inventory_advanced.py
+│       ├── reports_analytics.py
+│       ├── hrms_enhanced.py
+│       └── notifications.py
+└── frontend/
+    ├── index.html             # Vite entry HTML
+    ├── vite.config.js         # Vite configuration
+    ├── package.json
+    └── src/
+        ├── index.jsx          # Entry point
+        ├── App.jsx            # Routes
+        ├── components/
+        │   ├── ui/            # Shadcn components
+        │   ├── layout/
+        │   │   └── MainLayout.jsx
+        │   └── NotificationCenter.jsx
+        └── pages/
+            ├── Dashboard.jsx
+            ├── DirectorDashboard.jsx
+            ├── AIBIDashboard.jsx
+            ├── PowerSettings.jsx
+            ├── DocumentEditor.jsx
+            ├── AdvancedInventory.jsx
+            └── ... (other pages)
+```
+
+---
+
+## Test Credentials
+- **Email:** `admin@instabiz.com`
+- **Password:** `adminpassword`
+
+---
+
+## Next Steps (Priority Order)
+
+### P1 - High Priority
+1. **Dynamic Form Rendering:** Make forms render dynamically from Power Settings metadata
+2. **Canvas Document Editor:** Implement core canvas editing functionality
+3. **External API Integrations:** GST/E-invoicing, B2B portals, payment gateways
+
+### P2 - Medium Priority
+1. WhatsApp/Email notification integration
+2. Advanced reporting with PDF exports
+3. Mobile-responsive improvements
+
+### P3 - Refactoring
+1. Break down `CRM.jsx` into smaller components
+2. Move Pydantic models to `/app/backend/models/`
+3. Sidebar enhancements (search, favorites)
