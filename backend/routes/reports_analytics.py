@@ -545,3 +545,365 @@ async def get_dashboard_kpis(current_user: dict = Depends(get_current_user)):
         "overdue_invoices": overdue,
         "active_customers": len(active_customers)
     }
+
+
+# ==================== PDF EXPORT ====================
+@router.get("/export/pdf/{report_type}")
+async def export_report_pdf(
+    report_type: str,
+    period: str = Query(default="month"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export report as PDF"""
+    buffer = io.BytesIO()
+    
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
+    )
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        spaceAfter=20,
+        textColor=colors.HexColor('#1e293b')
+    )
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#64748b'),
+        spaceAfter=10
+    )
+    
+    elements = []
+    
+    now = datetime.now(timezone.utc)
+    
+    if report_type == "sales":
+        # Sales Report
+        elements.append(Paragraph("Sales Report", title_style))
+        elements.append(Paragraph(f"Period: {period.capitalize()} | Generated: {now.strftime('%Y-%m-%d %H:%M')}", subtitle_style))
+        elements.append(Spacer(1, 20))
+        
+        # Fetch sales data
+        if period == "month":
+            start_date = now.replace(day=1).strftime("%Y-%m-%d")
+        elif period == "year":
+            start_date = now.replace(month=1, day=1).strftime("%Y-%m-%d")
+        else:
+            start_date = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+        
+        invoices = await db.invoices.find({
+            "invoice_type": "Sales",
+            "invoice_date": {"$gte": start_date}
+        }, {"_id": 0}).to_list(1000)
+        
+        # Summary section
+        total_sales = sum(inv.get("grand_total", 0) for inv in invoices)
+        total_tax = sum(inv.get("total_tax", 0) for inv in invoices)
+        
+        summary_data = [
+            ["Metric", "Value"],
+            ["Total Invoices", str(len(invoices))],
+            ["Total Sales", f"₹{total_sales:,.2f}"],
+            ["Total Tax", f"₹{total_tax:,.2f}"],
+            ["Average Order Value", f"₹{total_sales/len(invoices):,.2f}" if invoices else "₹0.00"]
+        ]
+        
+        summary_table = Table(summary_data, colWidths=[200, 200])
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f97316')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8fafc')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('PADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(summary_table)
+        elements.append(Spacer(1, 20))
+        
+        # Invoice list
+        elements.append(Paragraph("Invoice Details", styles['Heading2']))
+        elements.append(Spacer(1, 10))
+        
+        invoice_data = [["Invoice #", "Date", "Customer", "Amount", "Status"]]
+        for inv in invoices[:50]:  # Limit to 50 rows
+            invoice_data.append([
+                inv.get("invoice_number", "N/A"),
+                inv.get("invoice_date", "N/A"),
+                inv.get("account_name", "N/A")[:25],
+                f"₹{inv.get('grand_total', 0):,.2f}",
+                inv.get("status", "N/A").capitalize()
+            ])
+        
+        invoice_table = Table(invoice_data, colWidths=[80, 70, 150, 90, 70])
+        invoice_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#334155')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('PADDING', (0, 0), (-1, -1), 6),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+        ]))
+        elements.append(invoice_table)
+        
+    elif report_type == "inventory":
+        # Inventory Report
+        elements.append(Paragraph("Inventory Report", title_style))
+        elements.append(Paragraph(f"Generated: {now.strftime('%Y-%m-%d %H:%M')}", subtitle_style))
+        elements.append(Spacer(1, 20))
+        
+        items = await db.items.find({"is_active": True}, {"_id": 0}).to_list(500)
+        
+        item_data = [["Item Code", "Item Name", "Category", "Stock", "Reorder Level", "Status"]]
+        for item in items:
+            stock = item.get("current_stock", 0)
+            reorder = item.get("reorder_level", 0)
+            status = "Low Stock" if stock <= reorder and reorder > 0 else "OK"
+            item_data.append([
+                item.get("item_code", "N/A"),
+                item.get("item_name", "N/A")[:30],
+                item.get("category", "N/A"),
+                str(stock),
+                str(reorder),
+                status
+            ])
+        
+        item_table = Table(item_data, colWidths=[70, 150, 80, 50, 70, 60])
+        item_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#334155')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (3, 0), (4, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('PADDING', (0, 0), (-1, -1), 6),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+        ]))
+        elements.append(item_table)
+        
+    elif report_type == "customers":
+        # Customer Report
+        elements.append(Paragraph("Customer Analytics Report", title_style))
+        elements.append(Paragraph(f"Generated: {now.strftime('%Y-%m-%d %H:%M')}", subtitle_style))
+        elements.append(Spacer(1, 20))
+        
+        accounts = await db.accounts.find({"is_customer": True}, {"_id": 0}).to_list(200)
+        
+        acc_data = [["Account Name", "Contact", "City", "Outstanding", "Last Order"]]
+        for acc in accounts:
+            acc_data.append([
+                acc.get("account_name", "N/A")[:25],
+                acc.get("contact_person", "N/A"),
+                acc.get("city", "N/A"),
+                f"₹{acc.get('outstanding_balance', 0):,.2f}",
+                acc.get("last_order_date", "N/A")
+            ])
+        
+        acc_table = Table(acc_data, colWidths=[130, 100, 80, 90, 80])
+        acc_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#334155')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('PADDING', (0, 0), (-1, -1), 6),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+        ]))
+        elements.append(acc_table)
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown report type: {report_type}")
+    
+    doc.build(elements)
+    buffer.seek(0)
+    
+    filename = f"{report_type}_report_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+# ==================== EXCEL EXPORT ====================
+@router.get("/export/excel/{report_type}")
+async def export_report_excel(
+    report_type: str,
+    period: str = Query(default="month"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export report as Excel"""
+    buffer = io.BytesIO()
+    workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
+    
+    # Styles
+    title_format = workbook.add_format({
+        'bold': True, 'font_size': 16, 'font_color': '#1e293b'
+    })
+    header_format = workbook.add_format({
+        'bold': True, 'bg_color': '#334155', 'font_color': 'white',
+        'border': 1, 'text_wrap': True, 'valign': 'vcenter'
+    })
+    cell_format = workbook.add_format({
+        'border': 1, 'valign': 'vcenter'
+    })
+    money_format = workbook.add_format({
+        'border': 1, 'num_format': '₹#,##0.00', 'valign': 'vcenter'
+    })
+    date_format = workbook.add_format({
+        'border': 1, 'num_format': 'yyyy-mm-dd', 'valign': 'vcenter'
+    })
+    
+    now = datetime.now(timezone.utc)
+    
+    if report_type == "sales":
+        worksheet = workbook.add_worksheet("Sales Report")
+        
+        # Title
+        worksheet.write(0, 0, "Sales Report", title_format)
+        worksheet.write(1, 0, f"Period: {period.capitalize()} | Generated: {now.strftime('%Y-%m-%d %H:%M')}")
+        
+        # Fetch data
+        if period == "month":
+            start_date = now.replace(day=1).strftime("%Y-%m-%d")
+        elif period == "year":
+            start_date = now.replace(month=1, day=1).strftime("%Y-%m-%d")
+        else:
+            start_date = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+        
+        invoices = await db.invoices.find({
+            "invoice_type": "Sales",
+            "invoice_date": {"$gte": start_date}
+        }, {"_id": 0}).to_list(5000)
+        
+        # Headers
+        headers = ["Invoice #", "Date", "Customer", "Subtotal", "Tax", "Grand Total", "Status"]
+        for col, header in enumerate(headers):
+            worksheet.write(3, col, header, header_format)
+        
+        # Data
+        row = 4
+        for inv in invoices:
+            worksheet.write(row, 0, inv.get("invoice_number", ""), cell_format)
+            worksheet.write(row, 1, inv.get("invoice_date", ""), cell_format)
+            worksheet.write(row, 2, inv.get("account_name", ""), cell_format)
+            worksheet.write(row, 3, inv.get("subtotal", 0), money_format)
+            worksheet.write(row, 4, inv.get("total_tax", 0), money_format)
+            worksheet.write(row, 5, inv.get("grand_total", 0), money_format)
+            worksheet.write(row, 6, inv.get("status", "").capitalize(), cell_format)
+            row += 1
+        
+        # Summary
+        row += 2
+        worksheet.write(row, 0, "Summary", title_format)
+        worksheet.write(row + 1, 0, "Total Invoices:", cell_format)
+        worksheet.write(row + 1, 1, len(invoices), cell_format)
+        worksheet.write(row + 2, 0, "Total Sales:", cell_format)
+        worksheet.write(row + 2, 1, sum(i.get("grand_total", 0) for i in invoices), money_format)
+        
+        # Column widths
+        worksheet.set_column(0, 0, 15)
+        worksheet.set_column(1, 1, 12)
+        worksheet.set_column(2, 2, 30)
+        worksheet.set_column(3, 5, 15)
+        worksheet.set_column(6, 6, 12)
+        
+    elif report_type == "inventory":
+        worksheet = workbook.add_worksheet("Inventory Report")
+        
+        worksheet.write(0, 0, "Inventory Report", title_format)
+        worksheet.write(1, 0, f"Generated: {now.strftime('%Y-%m-%d %H:%M')}")
+        
+        items = await db.items.find({"is_active": True}, {"_id": 0}).to_list(2000)
+        
+        headers = ["Item Code", "Item Name", "Category", "UOM", "Stock", "Reorder Level", "Status"]
+        for col, header in enumerate(headers):
+            worksheet.write(3, col, header, header_format)
+        
+        row = 4
+        for item in items:
+            stock = item.get("current_stock", 0)
+            reorder = item.get("reorder_level", 0)
+            status = "Low Stock" if stock <= reorder and reorder > 0 else "OK"
+            
+            worksheet.write(row, 0, item.get("item_code", ""), cell_format)
+            worksheet.write(row, 1, item.get("item_name", ""), cell_format)
+            worksheet.write(row, 2, item.get("category", ""), cell_format)
+            worksheet.write(row, 3, item.get("uom", ""), cell_format)
+            worksheet.write(row, 4, stock, cell_format)
+            worksheet.write(row, 5, reorder, cell_format)
+            worksheet.write(row, 6, status, cell_format)
+            row += 1
+        
+        worksheet.set_column(0, 0, 12)
+        worksheet.set_column(1, 1, 35)
+        worksheet.set_column(2, 2, 15)
+        worksheet.set_column(3, 6, 12)
+        
+    elif report_type == "customers":
+        worksheet = workbook.add_worksheet("Customer Report")
+        
+        worksheet.write(0, 0, "Customer Report", title_format)
+        worksheet.write(1, 0, f"Generated: {now.strftime('%Y-%m-%d %H:%M')}")
+        
+        accounts = await db.accounts.find({"is_customer": True}, {"_id": 0}).to_list(1000)
+        
+        headers = ["Account Name", "Contact Person", "Phone", "City", "State", "Outstanding"]
+        for col, header in enumerate(headers):
+            worksheet.write(3, col, header, header_format)
+        
+        row = 4
+        for acc in accounts:
+            worksheet.write(row, 0, acc.get("account_name", ""), cell_format)
+            worksheet.write(row, 1, acc.get("contact_person", ""), cell_format)
+            worksheet.write(row, 2, acc.get("phone", ""), cell_format)
+            worksheet.write(row, 3, acc.get("city", ""), cell_format)
+            worksheet.write(row, 4, acc.get("state", ""), cell_format)
+            worksheet.write(row, 5, acc.get("outstanding_balance", 0), money_format)
+            row += 1
+        
+        worksheet.set_column(0, 0, 30)
+        worksheet.set_column(1, 1, 20)
+        worksheet.set_column(2, 2, 15)
+        worksheet.set_column(3, 4, 15)
+        worksheet.set_column(5, 5, 15)
+    
+    else:
+        workbook.close()
+        raise HTTPException(status_code=400, detail=f"Unknown report type: {report_type}")
+    
+    workbook.close()
+    buffer.seek(0)
+    
+    filename = f"{report_type}_report_{now.strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
