@@ -356,6 +356,12 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
     strictPort: true,
+    allowedHosts: [
+      'tape-erp.preview.emergentagent.com',
+      '.emergentagent.com',
+      '.emergent.sh',
+      'localhost',
+    ],
     watch: {
       ignored: ['**/node_modules/**', '**/.git/**', '**/build/**', '**/dist/**', '**/coverage/**'],
     },
