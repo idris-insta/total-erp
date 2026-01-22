@@ -333,12 +333,6 @@ export default defineConfig({
   plugins: [
     react({
       include: '**/*.{jsx,js}',
-      babel: {
-        plugins: [
-          // Babel metadata plugin for visual edits (only in dev)
-          process.env.NODE_ENV !== 'production' && path.resolve(__dirname, 'plugins/visual-edits/babel-metadata-plugin.js'),
-        ].filter(Boolean),
-      },
     }),
     visualEditsPlugin(),
   ],
@@ -372,7 +366,6 @@ export default defineConfig({
     sourcemap: true,
   },
   define: {
-    // Handle process.env for CRA compatibility
     'process.env': {},
   },
 });
