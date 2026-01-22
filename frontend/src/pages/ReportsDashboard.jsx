@@ -117,9 +117,44 @@ const ReportsDashboard = () => {
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />Export
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Sales Reports</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleExport('sales', 'pdf')}>
+                <FileText className="h-4 w-4 mr-2 text-red-500" />
+                Sales Report (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('sales', 'excel')}>
+                <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
+                Sales Report (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Inventory Reports</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleExport('inventory', 'pdf')}>
+                <FileText className="h-4 w-4 mr-2 text-red-500" />
+                Inventory Report (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('inventory', 'excel')}>
+                <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
+                Inventory Report (Excel)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Customer Reports</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => handleExport('customers', 'pdf')}>
+                <FileText className="h-4 w-4 mr-2 text-red-500" />
+                Customer Report (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('customers', 'excel')}>
+                <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
+                Customer Report (Excel)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
