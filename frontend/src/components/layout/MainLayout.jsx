@@ -147,6 +147,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Chat', href: '/chat', icon: MessageSquare, type: 'link' },
     { name: 'Drive', href: '/drive', icon: HardDrive, type: 'link' },
     { name: 'Bulk Import', href: '/bulk-import', icon: Upload, type: 'link' },
+    { name: 'Field Registry', href: '/field-registry', icon: Layers, type: 'link' },
     { name: 'Customization', href: '/customization', icon: Wand2, type: 'link' },
     { name: 'Power Settings', href: '/power-settings', icon: Sliders, type: 'link' },
     { name: 'Doc Editor', href: '/document-editor', icon: FileEdit, type: 'link' },
