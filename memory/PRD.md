@@ -1531,3 +1531,101 @@ GET      /api/warehouse/consolidated-stock
 
 ---
 
+## Session Update - January 2026 (Dynamic Forms Fix)
+
+### Field Registry Engine - Dynamic Forms Integration ✅ COMPLETE
+
+**Issue:** User reported "The updates are not showing, fields are still the same" - The Field Registry configuration UI was built but the actual forms were not rendering dynamically from the configuration.
+
+**Root Cause:** 
+- `DynamicRegistryForm.jsx` component and `useFieldRegistry.jsx` hook were created but NOT connected to the actual form dialogs
+- `LeadFormDialog` in `LeadsPage.jsx` still had hardcoded form fields instead of using the dynamic components
+
+**Fix Implemented:**
+1. **Updated `LeadFormDialog`** (`/app/frontend/src/pages/LeadsPage.jsx`)
+   - Integrated `useFieldRegistry('crm', 'leads')` hook to fetch field configuration
+   - Replaced hardcoded form fields with `DynamicFormFields` component
+   - Added fallback to basic form if registry not loaded
+   - Preserved pincode auto-fill functionality for address fields
+
+2. **Dynamic Form Rendering Features:**
+   - Fields grouped by sections (Basic Info, Address, Classification, Follow-up)
+   - Required field markers (*) displayed
+   - Dropdown options loaded from Field Registry configuration
+   - Multiselect fields render with clickable badges
+   - "Customize Fields" button opens Field Registry for quick configuration
+
+**Architecture:**
+```
+User Action                  Flow
+─────────────────────────────────────────────────────────
+1. Open Add Lead Dialog  →  useFieldRegistry('crm', 'leads') fetches config
+                         →  API: GET /api/field-registry/config/crm/leads
+                         →  Returns: { fields: [...], kanban_stages: [...] }
+
+2. Form Renders          →  DynamicFormFields receives formFields array
+                         →  Groups by section, sorts by order
+                         →  Renders appropriate input for each field_type
+
+3. User Fills Form       →  onChange updates formData state
+                         →  Pincode triggers geo auto-fill if 6 digits
+
+4. Submit                →  POST /api/crm/leads with all field values
+```
+
+**Files Modified:**
+- `/app/frontend/src/pages/LeadsPage.jsx` - Integrated dynamic form rendering
+- Removed unused `useCustomFields` import (replaced by `useFieldRegistry`)
+
+**Test Results:**
+- **Test Report:** `/app/test_reports/iteration_17.json`
+- **Backend Tests:** 21/21 passed (100%)
+- **Frontend Tests:** All dynamic form features verified (100%)
+
+**Features Verified Working:**
+| Feature | Status |
+|---------|--------|
+| Field Registry page loads at /field-registry | ✅ PASS |
+| Modules selector (CRM, Inventory, etc.) | ✅ PASS |
+| Entities selector (Leads, Accounts, Quotations, Samples) | ✅ PASS |
+| Kanban Stages tab with drag-drop | ✅ PASS |
+| Form Fields tab with 20 fields | ✅ PASS |
+| Add Lead form renders dynamically | ✅ PASS |
+| Fields grouped by sections | ✅ PASS |
+| Required field markers (*) | ✅ PASS |
+| Dropdown options from registry | ✅ PASS |
+| Lead creation with dynamic form | ✅ PASS |
+| Customize Fields button works | ✅ PASS |
+
+---
+
+## Next Steps (Priority Order)
+
+### P0 - Critical (In Progress)
+1. **Build Warehouse & Inventory Management UI** - Placeholder pages exist, need to add functionality
+   - `WarehouseDashboard.jsx`
+   - `WarehouseForm.jsx` 
+   - `StockRegister.jsx`
+   - `StockTransfer.jsx`
+   - `StockAdjustment.jsx`
+
+### P1 - High Priority
+1. Dynamic forms for Accounts, Quotations, Samples (complex forms with tabs/line items)
+2. Real-time Chat WebSocket integration
+3. GST E-Invoicing API integration (NIC credentials)
+
+### P2 - Medium Priority
+1. Refactor `CRM.jsx` into smaller components (currently 2200+ lines)
+2. Refactor `LeadsPage.jsx` into smaller components
+3. Centralize Pydantic models into `/app/backend/models/schemas.py`
+
+### P3 - Future Enhancements
+1. AI Predictive Revenue Forecasting
+2. "Dimensional Physics Engine" for inventory unit conversion
+3. "Two-Stage Production Engine" for manufacturing
+4. Drive System file editing
+5. Advanced Report Builder
+6. External API Integrations (IndiaMart, payment gateways)
+
+---
+
