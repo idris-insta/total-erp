@@ -514,7 +514,7 @@ const FieldRegistry = () => {
     if (activeModule && activeEntity) {
       fetchConfig();
     }
-  }, [activeModule, activeEntity]);
+  }, [activeModule, activeEntity, fetchConfig]);
 
   const fetchModules = async () => {
     try {
