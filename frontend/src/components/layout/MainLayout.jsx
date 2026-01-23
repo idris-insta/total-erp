@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock, Layers, FileEdit, Sliders, Brain, ChevronDown, ChevronRight, MessageSquare, HardDrive, Upload, FileText, Zap } from 'lucide-react';
+import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shield, Settings, Menu, X, LogOut, TrendingUp, Boxes, Wand2, ClipboardCheck, BarChart3, Gauge, Truck, Banknote, Ship, FolderLock, Trophy, Receipt, PieChart, Clock, Layers, FileEdit, Sliders, Brain, ChevronDown, ChevronRight, MessageSquare, HardDrive, Upload, FileText, Zap, Dna, Search, Star, StarOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { cn } from '../../lib/utils';
 import NotificationCenter from '../NotificationCenter';
 
