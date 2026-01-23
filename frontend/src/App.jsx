@@ -35,6 +35,7 @@ import BulkImport from './pages/BulkImport';
 import EInvoice from './pages/EInvoice';
 import AutonomousCollector from './pages/AutonomousCollector';
 import BuyingDNA from './pages/BuyingDNA';
+import CustomerHealth from './pages/CustomerHealth';
 
 
 const PrivateRoute = ({ children }) => {
