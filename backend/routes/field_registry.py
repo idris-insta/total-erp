@@ -533,8 +533,17 @@ async def get_default_config(module: str, entity: str):
                     ]
                 },
                 {"field_name": "validity_days", "field_label": "Validity (Days)", "field_type": "number", "section": "form", "default_value": 30, "order": 10},
-                {"field_name": "transport", "field_label": "Transport", "field_type": "text", "section": "form", "order": 11},
-                {"field_name": "payment_terms", "field_label": "Payment Terms", "field_type": "select", "section": "form", "order": 12,
+                {"field_name": "warehouse", "field_label": "Warehouse", "field_type": "select", "section": "form", "order": 11,
+                    "options": [
+                        {"value": "main", "label": "Main Warehouse"},
+                        {"value": "factory", "label": "Factory"},
+                        {"value": "branch_gj", "label": "Gujarat Branch"},
+                        {"value": "branch_mh", "label": "Mumbai Branch"},
+                        {"value": "branch_dl", "label": "Delhi Branch"}
+                    ]
+                },
+                {"field_name": "transport", "field_label": "Transport", "field_type": "text", "section": "form", "order": 12},
+                {"field_name": "payment_terms", "field_label": "Payment Terms", "field_type": "select", "section": "form", "order": 13,
                     "options": [
                         {"value": "advance", "label": "Advance"},
                         {"value": "cod", "label": "COD"},
