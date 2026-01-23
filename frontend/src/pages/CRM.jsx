@@ -1554,7 +1554,20 @@ const QuotationsList = () => {
           </DialogTrigger>
           <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-manrope">Create Quotation</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="font-manrope">Create Quotation</DialogTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open('/field-registry?module=crm&entity=quotations', '_blank')}
+                  className="text-slate-500 hover:text-accent"
+                  title="Customize form fields"
+                >
+                  <Settings className="h-4 w-4 mr-1" />
+                  Customize Fields
+                </Button>
+              </div>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-4 gap-4">
