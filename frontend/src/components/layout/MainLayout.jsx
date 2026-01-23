@@ -4,6 +4,7 @@ import { LayoutDashboard, Package, Factory, ShoppingCart, Calculator, Users, Shi
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
 import NotificationCenter from '../NotificationCenter';
 
