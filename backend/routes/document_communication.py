@@ -323,7 +323,8 @@ async def send_document_whatsapp(
         phone = "91" + phone
     
     # Generate WhatsApp URL
-    whatsapp_url = f"https://wa.me/{phone}?text={message.replace(' ', '%20').replace('\n', '%0A')}"
+    encoded_message = message.replace(' ', '%20').replace('\n', '%0A')
+    whatsapp_url = f"https://wa.me/{phone}?text={encoded_message}"
     
     # Log communication
     log = await log_communication(
