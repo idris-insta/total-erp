@@ -68,6 +68,32 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('sidebar_favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Flatten navigation for search
+  const flattenNav = (items) => {
+    let flat = [];
+    items.forEach(item => {
+      if (item.type === 'group' && item.children) {
+        flat = flat.concat(item.children.map(c => ({ ...c, parent: item.name })));
+      } else if (item.type === 'link') {
+        flat.push(item);
+      }
+    });
+    return flat;
+  };
+
+  const toggleFavorite = (href) => {
+    const newFavorites = favorites.includes(href) 
+      ? favorites.filter(f => f !== href)
+      : [...favorites, href];
+    setFavorites(newFavorites);
+    localStorage.setItem('sidebar_favorites', JSON.stringify(newFavorites));
+  };
 
   // Grouped navigation structure
   const navigation = [
