@@ -379,7 +379,7 @@ const ReportBuilder = () => {
                 <Select value={formData.chart_type} onValueChange={(v) => setFormData({...formData, chart_type: v})}>
                   <SelectTrigger><SelectValue placeholder="No chart" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No chart</SelectItem>
+                    <SelectItem value="none">No chart</SelectItem>
                     <SelectItem value="bar">Bar Chart</SelectItem>
                     <SelectItem value="line">Line Chart</SelectItem>
                     <SelectItem value="pie">Pie Chart</SelectItem>
