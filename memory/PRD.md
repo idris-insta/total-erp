@@ -1201,4 +1201,50 @@ GET  /api/realtime-chat/online-users - List online users
 
 ---
 
+## Session Update - January 2026 (Customer Health Score)
+
+### Customer Health Score Feature ✅ COMPLETE
+**Backend:** `/app/backend/routes/customer_health.py`
+**Frontend Page:** `/app/frontend/src/pages/CustomerHealth.jsx`
+**Widget:** `/app/frontend/src/components/CustomerHealthWidget.jsx`
+
+**Combined Analysis (From Grand Blueprint):**
+- **Buying DNA Weight:** 40% (purchase rhythm analysis)
+- **Debtor Segmentation Weight:** 60% (payment behavior)
+- **Formula:** `health_score = buying_score * 0.4 + payment_score * 0.6`
+
+**Health Status Levels:**
+- CRITICAL: Score 0-39 (🔴)
+- AT_RISK: Score 40-59 (🟠)
+- HEALTHY: Score 60-79 (🟢)
+- EXCELLENT: Score 80-100 (⭐)
+
+**Features:**
+- Unified customer health view combining buying + payment metrics
+- Auto-generated risk factors based on analysis
+- Auto-generated recommended actions
+- Priority ranking (worst health first)
+- WhatsApp/Phone quick actions
+- Filter by status (CRITICAL, AT_RISK, HEALTHY, EXCELLENT)
+- Search by customer name
+- At-risk outstanding amount alert
+
+**API Endpoints:**
+```
+GET /api/customer-health/scores - Full health scores list
+GET /api/customer-health/scores/{id} - Single customer health
+GET /api/customer-health/widget - Dashboard widget data
+```
+
+**UI Integration:**
+- Widget added to CRM Overview page (`/crm`)
+- Full page at `/customer-health`
+- Navigation sidebar: "Customer Health" with Heart icon
+
+### Test Results (Iteration 13)
+- **Test Report:** `/app/test_reports/iteration_13.json`
+- **Backend Tests:** 100% (7/7 tests passed)
+- **Frontend Tests:** 100% - All features verified
+
+---
 
