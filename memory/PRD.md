@@ -1050,3 +1050,82 @@ Added to sidebar: Chat, Drive, Bulk Import, E-Invoice
 
 ---
 
+## Session Update - January 2026 (Grand Blueprint Implementation)
+
+### New Features Implemented
+
+#### 1. Dashboard Quick Actions Widget ✅
+**File:** `/app/frontend/src/pages/Dashboard.jsx`
+
+**Features:**
+- **6 Quick Links:** Add Lead, Create Quotation, New Invoice, Run Report, Custom Fields, AI Dashboard
+- **Action Items:** Shows count of items needing attention (overdue invoices, pending approvals, low stock, stalled WOs)
+- **System Health Card:** Shows uptime status and link to Director Command Center
+- **Smart Prioritization:** High-priority items highlighted in red/orange
+
+#### 2. Autonomous Collector Module ✅ (The Revenue Hunter)
+**Backend:** `/app/backend/routes/autonomous_collector.py`
+**Frontend:** `/app/frontend/src/pages/AutonomousCollector.jsx`
+
+**Features based on Grand Blueprint:**
+
+**A. Debtor Segmentation**
+- GOLD: Pays within terms, score 80-100
+- SILVER: Occasional delays, score 50-79
+- BRONZE: Frequent delays, score 20-49
+- BLOCKED: Auto-blocked for non-payment, score 0-19
+- Payment score calculation based on: credit days, overdue invoices, credit limit usage
+
+**B. Emergency Controls ("The Nuke Button")**
+- HALT_PRODUCTION: Stop all production
+- FREEZE_ORDERS: Block new orders
+- BLOCK_SHIPPING: Halt all shipments
+- LOCKDOWN: Full business lockdown
+- Configurable scope (All branches / Specific branch)
+- Duration-based controls
+- Director-only access
+
+**C. Smart Payment Reminders**
+- Auto-generated reminders for:
+  - GENTLE_REMINDER: Invoices due within 3 days
+  - OVERDUE_NOTICE: Invoices past due
+  - URGENT_REMINDER: Invoices 30+ days overdue
+- Pre-drafted WhatsApp/Email messages with customer details
+- Priority classification (HIGH/MEDIUM)
+
+**D. Collection Analytics**
+- Total invoiced vs collected
+- Collection efficiency percentage
+- Average collection days
+- Daily collection trend
+- Period filters (week/month/quarter/year)
+
+**E. Block/Unblock Debtors**
+- Manual account blocking with reason
+- Auto-block rules (3+ overdue invoices, ₹50K+ outstanding)
+- Audit trail for all block/unblock actions
+
+### Test Results
+- **Test Report:** `/app/test_reports/iteration_11.json`
+- **Backend Tests:** 100% (8/8 tests passed)
+- **Frontend Tests:** 100% - All features verified
+
+### API Endpoints Added
+```
+GET  /api/collector/debtors/segmentation
+POST /api/collector/debtors/{id}/block
+POST /api/collector/debtors/{id}/unblock
+GET  /api/collector/reminders/pending
+POST /api/collector/emergency/activate
+POST /api/collector/emergency/deactivate/{id}
+GET  /api/collector/emergency/status
+GET  /api/collector/analytics/collection
+GET  /api/collector/quick-actions
+```
+
+### Navigation Updates
+- Added "Collector" link with Zap icon in sidebar (under Accounts)
+- Route `/collector` mapped to AutonomousCollector page
+
+---
+
