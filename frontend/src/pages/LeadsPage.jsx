@@ -902,6 +902,7 @@ const LeadsPage = () => {
                 leads={kanbanData[status] || []}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                statusConfig={STATUS_CONFIG}
               />
             ))}
           </div>
