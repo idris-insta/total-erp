@@ -156,10 +156,12 @@ const QuickActionsWidget = ({ actions, navigate }) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
   const [aiInsights, setAiInsights] = useState(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [revenueData, setRevenueData] = useState(null);
+  const [quickActions, setQuickActions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -169,12 +171,14 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [overviewRes, revenueRes] = await Promise.all([
+      const [overviewRes, revenueRes, actionsRes] = await Promise.all([
         api.get('/dashboard/overview'),
-        api.get('/dashboard/revenue-analytics?period=month')
+        api.get('/dashboard/revenue-analytics?period=month'),
+        api.get('/collector/quick-actions').catch(() => ({ data: { actions: [] } }))
       ]);
       setOverview(overviewRes.data);
       setRevenueData(revenueRes.data);
+      setQuickActions(actionsRes.data?.actions || []);
     } catch (error) {
       toast.error('Failed to load dashboard data');
     } finally {
