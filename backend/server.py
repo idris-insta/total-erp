@@ -137,6 +137,8 @@ from routes import autonomous_collector
 from routes import buying_dna, realtime_chat
 from routes import customer_health
 from routes import pdf_generator
+from routes import pdf_all_modules
+from routes import document_communication
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
