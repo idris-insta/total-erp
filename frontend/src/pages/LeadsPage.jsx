@@ -979,6 +979,8 @@ const LeadsPage = () => {
         onOpenChange={setFormOpen} 
         lead={editingLead}
         onSuccess={fetchData}
+        statusConfig={STATUS_CONFIG}
+        statuses={STATUSES}
       />
     </div>
   );
