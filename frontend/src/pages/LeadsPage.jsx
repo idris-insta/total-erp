@@ -284,7 +284,7 @@ const KanbanColumn = ({ status, leads, onEdit, onView, onDelete, statusConfig })
 };
 
 // ==================== LEAD FORM DIALOG ====================
-const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess }) => {
+const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DEFAULT_STATUS_CONFIG, statuses = DEFAULT_STATUSES }) => {
   const [salesUsers, setSalesUsers] = useState([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [stateOptions, setStateOptions] = useState([]);
