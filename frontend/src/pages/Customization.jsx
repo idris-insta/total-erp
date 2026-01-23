@@ -486,8 +486,324 @@ const ReportBuilder = () => {
   );
 };
 
+// Email Templates Manager
+const EmailTemplatesManager = () => {
+  const [templates, setTemplates] = useState([
+    { id: '1', name: 'Welcome Email', type: 'customer_welcome', subject: 'Welcome to InstaBiz!', content: 'Dear {{customer_name}},\n\nThank you for choosing InstaBiz...', is_active: true },
+    { id: '2', name: 'Invoice Email', type: 'invoice', subject: 'Invoice #{{invoice_number}}', content: 'Dear {{customer_name}},\n\nPlease find attached invoice...', is_active: true },
+    { id: '3', name: 'Payment Reminder', type: 'payment_reminder', subject: 'Payment Reminder - Invoice #{{invoice_number}}', content: 'Dear {{customer_name}},\n\nThis is a gentle reminder...', is_active: true },
+    { id: '4', name: 'Order Confirmation', type: 'order_confirm', subject: 'Order Confirmed - #{{order_number}}', content: 'Dear {{customer_name}},\n\nYour order has been confirmed...', is_active: false }
+  ]);
+  const [open, setOpen] = useState(false);
+  const [editTemplate, setEditTemplate] = useState(null);
+  const [formData, setFormData] = useState({ name: '', type: '', subject: '', content: '' });
+  const { user } = useAuth();
+
+  const templateTypes = [
+    { value: 'customer_welcome', label: 'Customer Welcome' },
+    { value: 'invoice', label: 'Invoice Email' },
+    { value: 'payment_reminder', label: 'Payment Reminder' },
+    { value: 'order_confirm', label: 'Order Confirmation' },
+    { value: 'quotation', label: 'Quotation Email' },
+    { value: 'sample_dispatch', label: 'Sample Dispatch' }
+  ];
+
+  const variables = ['{{customer_name}}', '{{company_name}}', '{{invoice_number}}', '{{order_number}}', '{{amount}}', '{{due_date}}', '{{sales_rep}}'];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editTemplate) {
+      setTemplates(templates.map(t => t.id === editTemplate.id ? { ...t, ...formData } : t));
+      toast.success('Template updated');
+    } else {
+      setTemplates([...templates, { id: Date.now().toString(), ...formData, is_active: true }]);
+      toast.success('Template created');
+    }
+    setOpen(false);
+    setEditTemplate(null);
+    setFormData({ name: '', type: '', subject: '', content: '' });
+  };
+
+  const handleEdit = (template) => {
+    setEditTemplate(template);
+    setFormData({ name: template.name, type: template.type, subject: template.subject, content: template.content });
+    setOpen(true);
+  };
+
+  const toggleActive = (id) => {
+    setTemplates(templates.map(t => t.id === id ? { ...t, is_active: !t.is_active } : t));
+  };
+
+  if (user?.role !== 'admin') {
+    return <Card className="p-6"><p className="text-slate-600">Only administrators can manage email templates.</p></Card>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900 font-manrope">Email Templates</h3>
+          <p className="text-slate-600 text-sm mt-1 font-inter">Customize email templates for different events</p>
+        </div>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditTemplate(null); setFormData({ name: '', type: '', subject: '', content: '' }); } }}>
+          <DialogTrigger asChild>
+            <Button className="bg-accent hover:bg-accent/90" data-testid="add-email-template-button">
+              <Plus className="h-4 w-4 mr-2" /> Add Template
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{editTemplate ? 'Edit' : 'Create'} Email Template</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Template Name *</Label>
+                  <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Template Type *</Label>
+                  <Select value={formData.type} onValueChange={(v) => setFormData({...formData, type: v})} required>
+                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      {templateTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Subject Line *</Label>
+                <Input value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Email Content *</Label>
+                <Textarea value={formData.content} onChange={(e) => setFormData({...formData, content: e.target.value})} rows={8} required />
+                <div className="flex flex-wrap gap-1">
+                  <span className="text-xs text-slate-500 mr-2">Variables:</span>
+                  {variables.map(v => (
+                    <Badge key={v} variant="outline" className="text-xs cursor-pointer hover:bg-slate-100" onClick={() => setFormData({...formData, content: formData.content + ' ' + v})}>
+                      {v}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button type="submit" className="bg-accent">{editTemplate ? 'Update' : 'Create'}</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card className="border-slate-200">
+        <CardContent className="p-0">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Template</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Subject</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {templates.map(t => (
+                <tr key={t.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium text-slate-900">{t.name}</td>
+                  <td className="px-4 py-3"><Badge variant="outline">{t.type.replace(/_/g, ' ')}</Badge></td>
+                  <td className="px-4 py-3 text-sm text-slate-600 truncate max-w-xs">{t.subject}</td>
+                  <td className="px-4 py-3">
+                    <Badge className={t.is_active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}>
+                      {t.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(t)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => toggleActive(t.id)}>{t.is_active ? 'Disable' : 'Enable'}</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Notification Rules Manager
+const NotificationRulesManager = () => {
+  const [rules, setRules] = useState([
+    { id: '1', name: 'Low Stock Alert', event: 'stock_below_reorder', channels: ['in_app', 'email'], is_active: true },
+    { id: '2', name: 'Payment Overdue', event: 'payment_overdue', channels: ['in_app', 'email'], is_active: true },
+    { id: '3', name: 'New Lead Assigned', event: 'lead_assigned', channels: ['in_app'], is_active: true },
+    { id: '4', name: 'Work Order Completed', event: 'wo_completed', channels: ['in_app'], is_active: false }
+  ]);
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: '', event: '', channels: [] });
+  const { user } = useAuth();
+
+  const events = [
+    { value: 'stock_below_reorder', label: 'Stock Below Reorder Level' },
+    { value: 'payment_overdue', label: 'Payment Overdue' },
+    { value: 'lead_assigned', label: 'New Lead Assigned' },
+    { value: 'wo_completed', label: 'Work Order Completed' },
+    { value: 'quotation_expiring', label: 'Quotation Expiring' },
+    { value: 'approval_pending', label: 'Approval Pending' }
+  ];
+
+  const channels = [
+    { value: 'in_app', label: 'In-App Notification' },
+    { value: 'email', label: 'Email' },
+    { value: 'sms', label: 'SMS' },
+    { value: 'whatsapp', label: 'WhatsApp' }
+  ];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setRules([...rules, { id: Date.now().toString(), ...formData, is_active: true }]);
+    toast.success('Notification rule created');
+    setOpen(false);
+    setFormData({ name: '', event: '', channels: [] });
+  };
+
+  const toggleChannel = (ch) => {
+    setFormData(prev => ({
+      ...prev,
+      channels: prev.channels.includes(ch) ? prev.channels.filter(c => c !== ch) : [...prev.channels, ch]
+    }));
+  };
+
+  const toggleActive = (id) => {
+    setRules(rules.map(r => r.id === id ? { ...r, is_active: !r.is_active } : r));
+  };
+
+  if (user?.role !== 'admin') {
+    return <Card className="p-6"><p className="text-slate-600">Only administrators can manage notification rules.</p></Card>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900 font-manrope">Notification Rules</h3>
+          <p className="text-slate-600 text-sm mt-1 font-inter">Configure when and how notifications are sent</p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-accent hover:bg-accent/90" data-testid="add-notification-rule-button">
+              <Plus className="h-4 w-4 mr-2" /> Add Rule
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Notification Rule</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Rule Name *</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Trigger Event *</Label>
+                <Select value={formData.event} onValueChange={(v) => setFormData({...formData, event: v})} required>
+                  <SelectTrigger><SelectValue placeholder="Select event" /></SelectTrigger>
+                  <SelectContent>
+                    {events.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Notification Channels *</Label>
+                <div className="flex flex-wrap gap-2">
+                  {channels.map(ch => (
+                    <Badge
+                      key={ch.value}
+                      variant={formData.channels.includes(ch.value) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleChannel(ch.value)}
+                    >
+                      {formData.channels.includes(ch.value) && <Check className="h-3 w-3 mr-1" />}
+                      {ch.label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button type="submit" className="bg-accent" disabled={formData.channels.length === 0}>Create</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card className="border-slate-200">
+        <CardContent className="p-0">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Rule Name</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Event</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Channels</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {rules.map(r => (
+                <tr key={r.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium text-slate-900">{r.name}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{r.event.replace(/_/g, ' ')}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      {r.channels.map(ch => <Badge key={ch} variant="outline" className="text-xs">{ch}</Badge>)}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge className={r.is_active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}>
+                      {r.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Button variant="ghost" size="sm" onClick={() => toggleActive(r.id)}>
+                      {r.is_active ? 'Disable' : 'Enable'}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 const Customization = () => {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('fields');
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  const quickCards = [
+    { id: 'fields', icon: Plus, color: 'blue', title: 'Custom Fields', desc: 'Add fields to any module' },
+    { id: 'reports', icon: FileText, color: 'purple', title: 'Report Builder', desc: 'Create custom reports' },
+    { id: 'templates', icon: Mail, color: 'orange', title: 'Email Templates', desc: 'Customize email content' },
+    { id: 'notifications', icon: Bell, color: 'green', title: 'Notifications', desc: 'Setup alert rules' },
+    { id: 'api', icon: Code, color: 'pink', title: 'API Access', desc: 'Integrate external systems' },
+    { id: 'import', icon: Download, color: 'cyan', title: 'Data Import/Export', desc: 'Bulk operations' }
+  ];
+
+  const colorMap = {
+    blue: 'from-blue-500 to-blue-600',
+    purple: 'from-purple-500 to-purple-600',
+    orange: 'from-orange-500 to-orange-600',
+    green: 'from-green-500 to-green-600',
+    pink: 'from-pink-500 to-pink-600',
+    cyan: 'from-cyan-500 to-cyan-600'
+  };
 
   return (
     <div className="space-y-6">
