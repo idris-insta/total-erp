@@ -2023,7 +2023,20 @@ const SamplesList = () => {
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-manrope">Send Sample</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="font-manrope">Send Sample</DialogTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open('/field-registry?module=crm&entity=samples', '_blank')}
+                  className="text-slate-500 hover:text-accent"
+                  title="Customize form fields"
+                >
+                  <Settings className="h-4 w-4 mr-1" />
+                  Customize Fields
+                </Button>
+              </div>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
