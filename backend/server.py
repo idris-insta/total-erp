@@ -177,6 +177,7 @@ api_router.include_router(chat.router, prefix="/chat", tags=["Internal Chat"])
 api_router.include_router(drive.router, prefix="/drive", tags=["Drive Storage"])
 api_router.include_router(bulk_import.router, prefix="/bulk-import", tags=["Bulk Import"])
 api_router.include_router(einvoice.router, prefix="/einvoice", tags=["GST E-Invoice & E-Way Bill"])
+api_router.include_router(autonomous_collector.router, prefix="/collector", tags=["Autonomous Collector"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
