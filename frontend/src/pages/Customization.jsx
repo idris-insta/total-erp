@@ -816,72 +816,32 @@ const Customization = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-3">
-              <Plus className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-slate-900 font-manrope">Custom Fields</h3>
-            <p className="text-sm text-slate-600 mt-1 font-inter">Add fields to any module</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-3">
-              <FileText className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-slate-900 font-manrope">Report Builder</h3>
-            <p className="text-sm text-slate-600 mt-1 font-inter">Create custom reports</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mx-auto mb-3">
-              <Mail className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-slate-900 font-manrope">Email Templates</h3>
-            <p className="text-sm text-slate-600 mt-1 font-inter">Customize email content</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-3">
-              <Bell className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-slate-900 font-manrope">Notifications</h3>
-            <p className="text-sm text-slate-600 mt-1 font-inter">Setup alert rules</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center mx-auto mb-3">
-              <Code className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-slate-900 font-manrope">API Access</h3>
-            <p className="text-sm text-slate-600 mt-1 font-inter">Integrate external systems</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer">
-          <CardContent className="p-6 text-center">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center mx-auto mb-3">
-              <Download className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-semibold text-slate-900 font-manrope">Data Import/Export</h3>
-            <p className="text-sm text-slate-600 mt-1 font-inter">Bulk operations</p>
-          </CardContent>
-        </Card>
+        {quickCards.map(card => (
+          <Card 
+            key={card.id}
+            className={`border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer ${activeTab === card.id ? 'ring-2 ring-accent' : ''}`}
+            onClick={() => setActiveTab(card.id)}
+            data-testid={`quick-card-${card.id}`}
+          >
+            <CardContent className="p-6 text-center">
+              <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${colorMap[card.color]} flex items-center justify-center mx-auto mb-3`}>
+                <card.icon className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-semibold text-slate-900 font-manrope">{card.title}</h3>
+              <p className="text-sm text-slate-600 mt-1 font-inter">{card.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <Tabs defaultValue="fields" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-white border border-slate-200">
           <TabsTrigger value="fields" className="font-inter">Custom Fields</TabsTrigger>
           <TabsTrigger value="reports" className="font-inter">Report Builder</TabsTrigger>
-          <TabsTrigger value="api" className="font-inter">API Documentation</TabsTrigger>
+          <TabsTrigger value="templates" className="font-inter">Email Templates</TabsTrigger>
+          <TabsTrigger value="notifications" className="font-inter">Notifications</TabsTrigger>
+          <TabsTrigger value="api" className="font-inter">API Docs</TabsTrigger>
+          <TabsTrigger value="import" className="font-inter">Import/Export</TabsTrigger>
         </TabsList>
 
         <TabsContent value="fields">
@@ -892,6 +852,14 @@ const Customization = () => {
           <ReportBuilder />
         </TabsContent>
 
+        <TabsContent value="templates">
+          <EmailTemplatesManager />
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <NotificationRulesManager />
+        </TabsContent>
+
         <TabsContent value="api">
           <Card className="border-slate-200 shadow-sm">
             <CardHeader>
@@ -900,7 +868,7 @@ const Customization = () => {
             </CardHeader>
             <CardContent>
               <div className="bg-slate-900 rounded-lg p-4 font-mono text-sm text-green-400">
-                <p>Base URL: {import.meta.env.VITE_BACKEND_URL}/api</p>
+                <p>Base URL: {backendUrl}/api</p>
                 <p className="mt-2">Authentication: Bearer Token (JWT)</p>
                 <p className="mt-4">Available Endpoints:</p>
                 <ul className="mt-2 space-y-1 ml-4">
@@ -909,12 +877,58 @@ const Customization = () => {
                   <li>GET /inventory/stock - Get stock levels</li>
                   <li>POST /production/work-orders - Create work order</li>
                   <li>GET /dashboard/overview - Get dashboard data</li>
+                  <li>GET /analytics/* - Reports & analytics</li>
+                  <li>POST /bulk-import/* - Bulk data import</li>
                 </ul>
               </div>
-              <Button className="mt-4 bg-accent hover:bg-accent/90 font-inter">
-                <Download className="h-4 w-4 mr-2" />
-                Download Full API Docs (Swagger)
-              </Button>
+              <div className="mt-4 flex gap-2">
+                <Button className="bg-accent hover:bg-accent/90" onClick={() => window.open(`${backendUrl}/docs`, '_blank')}>
+                  <Code className="h-4 w-4 mr-2" /> Open Swagger UI
+                </Button>
+                <Button variant="outline" onClick={() => { navigator.clipboard.writeText(`${backendUrl}/api`); toast.success('Base URL copied!'); }}>
+                  <Copy className="h-4 w-4 mr-2" /> Copy Base URL
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="import">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-manrope">Data Import / Export</CardTitle>
+              <CardDescription className="font-inter">Bulk operations for data migration and backup</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="border-slate-200 p-4">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Upload className="h-5 w-5 text-blue-600" /> Import Data
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-3">Upload Excel files to bulk import data</p>
+                  <Button variant="outline" onClick={() => window.location.href = '/bulk-import'}>
+                    Go to Bulk Import
+                  </Button>
+                </Card>
+                <Card className="border-slate-200 p-4">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Download className="h-5 w-5 text-green-600" /> Export Data
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-3">Export data to Excel or PDF format</p>
+                  <Button variant="outline" onClick={() => window.location.href = '/analytics'}>
+                    Go to Reports
+                  </Button>
+                </Card>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-semibold text-amber-800 mb-2">Supported Import Formats</h4>
+                <ul className="text-sm text-amber-700 space-y-1">
+                  <li>• Customers / Vendors (.xlsx)</li>
+                  <li>• Items / Products (.xlsx)</li>
+                  <li>• Opening Balance (.xlsx)</li>
+                  <li>• Opening Stock (.xlsx)</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
