@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Package, Factory, DollarSign, Users, AlertTriangle, CheckCircle, Clock, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  TrendingUp, Package, Factory, DollarSign, Users, AlertTriangle, CheckCircle, 
+  Clock, Sparkles, Zap, FileText, Settings, Shield, ArrowRight, Bell, Wand2,
+  Database, UserPlus, BarChart3, AlertCircle
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Badge } from '../components/ui/badge';
 import api from '../lib/api';
 import { toast } from 'sonner';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
