@@ -896,7 +896,7 @@ const LeadsPage = () => {
             className="pl-10" 
           />
         </div>
-        <AdvancedFilters filters={filters} onChange={setFilters} onClear={clearFilters} />
+        <AdvancedFilters filters={filters} onChange={setFilters} onClear={clearFilters} statusConfig={STATUS_CONFIG} statuses={STATUSES} />
       </div>
 
       {/* Content */}
