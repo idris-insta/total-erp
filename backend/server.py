@@ -133,6 +133,7 @@ from routes import custom_fields
 from routes import core_engine
 from routes import ai_bi
 from routes import chat, drive, bulk_import, einvoice
+from routes import autonomous_collector
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
