@@ -287,7 +287,7 @@ const CRMOverview = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -348,6 +348,9 @@ const CRMOverview = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Customer Health Widget */}
+        <CustomerHealthWidget />
       </div>
     </div>
   );
