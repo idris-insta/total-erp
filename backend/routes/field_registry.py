@@ -461,7 +461,8 @@ async def get_default_config(module: str, entity: str):
                 {"field_name": "gstin", "field_label": "GST No", "field_type": "text", "section": "display", "show_in_list": True, "order": 10},
                 {"field_name": "phone", "field_label": "Phone No", "field_type": "phone", "section": "display", "show_in_list": True, "order": 11},
                 # Basic Info
-                {"field_name": "industry", "field_label": "Industry", "field_type": "select", "section": "basic", "is_required": False, "show_in_form": True, "order": 12,
+                {"field_name": "opening_balance", "field_label": "Opening Balance", "field_type": "currency", "section": "basic", "is_required": False, "show_in_form": True, "order": 12, "help_text": "Enter opening receivable balance"},
+                {"field_name": "industry", "field_label": "Industry", "field_type": "select", "section": "basic", "is_required": False, "show_in_form": True, "order": 13,
                     "options": [
                         {"value": "manufacturing", "label": "Manufacturing"},
                         {"value": "packaging", "label": "Packaging"},
@@ -473,10 +474,10 @@ async def get_default_config(module: str, entity: str):
                         {"value": "other", "label": "Other"}
                     ]
                 },
-                {"field_name": "pan", "field_label": "PAN No", "field_type": "text", "section": "basic", "order": 13},
-                {"field_name": "website", "field_label": "Website", "field_type": "text", "section": "basic", "order": 14},
-                {"field_name": "aadhar", "field_label": "Aadhar No", "field_type": "text", "section": "basic", "order": 15},
-                {"field_name": "bank_details", "field_label": "Bank Details", "field_type": "textarea", "section": "basic", "order": 16},
+                {"field_name": "pan", "field_label": "PAN No", "field_type": "text", "section": "basic", "order": 14},
+                {"field_name": "website", "field_label": "Website", "field_type": "text", "section": "basic", "order": 15},
+                {"field_name": "aadhar", "field_label": "Aadhar No", "field_type": "text", "section": "basic", "order": 16},
+                {"field_name": "bank_details", "field_label": "Bank Details", "field_type": "textarea", "section": "basic", "order": 17},
                 # Address
                 {"field_name": "billing_address", "field_label": "Billing Address", "field_type": "textarea", "section": "address", "is_required": True, "order": 17},
                 {"field_name": "shipping_same_as_billing", "field_label": "Shipping Same as Billing", "field_type": "checkbox", "section": "address", "order": 18},
