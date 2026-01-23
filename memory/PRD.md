@@ -1452,3 +1452,82 @@ GET  /api/field-registry/masters/{type}/config             - Get master config
 
 ---
 
+## Session Update - January 2026 (Warehouse & Stock Management)
+
+### Warehouse & Stock Management Module ✅ COMPLETE
+**Backend:** `/app/backend/routes/warehouse_stock.py`
+
+**Key Features Implemented:**
+
+**1. Warehouse Management (GST-wise)**
+- Each warehouse has its own GSTIN for separate accounting
+- Add Warehouse form fields: Code, Name, Prefix, GSTIN, Pincode, State, City, Address, Bank Details, Email, Contact
+- Consolidated + Separate view per warehouse
+- Auto-generates document prefixes per warehouse
+
+**2. Serial Number Master**
+- Configurable per document type per warehouse
+- Fields: Prefix, Suffix, Separator, FY Format (2425, 24-25, 2024-25)
+- Number length, Auto-reset on new FY
+- Sample format preview
+
+**3. Stock Operations**
+- Stock Register (warehouse-wise)
+- Stock Transfers between warehouses (Draft → In Transit → Received)
+- Stock Adjustments (Opening, Closing, Increase, Decrease, Damage, Expired, Recount)
+- Item Ledger showing all movements
+- Consolidated stock view across warehouses
+
+**4. Batch & Barcode Management**
+- Batch number generator
+- QR Code/Barcode generation
+- Label generator with item specs
+- Rack location tracking
+
+**5. Customer Accounts Updates**
+- Added "Opening Balance" field in Basic Info section
+- Added "Aadhar No" field
+- Added "Bank Details" field
+
+**6. Inventory Items Field Configuration**
+- 28 fields across 4 sections:
+  - Basic: Item Code, Name, Type, Category, HSN, Primary UOM, Secondary UOM, Conversion Method
+  - Specs: Base Material, Adhesive Type, Thickness, Color, Width, Length
+  - Pricing: Cost Price, Margin %, Min Selling Price (auto-calculate), MRP
+  - Inventory: Reorder Level, Safety Stock, Lead Time, Shelf Life, Label Format, Barcode
+
+**API Endpoints:**
+```
+# Warehouse
+GET/POST /api/warehouse/warehouses
+GET/PUT  /api/warehouse/warehouses/{id}
+
+# Serial Numbers
+GET/POST /api/warehouse/serial-configs
+GET      /api/warehouse/generate-serial/{doc_type}/{warehouse_id}
+
+# Batches & Barcodes
+POST     /api/warehouse/batches
+GET      /api/warehouse/batches
+GET      /api/warehouse/generate-barcode/{data}
+GET      /api/warehouse/generate-label/{item_id}
+
+# Stock Transfers
+POST     /api/warehouse/stock-transfers
+PUT      /api/warehouse/stock-transfers/{id}/dispatch
+PUT      /api/warehouse/stock-transfers/{id}/receive
+GET      /api/warehouse/stock-transfers
+
+# Stock Adjustments
+POST     /api/warehouse/stock-adjustments
+PUT      /api/warehouse/stock-adjustments/{id}/approve
+GET      /api/warehouse/stock-adjustments
+
+# Reports
+GET      /api/warehouse/stock-register
+GET      /api/warehouse/item-ledger/{item_id}
+GET      /api/warehouse/consolidated-stock
+```
+
+---
+
