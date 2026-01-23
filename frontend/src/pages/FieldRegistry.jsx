@@ -733,7 +733,7 @@ const FieldRegistry = () => {
                     />
                   ) : (
                     <div className="text-center py-8 text-slate-500">
-                      <p>This entity doesn't have Kanban stages.</p>
+                      <p>This entity does not have Kanban stages.</p>
                       <Button 
                         variant="outline" 
                         className="mt-2"
