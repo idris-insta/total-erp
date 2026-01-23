@@ -5,7 +5,7 @@ import {
   TrendingUp, TrendingDown, AlertTriangle, RefreshCw, Download,
   Building, Calendar, CheckCircle, Clock, DollarSign, BarChart3,
   PieChart, ArrowUpRight, ArrowDownRight, Filter, Send, Printer,
-  FileDown, FileMinus
+  FileDown, FileMinus, Mail, MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Textarea } from '../components/ui/textarea';
+import DocumentActions from '../components/DocumentActions';
 import api from '../lib/api';
 import { toast } from 'sonner';
 import ItemSearchSelect from '../components/ItemSearchSelect';
