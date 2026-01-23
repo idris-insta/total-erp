@@ -881,8 +881,35 @@ const InvoicesList = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm"><Printer className="h-4 w-4" /></Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}/api/pdf/invoice/${inv.id}/preview`, '_blank')}
+                            title="Preview Invoice"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}/api/pdf/invoice/${inv.id}/pdf`, '_blank')}
+                            title="Download PDF"
+                            className="text-blue-600"
+                          >
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
+                              const url = `${import.meta.env.VITE_BACKEND_URL}/api/pdf/invoice/${inv.id}/preview`;
+                              const printWindow = window.open(url, '_blank');
+                              printWindow.onload = () => printWindow.print();
+                            }}
+                            title="Print Invoice"
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
                           {inv.status === 'draft' && (
                             <Button variant="outline" size="sm" onClick={() => handleStatusChange(inv.id, 'sent')}>
                               <Send className="h-4 w-4" />
