@@ -412,8 +412,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
         ...formData,
         assigned_to: (formData.assigned_to === 'unassigned' || !formData.assigned_to) ? null : formData.assigned_to,
         estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null,
-        status: formData.status || (lead?.status || 'new'),
-        custom_fields: customFieldValues
+        status: formData.status || (lead?.status || 'hot_leads')
       };
       
       if (lead) {
@@ -429,12 +428,16 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
       toast.error(error.response?.data?.detail || 'Failed to save lead');
     }
   };
-  
-  const handleCustomFieldChange = (fieldName, value) => {
-    setCustomFieldValues(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
+
+  // Handle pincode autofill for dynamic form
+  const handleDynamicFormChange = (newFormData) => {
+    // Check if pincode changed and trigger autofill
+    if (newFormData.pincode !== formData.pincode && 
+        newFormData.pincode?.length === 6 && 
+        (newFormData.country || 'India').toLowerCase() === 'india') {
+      tryAutoFillFromPincode(newFormData.pincode);
+    }
+    setFormData(newFormData);
   };
 
   return (
