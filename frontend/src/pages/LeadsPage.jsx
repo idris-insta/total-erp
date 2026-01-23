@@ -548,10 +548,10 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
             </div>
             <div className="space-y-2">
               <Label>Stage</Label>
-              <Select value={formData.status || (lead?.status || 'new')} onValueChange={(v) => setFormData({...formData, status: v})}>
+              <Select value={formData.status || (lead?.status || 'hot_leads')} onValueChange={(v) => setFormData({...formData, status: v})}>
                 <SelectTrigger><SelectValue placeholder="Select stage" /></SelectTrigger>
                 <SelectContent>
-                  {STATUSES.map(s => <SelectItem key={s} value={s}>{STATUS_CONFIG[s].label}</SelectItem>)}
+                  {statuses.map(s => <SelectItem key={s} value={s}>{statusConfig[s]?.label || s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
