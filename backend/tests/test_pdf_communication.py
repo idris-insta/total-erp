@@ -30,8 +30,9 @@ class TestAuth:
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data
-        return data["access_token"]
+        # API returns 'token' not 'access_token'
+        assert "token" in data, f"Expected 'token' in response: {data}"
+        return data["token"]
     
     @pytest.fixture(scope="class")
     def auth_headers(self, auth_token):
