@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
   Plus, Search, Edit, Trash2, Eye, Phone, Mail, Calendar, 
-  Building2, MoreVertical, Filter, LayoutGrid, List, RefreshCw, FileText
+  Building2, MoreVertical, Filter, LayoutGrid, List, RefreshCw, FileText, Settings
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -20,19 +20,38 @@ import api from '../lib/api';
 import { toast } from 'sonner';
 import useCustomFields from '../hooks/useCustomFields';
 import DynamicFormFields from '../components/DynamicFormFields';
+import useFieldRegistry from '../hooks/useFieldRegistry';
 
-// Status configuration
-const STATUS_CONFIG = {
-  new: { label: 'New', bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800', header: 'bg-blue-500' },
+// Default fallback status configuration (used if Field Registry not loaded)
+const DEFAULT_STATUS_CONFIG = {
+  hot_leads: { label: 'Hot Leads', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-800', header: 'bg-red-500' },
+  cold_leads: { label: 'Cold Leads', bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800', header: 'bg-blue-500' },
   contacted: { label: 'Contacted', bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-100 text-yellow-800', header: 'bg-yellow-500' },
   qualified: { label: 'Qualified', bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-100 text-green-800', header: 'bg-green-500' },
   proposal: { label: 'Proposal', bg: 'bg-purple-50', border: 'border-purple-200', badge: 'bg-purple-100 text-purple-800', header: 'bg-purple-500' },
   negotiation: { label: 'Negotiation', bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-orange-100 text-orange-800', header: 'bg-orange-500' },
   converted: { label: 'Converted', bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-800', header: 'bg-emerald-500' },
-  lost: { label: 'Lost', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-800', header: 'bg-red-500' }
+  customer: { label: 'Customer', bg: 'bg-teal-50', border: 'border-teal-200', badge: 'bg-teal-100 text-teal-800', header: 'bg-teal-500' },
+  lost: { label: 'Lost', bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-100 text-slate-800', header: 'bg-slate-500' },
+  // Legacy statuses for backward compatibility
+  new: { label: 'New', bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800', header: 'bg-blue-500' }
 };
 
-const STATUSES = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'converted', 'lost'];
+// Color mapping for dynamic stages
+const COLOR_MAP = {
+  red: { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-800', header: 'bg-red-500' },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800', header: 'bg-blue-500' },
+  yellow: { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-100 text-yellow-800', header: 'bg-yellow-500' },
+  green: { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-100 text-green-800', header: 'bg-green-500' },
+  purple: { bg: 'bg-purple-50', border: 'border-purple-200', badge: 'bg-purple-100 text-purple-800', header: 'bg-purple-500' },
+  orange: { bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-orange-100 text-orange-800', header: 'bg-orange-500' },
+  emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-800', header: 'bg-emerald-500' },
+  teal: { bg: 'bg-teal-50', border: 'border-teal-200', badge: 'bg-teal-100 text-teal-800', header: 'bg-teal-500' },
+  pink: { bg: 'bg-pink-50', border: 'border-pink-200', badge: 'bg-pink-100 text-pink-800', header: 'bg-pink-500' },
+  slate: { bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-100 text-slate-800', header: 'bg-slate-500' }
+};
+
+const DEFAULT_STATUSES = ['hot_leads', 'cold_leads', 'contacted', 'qualified', 'proposal', 'negotiation', 'converted', 'customer', 'lost'];
 
 // ==================== EDITABLE SELECT COMPONENT ====================
 export const EditableSelect = ({ value, onChange, category, options: initialOptions, placeholder, className }) => {
