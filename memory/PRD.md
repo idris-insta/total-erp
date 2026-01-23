@@ -1361,3 +1361,94 @@ POST /api/communicate/quick-send/quotation/{id} - Quick send quotation
 
 ---
 
+## Session Update - January 2026 (Field Registry - Command Center)
+
+### Field Registry Feature ✅ COMPLETE (NEW)
+**Backend:** `/app/backend/routes/field_registry.py`
+**Frontend Page:** `/app/frontend/src/pages/FieldRegistry.jsx`
+**Hook:** `/app/frontend/src/hooks/useFieldRegistry.jsx`
+**Dynamic Form:** `/app/frontend/src/components/DynamicRegistryForm.jsx`
+
+**The "Command Registry" - Metadata-Driven Field Configuration System**
+
+This is the foundation for making ALL fields editable, reorderable, and customizable. Admin users can:
+- ✏️ Edit field name/label
+- ➕➖ Add or remove fields
+- 🔄 Change display order (drag & drop)
+- ⭐ Set as compulsory or optional
+- 🎨 Change field type (text, number, dropdown, date, multi-select, checkbox, textarea, email, phone, currency, auto)
+- 📝 Edit dropdown options
+
+**Implementation Scope:**
+1. **CRM - Leads**
+   - A. **Kanban Stages** (9 stages): Hot Leads, Cold Leads, Contacted, Qualified, Proposal, Negotiation, Converted, Customer, Lost
+   - B. **Form Fields** (20 fields): Company Name, Contact Person, Email, Phone, Source (dropdown), Address, Country, Pincode, State, District, City (auto-fill from pincode), Customer Type (dropdown), Assigned To (dropdown), Stage (dropdown), Industry (dropdown), Products of Interest (multi-select), Estimated Value (dropdown), Next Follow-up Date, Follow-up Activity (dropdown), Notes
+   - C. **Field Sections**: Basic Info, Address, Classification, Follow-up
+
+2. **CRM - Customer Accounts**
+   - A. **Display Fields** (10): Company Name, City/State, Total Outstanding, Credit Limit/Days, Avg Payment Days, Sales Person, Monthly Avg Turnover, YTD Turnover, GST No, Phone
+   - B. **Form Fields** (28): Basic (Company, Industry, GST, PAN, Website, Aadhar, Bank), Address (Billing, Shipping, Same-as-billing), Contacts (Name, Designation, Phone, Email), Credit Terms (Limit, Days, Control)
+
+3. **CRM - Quotations**
+   - A. **Display Fields**: Quote No (auto), Company, Date, Amount, Status, Notes, Comments + Convert to Order
+   - B. **Form Fields**: Customer info, Line Items (Item Code/Name, Thickness, Width, Length, Color, Qty, Rate, Brand, Instructions, Marking), Subtotal, Tax, Grand Total, T&C
+
+4. **CRM - Samples**
+   - A. **Display Fields**: Sample No (auto), Customer, Products, Quantity, Status (dropdown), Feedback (dropdown), Due Date
+   - B. **Form Fields**: Customer, Contact Person, Sample Items (Product, Thickness, Color, Width, Length, Qty, Unit), From Location, Courier, Tracking No, Feedback Due Date, Purpose (dropdown), Notes
+
+**Masters Module Architecture (9 Master Lists):**
+1. **Customer Master** - The Revenue Base (GSTIN, Branch, Buying DNA Rhythm, Credit Limit, Distance from Sarigam)
+2. **Supplier Master** - The Sourcing Base (Material Category: Film/Adhesive/Core, Lead Time, Reliability Score)
+3. **Item Master** - The Physics Base (Base Category: BOPP/PVC, UOM: KG/SQM/PCS, Microns, GSM, Adhesive Type)
+4. **Item Code Master** - The Inventory Logic (Internal SKU, Barcode/QR, Warehouse Rack Location)
+5. **Price Master** - The Margin Protector (Customer-Specific Pricing, Volume Discounts, MSP)
+6. **Machine Master** - The Plant Heart (Machine Name, Design Capacity, Power Consumption, Maintenance Cycle)
+7. **Employee Master** - The Accountability Base (Role, Biometric ID, Department, Target KPIs)
+8. **Expense Master** - The Leakage Tracker (Category, Budget Cap, Branch Allocation)
+9. **Report Type List** - The Executive View (Frequency, Recipients, KPI Focus)
+
+**API Endpoints:**
+```
+GET  /api/field-registry/modules                           - List all modules and entities
+GET  /api/field-registry/masters                           - List master types
+POST /api/field-registry/config                            - Save field configuration (Admin only)
+GET  /api/field-registry/config/{module}/{entity}          - Get field config for entity
+GET  /api/field-registry/config/{module}                   - Get all configs for module
+DELETE /api/field-registry/config/{module}/{entity}        - Reset to default
+POST /api/field-registry/options/{module}/{entity}/{field} - Save dropdown options
+GET  /api/field-registry/options/{module}/{entity}/{field} - Get dropdown options
+POST /api/field-registry/stages/{module}/{entity}          - Save Kanban stages
+GET  /api/field-registry/stages/{module}/{entity}          - Get Kanban stages
+PUT  /api/field-registry/config/{module}/{entity}/reorder  - Reorder fields
+PUT  /api/field-registry/stages/{module}/{entity}/reorder  - Reorder stages
+POST /api/field-registry/masters/{type}                    - Save master config
+GET  /api/field-registry/masters/{type}/config             - Get master config
+```
+
+**UI Features:**
+- Module selector (CRM, Inventory, Accounts, Production, Procurement, HRMS)
+- Entity selector (per module)
+- 3-tab configuration panel: Kanban Stages, Form Fields, List Display
+- Drag & drop reordering with visual drag handles
+- Color badges for Kanban stages (10 color options)
+- Field editor dialog for adding/editing fields
+- Section grouping (Basic Info, Address, Classification, Follow-up, etc.)
+- Required badge indicator
+- Options count for dropdown fields
+- Save Changes button (Admin only)
+- Unsaved Changes indicator
+- Reload button
+
+**Access Control:**
+- Edit/Save: Admin and Director roles only
+- View: All authenticated users
+
+### Test Results (Iteration 16)
+- **Test Report:** `/app/test_reports/iteration_16.json`
+- **Backend Tests:** 100% (21/21 tests passed)
+- **Frontend Tests:** 100% - All features verified
+- **Test File:** `/app/backend/tests/test_field_registry.py`
+
+---
+
