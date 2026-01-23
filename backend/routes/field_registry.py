@@ -85,8 +85,11 @@ async def get_available_modules(current_user: dict = Depends(get_current_user)):
             "label": "Inventory",
             "entities": {
                 "items": "Items/Products",
-                "stock": "Stock Entries",
-                "warehouses": "Warehouses"
+                "warehouses": "Warehouses",
+                "stock": "Stock Register",
+                "serial_numbers": "Serial No Master",
+                "stock_transfers": "Stock Transfers",
+                "stock_adjustments": "Stock Adjustments"
             }
         },
         "accounts": {
