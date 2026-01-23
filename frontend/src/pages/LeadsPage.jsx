@@ -440,6 +440,19 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
     setFormData(newFormData);
   };
 
+  // Show loading while fetching registry config
+  if (registryLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl">
+          <div className="flex items-center justify-center h-48">
+            <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -460,181 +473,83 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
           </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Company Name *</Label>
-              <Input value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Contact Person *</Label>
-              <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Email *</Label>
-              <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Phone *</Label>
-              <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Mobile</Label>
-              <Input value={formData.mobile} onChange={(e) => setFormData({...formData, mobile: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Source *</Label>
-              <EditableSelect 
-                value={formData.source} 
-                onChange={(value) => setFormData({...formData, source: value})}
-                category="lead_source"
-                placeholder="Select source"
-              />
-            </div>
-          </div>
+          {/* Dynamic Form Fields from Field Registry */}
+          {useDynamicForm ? (
+            <DynamicFormFields
+              fields={registryFields}
+              formData={formData}
+              onChange={handleDynamicFormChange}
+              sectionLabels={sectionLabels}
+              groupBySection={true}
+              columns={3}
+            />
+          ) : (
+            /* Fallback to basic hardcoded form if no registry config */
+            <>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Company Name *</Label>
+                  <Input value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} required data-testid="field-company_name" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Contact Person *</Label>
+                  <Input value={formData.contact_person} onChange={(e) => setFormData({...formData, contact_person: e.target.value})} required data-testid="field-contact_person" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} data-testid="field-email" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} data-testid="field-phone" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Source</Label>
+                  <EditableSelect 
+                    value={formData.source} 
+                    onChange={(value) => setFormData({...formData, source: value})}
+                    category="lead_source"
+                    placeholder="Select source"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Input value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} data-testid="field-city" />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Address</Label>
-              <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Country</Label>
-              <Input value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value})} placeholder="India" />
-            </div>
-            <div className="space-y-2">
-              <Label>State</Label>
-              <Select value={formData.state} onValueChange={(v) => setFormData({...formData, state: v})}>
-                <SelectTrigger><SelectValue placeholder={loadingGeo ? 'Loading...' : 'Select state'} /></SelectTrigger>
-                <SelectContent>
-                  {stateOptions.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Pincode</Label>
-              <Input 
-                value={formData.pincode} 
-                onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, '').slice(0, 6);
-                  setFormData({...formData, pincode: v});
-                  if (v.length === 6 && (formData.country || 'India').toLowerCase() === 'india') {
-                    tryAutoFillFromPincode(v);
-                  }
-                }} 
-              />
-              {loadingGeo && <div className="text-xs text-slate-500">Auto-filling location…</div>}
-            </div>
-          </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Stage</Label>
+                  <Select value={formData.status || (lead?.status || 'hot_leads')} onValueChange={(v) => setFormData({...formData, status: v})}>
+                    <SelectTrigger><SelectValue placeholder="Select stage" /></SelectTrigger>
+                    <SelectContent>
+                      {statuses.map(s => <SelectItem key={s} value={s}>{statusConfig[s]?.label || s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Estimated Value (₹)</Label>
+                  <Input type="number" value={formData.estimated_value} onChange={(e) => setFormData({...formData, estimated_value: e.target.value})} placeholder="50000" data-testid="field-estimated_value" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Next Follow-up</Label>
+                  <Input type="date" value={formData.next_followup_date} onChange={(e) => setFormData({...formData, next_followup_date: e.target.value})} data-testid="field-next_followup_date" />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>District</Label>
-              <Input value={formData.district} onChange={(e) => setFormData({...formData, district: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>City</Label>
-              <Input value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Customer Type</Label>
-              <Select value={formData.customer_type} onValueChange={(v) => setFormData({...formData, customer_type: v})}>
-                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                <SelectContent>
-                  {CUSTOMER_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Assigned To</Label>
-              <Select value={formData.assigned_to} onValueChange={(v) => setFormData({...formData, assigned_to: v})}>
-                <SelectTrigger><SelectValue placeholder="Select salesperson" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {salesUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.name} ({u.role})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Pipeline</Label>
-              <Input value={formData.pipeline} onChange={(e) => setFormData({...formData, pipeline: e.target.value})} placeholder="main" />
-            </div>
-            <div className="space-y-2">
-              <Label>Stage</Label>
-              <Select value={formData.status || (lead?.status || 'hot_leads')} onValueChange={(v) => setFormData({...formData, status: v})}>
-                <SelectTrigger><SelectValue placeholder="Select stage" /></SelectTrigger>
-                <SelectContent>
-                  {statuses.map(s => <SelectItem key={s} value={s}>{statusConfig[s]?.label || s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Industry</Label>
-              <EditableSelect 
-                value={formData.industry} 
-                onChange={(value) => setFormData({...formData, industry: value})}
-                category="industry"
-                placeholder="Select industry"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Product Interest</Label>
-              <Input value={formData.product_interest} onChange={(e) => setFormData({...formData, product_interest: e.target.value})} placeholder="BOPP Tape, Masking Tape..." />
-            </div>
-            <div className="space-y-2">
-              <Label>Estimated Value (₹)</Label>
-              <Input type="number" value={formData.estimated_value} onChange={(e) => setFormData({...formData, estimated_value: e.target.value})} placeholder="50000" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Next Follow-up Date</Label>
-              <Input type="date" value={formData.next_followup_date} onChange={(e) => setFormData({...formData, next_followup_date: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Follow-up Activity</Label>
-              <EditableSelect 
-                value={formData.followup_activity} 
-                onChange={(value) => setFormData({...formData, followup_activity: value})}
-                category="followup_type"
-                placeholder="Select activity"
-              />
-            </div>
-          </div>
-
-          {/* Dynamic Custom Fields from Power Settings */}
-          {customFields.length > 0 && (
-            <div className="border-t pt-4">
-              <DynamicFormFields
-                fields={customFields}
-                values={customFieldValues}
-                onChange={handleCustomFieldChange}
-                columns={2}
-                showSections={true}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>Notes</Label>
+                <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} data-testid="field-notes" />
+              </div>
+            </>
           )}
 
-          <div className="space-y-2">
-            <Label>Notes</Label>
-            <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={3} />
-          </div>
+          {loadingGeo && <div className="text-xs text-slate-500 text-center">Auto-filling location from pincode…</div>}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-accent hover:bg-accent/90">{lead ? 'Update' : 'Create'} Lead</Button>
+            <Button type="submit" className="bg-accent hover:bg-accent/90" data-testid="lead-submit-btn">{lead ? 'Update' : 'Create'} Lead</Button>
           </DialogFooter>
         </form>
       </DialogContent>
