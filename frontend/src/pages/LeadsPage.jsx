@@ -143,8 +143,8 @@ export const EditableSelect = ({ value, onChange, category, options: initialOpti
 };
 
 // ==================== LEAD CARD COMPONENT ====================
-const LeadCard = ({ lead, index, onEdit, onView, onDelete }) => {
-  const config = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
+const LeadCard = ({ lead, index, onEdit, onView, onDelete, statusConfig }) => {
+  const config = statusConfig[lead.status] || statusConfig.new || { label: lead.status, bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-100 text-slate-800', header: 'bg-slate-500' };
   
   return (
     <Draggable draggableId={lead.id} index={index}>
