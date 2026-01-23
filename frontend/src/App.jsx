@@ -92,6 +92,7 @@ const AppRoutes = () => {
                 <Route path="/bulk-import" element={<BulkImport />} />
                 <Route path="/einvoice" element={<EInvoice />} />
                 <Route path="/collector" element={<AutonomousCollector />} />
+                <Route path="/buying-dna" element={<BuyingDNA />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
