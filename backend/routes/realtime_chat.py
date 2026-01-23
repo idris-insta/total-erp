@@ -99,8 +99,8 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
                 }
                 
                 # Save to database
-                await db.chat_messages.insert_one({**message, "_id": None})
-                del message.get("_id", None)
+                msg_to_save = {**message}
+                await db.chat_messages.insert_one(msg_to_save)
                 
                 # Update room's last message
                 await db.chat_rooms.update_one(
