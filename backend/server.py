@@ -139,6 +139,7 @@ from routes import customer_health
 from routes import pdf_generator
 from routes import pdf_all_modules
 from routes import document_communication
+from routes import field_registry
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
