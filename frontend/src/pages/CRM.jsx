@@ -985,6 +985,18 @@ const AccountsList = () => {
                       <Label className="font-inter">Website</Label>
                       <Input value={formData.website} onChange={(e) => setFormData({...formData, website: e.target.value})} placeholder="https://example.com" />
                     </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Aadhar No</Label>
+                      <Input value={formData.aadhar_no} onChange={(e) => setFormData({...formData, aadhar_no: e.target.value})} placeholder="0000 0000 0000" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-inter">Opening Balance (₹)</Label>
+                      <Input type="number" value={formData.opening_balance} onChange={(e) => setFormData({...formData, opening_balance: e.target.value})} placeholder="0.00" />
+                    </div>
+                    <div className="col-span-3 space-y-2">
+                      <Label className="font-inter">Bank Details</Label>
+                      <Textarea value={formData.bank_details} onChange={(e) => setFormData({...formData, bank_details: e.target.value})} rows={2} placeholder="Bank Name, A/C No, IFSC Code" />
+                    </div>
                     <div className="col-span-3 space-y-2">
                       <Label className="font-inter">Notes</Label>
                       <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} rows={2} />
