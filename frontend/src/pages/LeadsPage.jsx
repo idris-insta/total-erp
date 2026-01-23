@@ -12,14 +12,12 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Textarea } from '../components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import api from '../lib/api';
 import { toast } from 'sonner';
-import useCustomFields from '../hooks/useCustomFields';
-import DynamicFormFields from '../components/DynamicFormFields';
+import DynamicFormFields from '../components/DynamicRegistryForm';
 import useFieldRegistry from '../hooks/useFieldRegistry';
 
 // Default fallback status configuration (used if Field Registry not loaded)
