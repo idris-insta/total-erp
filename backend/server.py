@@ -135,6 +135,7 @@ from routes import ai_bi
 from routes import chat, drive, bulk_import, einvoice
 from routes import autonomous_collector
 from routes import buying_dna, realtime_chat
+from routes import customer_health
 
 api_router.include_router(crm.router, prefix="/crm", tags=["CRM"])
 api_router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
