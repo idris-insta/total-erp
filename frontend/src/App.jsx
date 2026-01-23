@@ -34,6 +34,7 @@ import Drive from './pages/Drive';
 import BulkImport from './pages/BulkImport';
 import EInvoice from './pages/EInvoice';
 import AutonomousCollector from './pages/AutonomousCollector';
+import BuyingDNA from './pages/BuyingDNA';
 
 
 const PrivateRoute = ({ children }) => {
