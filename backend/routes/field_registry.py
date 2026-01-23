@@ -548,7 +548,28 @@ async def get_default_config(module: str, entity: str):
                 {"field_name": "remarks", "field_label": "Remarks", "field_type": "textarea", "section": "form", "order": 13},
                 {"field_name": "terms_conditions", "field_label": "Terms & Conditions", "field_type": "textarea", "section": "form", "order": 14}
             ],
-            "list_display_fields": ["quote_number", "account_name", "quote_date", "grand_total", "status"]
+            "list_display_fields": ["quote_number", "account_name", "quote_date", "grand_total", "status"],
+            "line_item_fields": [
+                {"field_name": "item_code", "field_label": "Item Code", "field_type": "text", "order": 1},
+                {"field_name": "item_name", "field_label": "Item Name", "field_type": "select", "auto_suggest": "item_master", "order": 2},
+                {"field_name": "thickness", "field_label": "Thickness", "field_type": "text", "auto_fill": True, "order": 3},
+                {"field_name": "width", "field_label": "Width", "field_type": "number", "order": 4},
+                {"field_name": "length", "field_label": "Length", "field_type": "number", "order": 5},
+                {"field_name": "color", "field_label": "Color", "field_type": "text", "auto_fill": True, "order": 6},
+                {"field_name": "qty_per_pkg", "field_label": "Qty/Pkg", "field_type": "number", "order": 7},
+                {"field_name": "total_pkg", "field_label": "Total Pkg", "field_type": "number", "order": 8},
+                {"field_name": "rate_uom", "field_label": "Rate per Unit", "field_type": "select", "options": [
+                    {"value": "kg", "label": "Per KG"},
+                    {"value": "sqm", "label": "Per SQM"},
+                    {"value": "pcs", "label": "Per PCS"},
+                    {"value": "roll", "label": "Per Roll"},
+                    {"value": "mtr", "label": "Per MTR"}
+                ], "order": 9},
+                {"field_name": "rate", "field_label": "Rate", "field_type": "currency", "order": 10},
+                {"field_name": "brand", "field_label": "Brand", "field_type": "text", "order": 11},
+                {"field_name": "instructions", "field_label": "Instructions", "field_type": "text", "order": 12},
+                {"field_name": "marking", "field_label": "Marking", "field_type": "text", "order": 13}
+            ]
         }
     
     elif module == 'crm' and entity == 'samples':
@@ -559,7 +580,7 @@ async def get_default_config(module: str, entity: str):
             "fields": [
                 # Display Fields
                 {"field_name": "sample_number", "field_label": "Sample No", "field_type": "auto", "section": "display", "is_required": True, "show_in_list": True, "is_readonly": True, "order": 1},
-                {"field_name": "customer_name", "field_label": "Customer", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "order": 2},
+                {"field_name": "customer_name", "field_label": "Customer", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "auto_suggest": "leads_customers", "order": 2},
                 {"field_name": "products", "field_label": "Products", "field_type": "text", "section": "display", "show_in_list": True, "is_readonly": True, "order": 3},
                 {"field_name": "quantity", "field_label": "Quantity", "field_type": "number", "section": "display", "show_in_list": True, "order": 4},
                 {"field_name": "status", "field_label": "Status", "field_type": "select", "section": "display", "show_in_list": True, "order": 5,
@@ -580,11 +601,12 @@ async def get_default_config(module: str, entity: str):
                 },
                 {"field_name": "due_date", "field_label": "Due Date", "field_type": "date", "section": "display", "show_in_list": True, "order": 7},
                 # Form Fields
-                {"field_name": "contact_person", "field_label": "Contact Person", "field_type": "text", "section": "form", "order": 8},
+                {"field_name": "contact_person", "field_label": "Contact Person", "field_type": "text", "section": "form", "auto_fill": True, "order": 8},
                 {"field_name": "from_location", "field_label": "From Location", "field_type": "select", "section": "form", "order": 9,
                     "options": [
                         {"value": "main_warehouse", "label": "Main Warehouse"},
                         {"value": "factory", "label": "Factory"},
+                        {"value": "branch_gj", "label": "Gujarat Branch"},
                         {"value": "branch_mh", "label": "Mumbai Branch"},
                         {"value": "branch_dl", "label": "Delhi Branch"}
                     ]
@@ -602,7 +624,21 @@ async def get_default_config(module: str, entity: str):
                 },
                 {"field_name": "notes", "field_label": "Notes", "field_type": "textarea", "section": "form", "order": 14}
             ],
-            "list_display_fields": ["sample_number", "customer_name", "products", "status", "feedback", "due_date"]
+            "list_display_fields": ["sample_number", "customer_name", "products", "status", "feedback", "due_date"],
+            "sample_item_fields": [
+                {"field_name": "product_name", "field_label": "Product Name", "field_type": "select", "auto_suggest": "item_master", "order": 1},
+                {"field_name": "thickness", "field_label": "Thickness", "field_type": "text", "auto_fill": True, "order": 2},
+                {"field_name": "color", "field_label": "Color", "field_type": "text", "auto_fill": True, "order": 3},
+                {"field_name": "width", "field_label": "Width", "field_type": "number", "order": 4},
+                {"field_name": "length", "field_label": "Length", "field_type": "number", "order": 5},
+                {"field_name": "qty", "field_label": "Qty", "field_type": "number", "order": 6},
+                {"field_name": "unit", "field_label": "Unit", "field_type": "select", "options": [
+                    {"value": "pcs", "label": "PCS"},
+                    {"value": "roll", "label": "Roll"},
+                    {"value": "mtr", "label": "MTR"},
+                    {"value": "kg", "label": "KG"}
+                ], "order": 7}
+            ]
         }
     
     # Default empty config
