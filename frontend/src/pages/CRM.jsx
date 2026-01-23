@@ -4,7 +4,8 @@ import {
   Plus, Search, Edit, Trash2, Eye, FileText, Package as PackageIcon, 
   Beaker, Users as UsersIcon, Building2, CheckCircle, Send, Phone, 
   Mail, MapPin, Calendar, ArrowRight, TrendingUp, Clock, Filter,
-  MoreVertical, RefreshCw, Download, ChevronDown, X, Check, LayoutGrid
+  MoreVertical, RefreshCw, Download, ChevronDown, X, Check, LayoutGrid,
+  FileDown, Printer
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
