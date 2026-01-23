@@ -192,6 +192,7 @@ api_router.include_router(pdf_generator.router, prefix="/pdf", tags=["PDF Genera
 api_router.include_router(pdf_all_modules.router, prefix="/pdf", tags=["PDF All Modules"])
 api_router.include_router(document_communication.router, prefix="/communicate", tags=["Document Communication"])
 api_router.include_router(field_registry.router, prefix="/field-registry", tags=["Field Registry - Command Center"])
+api_router.include_router(warehouse_stock.router, prefix="/warehouse", tags=["Warehouse & Stock Management"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
