@@ -207,33 +207,282 @@ const CustomFieldsManager = () => {
 };
 
 const ReportBuilder = () => {
+  const [reports, setReports] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [executeOpen, setExecuteOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    module: 'crm',
+    query_filters: {},
+    columns: [],
+    group_by: [],
+    chart_type: ''
+  });
+  const { user } = useAuth();
+
+  const modules = [
+    { value: 'crm', label: 'CRM (Leads)' },
+    { value: 'inventory', label: 'Inventory (Stock)' },
+    { value: 'production', label: 'Production (Work Orders)' },
+    { value: 'accounts', label: 'Accounts (Invoices)' },
+    { value: 'hrms', label: 'HRMS (Employees)' },
+    { value: 'quality', label: 'Quality (Inspections)' }
+  ];
+
+  const columnOptions = {
+    crm: ['company_name', 'contact_person', 'email', 'phone', 'status', 'source', 'estimated_value', 'created_at'],
+    inventory: ['item_code', 'item_name', 'category', 'stock_quantity', 'uom', 'standard_cost', 'selling_price'],
+    production: ['wo_number', 'product_name', 'quantity', 'status', 'planned_start_date', 'planned_end_date'],
+    accounts: ['invoice_number', 'customer_name', 'invoice_date', 'total_amount', 'status', 'due_date'],
+    hrms: ['employee_code', 'name', 'department', 'designation', 'date_of_joining', 'basic_salary'],
+    quality: ['inspection_number', 'product_name', 'inspection_date', 'result', 'inspector_name']
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      const response = await api.get('/customization/report-templates');
+      setReports(response.data || []);
+    } catch (error) {
+      console.error('Failed to load reports:', error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || formData.columns.length === 0) {
+      toast.error('Please provide a name and select at least one column');
+      return;
+    }
+    try {
+      const columnsData = formData.columns.map(col => ({ field: col, label: col.replace(/_/g, ' ').toUpperCase() }));
+      await api.post('/customization/report-templates', {
+        ...formData,
+        columns: columnsData
+      });
+      toast.success('Report template created successfully');
+      setOpen(false);
+      fetchReports();
+      setFormData({ name: '', description: '', module: 'crm', query_filters: {}, columns: [], group_by: [], chart_type: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create report');
+    }
+  };
+
+  const handleExecute = async (report) => {
+    setSelectedReport(report);
+    setLoading(true);
+    setExecuteOpen(true);
+    try {
+      const response = await api.post(`/customization/report-templates/${report.id}/execute`);
+      setReportData(response.data);
+    } catch (error) {
+      toast.error('Failed to execute report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleColumn = (col) => {
+    setFormData(prev => ({
+      ...prev,
+      columns: prev.columns.includes(col) 
+        ? prev.columns.filter(c => c !== col)
+        : [...prev.columns, col]
+    }));
+  };
+
+  if (user?.role !== 'admin') {
+    return (
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-6">
+          <p className="text-slate-600 font-inter">Only administrators can manage report templates.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-blue-600" />
-          <CardTitle className="font-manrope">Custom Report Builder</CardTitle>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900 font-manrope">Report Builder</h3>
+          <p className="text-slate-600 text-sm mt-1 font-inter">Create and execute custom reports</p>
         </div>
-        <CardDescription className="font-inter">Create custom reports with filters and grouping</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <p className="text-sm text-slate-600 font-inter">Drag-and-drop report builder with:</p>
-          <ul className="list-disc list-inside space-y-2 text-sm text-slate-600 font-inter">
-            <li>Custom filters (date range, status, location)</li>
-            <li>Group by dimensions (customer, product, month)</li>
-            <li>Pivot tables & cross-tabs</li>
-            <li>Charts & visualizations</li>
-            <li>Export to PDF/Excel</li>
-            <li>Schedule reports (daily/weekly/monthly)</li>
-          </ul>
-          <Button className="bg-accent hover:bg-accent/90 font-inter">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Report
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-accent hover:bg-accent/90 font-inter" data-testid="create-report-button">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Report
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-manrope">Create Report Template</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-inter">Report Name *</Label>
+                  <Input 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                    placeholder="e.g., Monthly Sales Report"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-inter">Module *</Label>
+                  <Select value={formData.module} onValueChange={(v) => setFormData({...formData, module: v, columns: []})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {modules.map(m => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="font-inter">Description</Label>
+                <Textarea 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  placeholder="What does this report show?"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-inter">Select Columns *</Label>
+                <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-lg border">
+                  {columnOptions[formData.module]?.map(col => (
+                    <Badge 
+                      key={col} 
+                      variant={formData.columns.includes(col) ? 'default' : 'outline'}
+                      className="cursor-pointer hover:bg-accent/20"
+                      onClick={() => toggleColumn(col)}
+                    >
+                      {formData.columns.includes(col) && <Check className="h-3 w-3 mr-1" />}
+                      {col.replace(/_/g, ' ')}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="font-inter">Chart Type (optional)</Label>
+                <Select value={formData.chart_type} onValueChange={(v) => setFormData({...formData, chart_type: v})}>
+                  <SelectTrigger><SelectValue placeholder="No chart" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No chart</SelectItem>
+                    <SelectItem value="bar">Bar Chart</SelectItem>
+                    <SelectItem value="line">Line Chart</SelectItem>
+                    <SelectItem value="pie">Pie Chart</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90">Create Report</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Execute Report Dialog */}
+      <Dialog open={executeOpen} onOpenChange={setExecuteOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-manrope">{selectedReport?.name}</DialogTitle>
+          </DialogHeader>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin h-8 w-8 border-4 border-accent border-t-transparent rounded-full"></div>
+            </div>
+          ) : reportData ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline">{reportData.count} records found</Badge>
+                <span className="text-xs text-slate-500">Executed: {new Date(reportData.executed_at).toLocaleString()}</span>
+              </div>
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      {reportData.template.columns.map((col, i) => (
+                        <th key={i} className="px-3 py-2 text-left font-semibold text-slate-700">{col.label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {reportData.data.slice(0, 50).map((row, i) => (
+                      <tr key={i} className="hover:bg-slate-50">
+                        {reportData.template.columns.map((col, j) => (
+                          <td key={j} className="px-3 py-2 text-slate-600">{row[col.field] ?? '-'}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {reportData.count > 50 && <p className="text-xs text-slate-500 text-center">Showing 50 of {reportData.count} records</p>}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reports List */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-0">
+          {reports.length === 0 ? (
+            <div className="p-8 text-center">
+              <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-600 font-inter">No report templates yet. Create your first report!</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Module</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Columns</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Created</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {reports.map((report) => (
+                    <tr key={report.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-medium text-slate-900">{report.name}</p>
+                          {report.description && <p className="text-xs text-slate-500">{report.description}</p>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3"><Badge className="bg-blue-100 text-blue-800">{report.module}</Badge></td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{report.columns?.length || 0} fields</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{new Date(report.created_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <Button variant="ghost" size="sm" onClick={() => handleExecute(report)} className="text-accent">
+                          <Play className="h-4 w-4 mr-1" /> Run
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
