@@ -22,6 +22,7 @@ import LeadsPage from './LeadsPage';
 import ItemSearchSelect from '../components/ItemSearchSelect';
 import CustomerSearchSelect from '../components/CustomerSearchSelect';
 import CustomerHealthWidget from '../components/CustomerHealthWidget';
+import DocumentActions from '../components/DocumentActions';
 
 // ==================== CRM OVERVIEW ====================
 const CRMOverview = () => {
