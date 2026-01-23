@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Configuration
-BASE_URL = "https://tapemanage.preview.emergentagent.com/api"
+BASE_URL = "https://tapemaster.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@instabiz.com"
 ADMIN_PASSWORD = "adminpassword"
 
