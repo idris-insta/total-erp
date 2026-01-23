@@ -1825,7 +1825,23 @@ const QuotationsList = () => {
                           <Button variant="ghost" size="sm" onClick={() => handleEditQuotation(quote)} data-testid={`edit-quotation-${quote.id}`}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}/api/pdf/quotation/${quote.id}/preview`, '_blank')}
+                            title="Preview PDF"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}/api/pdf/quotation/${quote.id}/pdf`, '_blank')}
+                            title="Download PDF"
+                            className="text-blue-600"
+                          >
+                            <FileDown className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleDelete(quote.id)} className="text-destructive" data-testid={`delete-quotation-${quote.id}`}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
