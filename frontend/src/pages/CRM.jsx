@@ -900,7 +900,20 @@ const AccountsList = () => {
           </DialogTrigger>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-manrope">{editingAccount ? 'Edit' : 'Create'} Account</DialogTitle>
+              <div className="flex items-center justify-between">
+                <DialogTitle className="font-manrope">{editingAccount ? 'Edit' : 'Create'} Account</DialogTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open('/field-registry?module=crm&entity=accounts', '_blank')}
+                  className="text-slate-500 hover:text-accent"
+                  title="Customize form fields"
+                >
+                  <Settings className="h-4 w-4 mr-1" />
+                  Customize Fields
+                </Button>
+              </div>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
