@@ -33,6 +33,7 @@ import Chat from './pages/Chat';
 import Drive from './pages/Drive';
 import BulkImport from './pages/BulkImport';
 import EInvoice from './pages/EInvoice';
+import AutonomousCollector from './pages/AutonomousCollector';
 
 
 const PrivateRoute = ({ children }) => {
