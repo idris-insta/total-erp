@@ -509,24 +509,8 @@ const FieldRegistry = () => {
     fetchModules();
   }, []);
 
-  // Fetch config when module/entity changes
-  useEffect(() => {
-    if (activeModule && activeEntity) {
-      fetchConfig();
-    }
-  }, [activeModule, activeEntity, fetchConfig]);
-
-  const fetchModules = async () => {
-    try {
-      const response = await api.get('/field-registry/modules');
-      setModules(response.data);
-    } catch (error) {
-      console.error('Failed to load modules:', error);
-      toast.error('Failed to load modules');
-    }
-  };
-
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
+    if (!activeModule || !activeEntity) return;
     setLoading(true);
     try {
       const response = await api.get(`/field-registry/config/${activeModule}/${activeEntity}`);
@@ -545,6 +529,23 @@ const FieldRegistry = () => {
       });
     } finally {
       setLoading(false);
+    }
+  }, [activeModule, activeEntity]);
+
+  // Fetch config when module/entity changes
+  useEffect(() => {
+    if (activeModule && activeEntity) {
+      fetchConfig();
+    }
+  }, [activeModule, activeEntity, fetchConfig]);
+
+  const fetchModules = async () => {
+    try {
+      const response = await api.get('/field-registry/modules');
+      setModules(response.data);
+    } catch (error) {
+      console.error('Failed to load modules:', error);
+      toast.error('Failed to load modules');
     }
   };
 
