@@ -319,43 +319,47 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
 
   useEffect(() => {
     if (lead) {
-      // editing mode
-      setFormData({
-        company_name: lead.company_name || '',
-        contact_person: lead.contact_person || '',
-        email: lead.email || '',
-        phone: lead.phone || '',
-        mobile: lead.mobile || '',
-        address: lead.address || '',
-        country: lead.country || 'India',
-        state: lead.state || '',
-        district: lead.district || '',
-        city: lead.city || '',
-        pincode: lead.pincode || '',
-        customer_type: lead.customer_type || '',
-        pipeline: lead.pipeline || 'main',
-        assigned_to: lead.assigned_to ? lead.assigned_to : 'unassigned',
-        source: lead.source || 'IndiaMART',
-        industry: lead.industry || '',
-        product_interest: lead.product_interest || '',
-        estimated_value: lead.estimated_value || '',
-        notes: lead.notes || '',
-        next_followup_date: lead.next_followup_date || '',
-        followup_activity: lead.followup_activity || ''
-      });
-      // Load custom field values
-      setCustomFieldValues(lead.custom_fields || {});
+      // editing mode - populate with existing lead data
+      const editFormData = useDynamicForm 
+        ? { ...getInitialValues(), ...lead }
+        : {
+            company_name: lead.company_name || '',
+            contact_person: lead.contact_person || '',
+            email: lead.email || '',
+            phone: lead.phone || '',
+            mobile: lead.mobile || '',
+            address: lead.address || '',
+            country: lead.country || 'India',
+            state: lead.state || '',
+            district: lead.district || '',
+            city: lead.city || '',
+            pincode: lead.pincode || '',
+            customer_type: lead.customer_type || '',
+            pipeline: lead.pipeline || 'main',
+            assigned_to: lead.assigned_to ? lead.assigned_to : 'unassigned',
+            source: lead.source || 'IndiaMART',
+            industry: lead.industry || '',
+            product_interest: lead.product_interest || '',
+            estimated_value: lead.estimated_value || '',
+            notes: lead.notes || '',
+            next_followup_date: lead.next_followup_date || '',
+            followup_activity: lead.followup_activity || ''
+          };
+      setFormData(editFormData);
     } else {
-      setFormData({
-        company_name: '', contact_person: '', email: '', phone: '', mobile: '',
-        address: '', country: 'India', state: '', district: '', city: '', pincode: '',
-        customer_type: '', pipeline: 'main', assigned_to: 'unassigned',
-        source: 'IndiaMART', industry: '', product_interest: '',
-        estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
-      });
-      setCustomFieldValues({});
+      // new lead - use initial values from registry if available
+      const initialFormData = useDynamicForm 
+        ? getInitialValues()
+        : {
+            company_name: '', contact_person: '', email: '', phone: '', mobile: '',
+            address: '', country: 'India', state: '', district: '', city: '', pincode: '',
+            customer_type: '', pipeline: 'main', assigned_to: 'unassigned',
+            source: 'IndiaMART', industry: '', product_interest: '',
+            estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
+          };
+      setFormData(initialFormData);
     }
-  }, [lead, open]);
+  }, [lead, open, useDynamicForm, getInitialValues]);
 
   // assigned_to uses 'unassigned' token in UI; normalized to null on submit
 
