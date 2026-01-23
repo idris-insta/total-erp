@@ -5,7 +5,7 @@ import {
   Beaker, Users as UsersIcon, Building2, CheckCircle, Send, Phone, 
   Mail, MapPin, Calendar, ArrowRight, TrendingUp, Clock, Filter,
   MoreVertical, RefreshCw, Download, ChevronDown, X, Check, LayoutGrid,
-  FileDown, Printer
+  FileDown, Printer, Settings
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
