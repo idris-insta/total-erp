@@ -60,6 +60,101 @@ const AIInsightsCard = ({ loading, insights }) => (
   </Card>
 );
 
+// Quick Actions Widget - Surfaces most-used features
+const QuickActionsWidget = ({ actions, navigate }) => {
+  const iconMap = {
+    DollarSign: DollarSign,
+    CheckCircle: CheckCircle,
+    Package: Package,
+    Factory: Factory,
+    Users: Users,
+    FileText: FileText,
+    Settings: Settings,
+    Bell: Bell,
+    AlertTriangle: AlertTriangle
+  };
+
+  const colorMap = {
+    red: 'bg-red-100 text-red-700 border-red-200',
+    orange: 'bg-orange-100 text-orange-700 border-orange-200',
+    amber: 'bg-amber-100 text-amber-700 border-amber-200',
+    purple: 'bg-purple-100 text-purple-700 border-purple-200',
+    blue: 'bg-blue-100 text-blue-700 border-blue-200',
+    green: 'bg-green-100 text-green-700 border-green-200'
+  };
+
+  const quickLinks = [
+    { label: 'Add Lead', icon: UserPlus, link: '/crm/leads', color: 'blue' },
+    { label: 'Create Quotation', icon: FileText, link: '/crm/quotations', color: 'purple' },
+    { label: 'New Invoice', icon: DollarSign, link: '/accounts', color: 'green' },
+    { label: 'Run Report', icon: BarChart3, link: '/analytics', color: 'orange' },
+    { label: 'Custom Fields', icon: Wand2, link: '/customization', color: 'purple' },
+    { label: 'AI Dashboard', icon: Sparkles, link: '/ai-dashboard', color: 'amber' }
+  ];
+
+  return (
+    <Card className="border-slate-200 shadow-sm" data-testid="quick-actions-widget">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-amber-500" />
+            <CardTitle className="text-lg font-manrope">Quick Actions</CardTitle>
+          </div>
+          <Badge variant="outline" className="text-xs">{actions?.length || 0} items need attention</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Action Items */}
+        {actions && actions.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Needs Attention</p>
+            <div className="grid grid-cols-2 gap-2">
+              {actions.slice(0, 4).map((action) => {
+                const IconComponent = iconMap[action.icon] || AlertCircle;
+                return (
+                  <button
+                    key={action.id}
+                    onClick={() => navigate(action.link)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border ${colorMap[action.color] || 'bg-slate-100'} hover:shadow-md transition-all text-left group`}
+                    data-testid={`quick-action-${action.id}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="h-4 w-4" />
+                        <span className="text-2xl font-bold">{action.count}</span>
+                      </div>
+                      <p className="text-xs mt-1">{action.label}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Links */}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quick Links</p>
+          <div className="grid grid-cols-3 gap-2">
+            {quickLinks.map((link) => (
+              <button
+                key={link.label}
+                onClick={() => navigate(link.link)}
+                className="flex flex-col items-center gap-1 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all"
+                data-testid={`quick-link-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <link.icon className="h-5 w-5 text-slate-600" />
+                <span className="text-xs text-slate-600 text-center">{link.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Dashboard = () => {
   const [overview, setOverview] = useState(null);
   const [aiInsights, setAiInsights] = useState(null);
