@@ -84,16 +84,16 @@ const FieldEditorDialog = ({ field, onSave, onClose, open }) => {
     options: []
   });
   const [optionText, setOptionText] = useState('');
-
-  // Initialize form data when field prop changes
-  const fieldRef = React.useRef(field);
-  if (field !== fieldRef.current) {
-    fieldRef.current = field;
-    if (field) {
-      // This is intentional - we want to sync with the prop
+  
+  // Track previous field value to update formData when field changes
+  const prevFieldRef = React.useRef(null);
+  
+  React.useEffect(() => {
+    if (field && field !== prevFieldRef.current) {
+      prevFieldRef.current = field;
       setFormData(field);
     }
-  }
+  }, [field]);
 
   const fieldTypes = [
     { value: 'text', label: 'Text' },
