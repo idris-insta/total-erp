@@ -701,6 +701,7 @@ const AdvancedFilters = ({ filters, onChange, onClear }) => {
 
 // ==================== MAIN LEADS PAGE ====================
 const LeadsPage = () => {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState([]);
   const [kanbanData, setKanbanData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -709,6 +710,33 @@ const LeadsPage = () => {
   const [filters, setFilters] = useState({ status: 'all', source: 'all', industry: 'all', city: '', state: '' });
   const [formOpen, setFormOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
+  
+  // ========== FIELD REGISTRY INTEGRATION ==========
+  const { stages, fields, loading: registryLoading, formFields, activeStages } = useFieldRegistry('crm', 'leads');
+  
+  // Build dynamic STATUS_CONFIG from Field Registry stages
+  const STATUS_CONFIG = React.useMemo(() => {
+    if (activeStages && activeStages.length > 0) {
+      const config = {};
+      activeStages.forEach(stage => {
+        const colorStyle = COLOR_MAP[stage.color] || COLOR_MAP.blue;
+        config[stage.value] = {
+          label: stage.label,
+          ...colorStyle
+        };
+      });
+      return config;
+    }
+    return DEFAULT_STATUS_CONFIG;
+  }, [activeStages]);
+  
+  // Build dynamic STATUSES array from Field Registry
+  const STATUSES = React.useMemo(() => {
+    if (activeStages && activeStages.length > 0) {
+      return activeStages.sort((a, b) => (a.order || 0) - (b.order || 0)).map(s => s.value);
+    }
+    return DEFAULT_STATUSES;
+  }, [activeStages]);
 
   useEffect(() => {
     fetchData();
@@ -766,7 +794,7 @@ const LeadsPage = () => {
     // API call
     try {
       await api.put(`/crm/leads/${draggableId}/move?new_status=${destination.droppableId}`);
-      toast.success(`Lead moved to ${STATUS_CONFIG[destination.droppableId].label}`);
+      toast.success(`Lead moved to ${STATUS_CONFIG[destination.droppableId]?.label || destination.droppableId}`);
     } catch (error) {
       toast.error('Failed to move lead');
       fetchData(); // Revert on error
@@ -794,7 +822,7 @@ const LeadsPage = () => {
     setSearchTerm('');
   };
 
-  if (loading) {
+  if (loading || registryLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full"></div>
