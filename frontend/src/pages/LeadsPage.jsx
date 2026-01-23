@@ -291,7 +291,6 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
   const { 
     formFields: registryFields, 
     loading: registryLoading, 
-    getInitialValues,
     sectionLabels 
   } = useFieldRegistry('crm', 'leads');
   
@@ -303,7 +302,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
     address: '', country: 'India', state: '', district: '', city: '', pincode: '',
     customer_type: '', pipeline: 'main', assigned_to: 'unassigned',
     source: 'IndiaMART', industry: '', product_interest: '',
-    estimated_value: '', notes: '', next_followup_date: '', followup_activity: ''
+    estimated_value: '', notes: '', next_followup_date: '', followup_activity: '',
+    status: 'hot_leads'
   });
 
   const loadSalesUsers = useCallback(async () => {
