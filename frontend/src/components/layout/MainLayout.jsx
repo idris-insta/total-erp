@@ -177,8 +177,76 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <p className="text-xs text-slate-400 mt-1 font-inter">Industrial Management</p>
         </div>
 
+        {/* Search Bar */}
+        <div className="px-4 py-3 border-b border-slate-800">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Input
+              placeholder="Search menu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 h-9"
+              data-testid="sidebar-search"
+            />
+          </div>
+        </div>
+
+        {/* Favorites Section */}
+        {favorites.length > 0 && !searchTerm && (
+          <div className="px-4 py-2 border-b border-slate-800">
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 px-2">Favorites</p>
+            {flattenNav(navigation).filter(item => favorites.includes(item.href)).map(item => (
+              <Link
+                key={`fav-${item.href}`}
+                to={item.href}
+                className="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-amber-400 hover:bg-slate-800/50"
+                onClick={() => setIsOpen(false)}
+              >
+                <Star className="h-3 w-3 fill-amber-400" />
+                <span className="font-inter">{item.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {navigation.map((item) => {
+          {/* Search Results */}
+          {searchTerm ? (
+            <div className="space-y-1">
+              {flattenNav(navigation)
+                .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map(item => {
+                  const isActive = location.pathname.startsWith(item.href);
+                  return (
+                    <div key={item.href} className="flex items-center gap-1">
+                      <Link
+                        to={item.href}
+                        className={cn(
+                          "flex-1 flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-all",
+                          isActive ? "bg-accent/20 text-white" : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                        )}
+                        onClick={() => { setIsOpen(false); setSearchTerm(''); }}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.name}</span>
+                        {item.parent && <Badge variant="outline" className="text-xs ml-auto">{item.parent}</Badge>}
+                      </Link>
+                      <button
+                        onClick={() => toggleFavorite(item.href)}
+                        className="p-1 text-slate-500 hover:text-amber-400"
+                      >
+                        {favorites.includes(item.href) ? <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> : <StarOff className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  );
+                })}
+              {flattenNav(navigation).filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                <p className="text-slate-500 text-sm text-center py-4">No results found</p>
+              )}
+            </div>
+          ) : (
+            /* Regular Navigation */
+            navigation.map((item) => {
             if (item.type === 'group') {
               return (
                 <NavGroup 
