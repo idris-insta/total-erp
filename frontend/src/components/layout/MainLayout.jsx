@@ -138,6 +138,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'GST Compliance', href: '/gst-compliance', icon: Receipt, type: 'link' },
     { name: 'E-Invoice', href: '/einvoice', icon: FileText, type: 'link' },
     { name: 'Buying DNA', href: '/buying-dna', icon: Dna, type: 'link' },
+    { name: 'Customer Health', href: '/customer-health', icon: Heart, type: 'link' },
     { name: 'Analytics', href: '/analytics', icon: PieChart, type: 'link' },
     { name: 'AI Dashboard', href: '/ai-dashboard', icon: Brain, type: 'link' },
     { name: 'Quality', href: '/quality', icon: Shield, type: 'link' },
