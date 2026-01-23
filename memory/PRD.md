@@ -18,11 +18,16 @@ InstaBiz Industrial ERP is a comprehensive enterprise resource planning system s
 - Director override capability
 - APIs: `POST /api/core/redline/check-entry`, `POST /api/core/redline/override`
 
-### 3. CRM Buying DNA (The Hunter)
+### 3. CRM Buying DNA (The Hunter) ✅ ENHANCED
 - AI learns customer purchase frequency
 - Alerts if customer is 2+ days late
-- Auto-drafts follow-up messages
-- APIs: `GET /api/core/buying-dna/{customer_id}`, `GET /api/core/buying-dna/late-customers`
+- Auto-drafts WhatsApp follow-up messages
+- Full Buying DNA Dashboard with pattern analysis
+- APIs: 
+  - `GET /api/buying-dna/patterns` - All customer patterns with urgency scoring
+  - `GET /api/buying-dna/dashboard` - Dashboard summary
+  - `POST /api/buying-dna/followup-log` - Log follow-up actions
+- Frontend: `/buying-dna` - Full UI with search, filters, WhatsApp integration
 
 ### 4. Multi-Branch Ledger (The Tax Bridge)
 - Handles GST for Gujarat, Mumbai, Delhi
