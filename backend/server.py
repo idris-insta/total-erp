@@ -182,6 +182,7 @@ api_router.include_router(einvoice.router, prefix="/einvoice", tags=["GST E-Invo
 api_router.include_router(autonomous_collector.router, prefix="/collector", tags=["Autonomous Collector"])
 api_router.include_router(buying_dna.router, prefix="/buying-dna", tags=["Buying DNA Sales Hunter"])
 api_router.include_router(realtime_chat.router, prefix="/realtime-chat", tags=["Real-time Chat"])
+api_router.include_router(customer_health.router, prefix="/customer-health", tags=["Customer Health Score"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
