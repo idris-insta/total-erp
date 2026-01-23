@@ -1248,3 +1248,38 @@ GET /api/customer-health/widget - Dashboard widget data
 
 ---
 
+## Session Update - January 2026 (PDF Generation)
+
+### PDF Preview & Download Feature ✅ COMPLETE
+**Backend:** `/app/backend/routes/pdf_generator.py`
+**Frontend Updated:** `Accounts.jsx`, `CRM.jsx`
+
+**Professional PDF Generation using ReportLab:**
+- Company header with logo area, address, GSTIN
+- Document title (TAX INVOICE, QUOTATION, etc.)
+- Customer/Bill To section with GSTIN
+- Line items table with HSN, Qty, Rate, Discount, Tax, Amount
+- Totals section with subtotal, discount, GST breakdown (CGST/SGST)
+- Bank details for payment
+- Authorized Signatory footer
+
+**API Endpoints:**
+```
+GET /api/pdf/invoice/{id}/pdf - Download Invoice PDF
+GET /api/pdf/invoice/{id}/preview - Preview Invoice PDF (inline)
+GET /api/pdf/quotation/{id}/pdf - Download Quotation PDF  
+GET /api/pdf/quotation/{id}/preview - Preview Quotation PDF (inline)
+GET /api/pdf/invoices/bulk-pdf?invoice_ids=id1,id2 - Bulk download
+```
+
+**Frontend Buttons Added:**
+- **Accounts Invoice Table:** Eye (Preview), FileDown (Download), Printer (Print)
+- **CRM Quotations Table:** Eye (Preview), FileDown (Download)
+
+### Test Results (Iteration 14)
+- **Test Report:** `/app/test_reports/iteration_14.json`
+- **Backend Tests:** 100% (8/8 tests passed)
+- **Frontend Tests:** 100% - All buttons verified
+
+---
+
