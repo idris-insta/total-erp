@@ -651,6 +651,301 @@ async def get_default_config(module: str, entity: str):
             ]
         }
     
+    # ==================== INVENTORY MODULE ====================
+    elif module == 'inventory' and entity == 'items':
+        return {
+            "module": "inventory",
+            "entity": "items",
+            "entity_label": "Items / Products",
+            "fields": [
+                # Display Fields
+                {"field_name": "item_code", "field_label": "Item Code", "field_type": "text", "section": "display", "is_required": True, "show_in_list": True, "order": 1},
+                {"field_name": "item_name", "field_label": "Product Name", "field_type": "text", "section": "display", "is_required": True, "show_in_list": True, "order": 2},
+                {"field_name": "category", "field_label": "Category", "field_type": "select", "section": "display", "show_in_list": True, "order": 3,
+                    "options": [
+                        {"value": "bopp", "label": "BOPP Tape"},
+                        {"value": "masking", "label": "Masking Tape"},
+                        {"value": "double_sided", "label": "Double Sided"},
+                        {"value": "cloth", "label": "Cloth Tape"},
+                        {"value": "pvc", "label": "PVC Tape"},
+                        {"value": "foam", "label": "Foam Tape"},
+                        {"value": "specialty", "label": "Specialty"},
+                        {"value": "raw_material", "label": "Raw Material"}
+                    ]
+                },
+                {"field_name": "specs", "field_label": "Specs", "field_type": "text", "section": "display", "show_in_list": True, "is_readonly": True, "order": 4},
+                {"field_name": "primary_uom", "field_label": "UOM", "field_type": "select", "section": "display", "show_in_list": True, "order": 5,
+                    "options": [
+                        {"value": "KG", "label": "KG"},
+                        {"value": "SQM", "label": "SQM"},
+                        {"value": "PCS", "label": "PCS"},
+                        {"value": "ROLL", "label": "Roll"},
+                        {"value": "MTR", "label": "Meter"},
+                        {"value": "BOX", "label": "Box"},
+                        {"value": "CTN", "label": "Carton"}
+                    ]
+                },
+                {"field_name": "current_stock", "field_label": "Stock", "field_type": "number", "section": "display", "show_in_list": True, "is_readonly": True, "order": 6},
+                {"field_name": "reorder_level", "field_label": "Reorder", "field_type": "number", "section": "display", "show_in_list": True, "order": 7},
+                {"field_name": "item_type", "field_label": "Type", "field_type": "select", "section": "display", "show_in_list": True, "order": 8,
+                    "options": [
+                        {"value": "finished", "label": "Finished Good"},
+                        {"value": "raw", "label": "Raw Material"},
+                        {"value": "wip", "label": "Work in Progress"},
+                        {"value": "consumable", "label": "Consumable"},
+                        {"value": "service", "label": "Service"}
+                    ]
+                },
+                # Basic Section
+                {"field_name": "hsn_code", "field_label": "HSN Code", "field_type": "select", "section": "basic", "is_required": True, "order": 9,
+                    "options": [
+                        {"value": "39199090", "label": "39199090 - Self-adhesive plates, sheets"},
+                        {"value": "39191000", "label": "39191000 - In rolls of width <= 20cm"},
+                        {"value": "48114100", "label": "48114100 - Self-adhesive paper"},
+                        {"value": "48142000", "label": "48142000 - Wall paper"}
+                    ]
+                },
+                {"field_name": "secondary_uom", "field_label": "Secondary UOM", "field_type": "select", "section": "basic", "order": 10,
+                    "options": [
+                        {"value": "KG", "label": "KG"},
+                        {"value": "SQM", "label": "SQM"},
+                        {"value": "PCS", "label": "PCS"},
+                        {"value": "ROLL", "label": "Roll"},
+                        {"value": "MTR", "label": "Meter"}
+                    ]
+                },
+                {"field_name": "uom_conversion", "field_label": "UOM Conversion Method", "field_type": "select", "section": "basic", "order": 11,
+                    "options": [
+                        {"value": "fixed", "label": "Fixed Ratio"},
+                        {"value": "formula", "label": "Formula Based"},
+                        {"value": "none", "label": "No Conversion"}
+                    ]
+                },
+                {"field_name": "conversion_factor", "field_label": "Conversion Factor", "field_type": "number", "section": "basic", "order": 12},
+                # Specs Section
+                {"field_name": "base_material", "field_label": "Base Material", "field_type": "select", "section": "specs", "order": 13,
+                    "options": [
+                        {"value": "bopp_film", "label": "BOPP Film"},
+                        {"value": "pvc_film", "label": "PVC Film"},
+                        {"value": "paper", "label": "Paper"},
+                        {"value": "cloth", "label": "Cloth"},
+                        {"value": "foam", "label": "Foam"},
+                        {"value": "pet", "label": "PET"}
+                    ]
+                },
+                {"field_name": "adhesive_type", "field_label": "Adhesive Type", "field_type": "select", "section": "specs", "order": 14,
+                    "options": [
+                        {"value": "acrylic", "label": "Acrylic"},
+                        {"value": "hotmelt", "label": "Hotmelt"},
+                        {"value": "solvent", "label": "Solvent"},
+                        {"value": "rubber", "label": "Rubber"},
+                        {"value": "silicone", "label": "Silicone"}
+                    ]
+                },
+                {"field_name": "thickness", "field_label": "Thickness (Microns)", "field_type": "number", "section": "specs", "order": 15},
+                {"field_name": "color", "field_label": "Color", "field_type": "select", "section": "specs", "order": 16,
+                    "options": [
+                        {"value": "transparent", "label": "Transparent"},
+                        {"value": "brown", "label": "Brown"},
+                        {"value": "white", "label": "White"},
+                        {"value": "black", "label": "Black"},
+                        {"value": "red", "label": "Red"},
+                        {"value": "yellow", "label": "Yellow"},
+                        {"value": "green", "label": "Green"},
+                        {"value": "blue", "label": "Blue"},
+                        {"value": "printed", "label": "Printed/Custom"}
+                    ]
+                },
+                {"field_name": "width", "field_label": "Width (mm)", "field_type": "number", "section": "specs", "order": 17},
+                {"field_name": "length", "field_label": "Length (mtr)", "field_type": "number", "section": "specs", "order": 18},
+                # Pricing Section
+                {"field_name": "cost_price", "field_label": "Cost Price", "field_type": "currency", "section": "pricing", "is_required": True, "order": 19},
+                {"field_name": "margin_percent", "field_label": "Margin %", "field_type": "number", "section": "pricing", "order": 20},
+                {"field_name": "min_selling_price", "field_label": "Min Selling Price (MSP)", "field_type": "currency", "section": "pricing", "auto_calculate": True, "order": 21, "help_text": "Auto-calculated: Cost + Margin%"},
+                {"field_name": "mrp", "field_label": "MRP", "field_type": "currency", "section": "pricing", "order": 22},
+                # Inventory Section
+                {"field_name": "safety_stock", "field_label": "Safety Stock Level", "field_type": "number", "section": "inventory", "order": 23},
+                {"field_name": "lead_time_days", "field_label": "Lead Time (Days)", "field_type": "number", "section": "inventory", "order": 24},
+                {"field_name": "shelf_life_days", "field_label": "Shelf Life (Days)", "field_type": "number", "section": "inventory", "order": 25},
+                {"field_name": "label_format", "field_label": "Label Format", "field_type": "select", "section": "inventory", "order": 26,
+                    "options": [
+                        {"value": "standard", "label": "Standard Label"},
+                        {"value": "barcode_only", "label": "Barcode Only"},
+                        {"value": "qr_code", "label": "QR Code"},
+                        {"value": "custom", "label": "Custom Format"}
+                    ]
+                },
+                {"field_name": "barcode", "field_label": "Barcode", "field_type": "text", "section": "inventory", "is_readonly": True, "order": 27},
+                {"field_name": "is_active", "field_label": "Active", "field_type": "checkbox", "section": "inventory", "default_value": True, "order": 28}
+            ],
+            "list_display_fields": ["item_code", "item_name", "category", "specs", "primary_uom", "current_stock", "reorder_level", "item_type"]
+        }
+    
+    elif module == 'inventory' and entity == 'warehouses':
+        return {
+            "module": "inventory",
+            "entity": "warehouses",
+            "entity_label": "Warehouses",
+            "fields": [
+                # Display Fields
+                {"field_name": "warehouse_code", "field_label": "Warehouse Code", "field_type": "text", "section": "display", "is_required": True, "show_in_list": True, "order": 1},
+                {"field_name": "warehouse_name", "field_label": "Warehouse Name", "field_type": "text", "section": "display", "is_required": True, "show_in_list": True, "order": 2},
+                {"field_name": "gstin", "field_label": "GST No", "field_type": "text", "section": "display", "is_required": True, "show_in_list": True, "order": 3},
+                {"field_name": "state", "field_label": "State", "field_type": "text", "section": "display", "show_in_list": True, "order": 4},
+                {"field_name": "city", "field_label": "City", "field_type": "text", "section": "display", "show_in_list": True, "order": 5},
+                {"field_name": "is_active", "field_label": "Status", "field_type": "checkbox", "section": "display", "show_in_list": True, "order": 6},
+                # Form Fields
+                {"field_name": "prefix", "field_label": "Document Prefix", "field_type": "text", "section": "form", "is_required": True, "order": 7, "help_text": "Used for serial numbers (e.g., GJ, MH, DL)"},
+                {"field_name": "pincode", "field_label": "Pincode", "field_type": "text", "section": "form", "auto_fill_source": "pincode", "order": 8},
+                {"field_name": "address", "field_label": "Full Address", "field_type": "textarea", "section": "form", "order": 9},
+                {"field_name": "bank_name", "field_label": "Bank Name", "field_type": "text", "section": "bank", "order": 10},
+                {"field_name": "bank_account", "field_label": "Account Number", "field_type": "text", "section": "bank", "order": 11},
+                {"field_name": "ifsc_code", "field_label": "IFSC Code", "field_type": "text", "section": "bank", "order": 12},
+                {"field_name": "bank_branch", "field_label": "Branch", "field_type": "text", "section": "bank", "order": 13},
+                {"field_name": "email", "field_label": "Email Address", "field_type": "email", "section": "contact", "order": 14},
+                {"field_name": "phone", "field_label": "Contact No", "field_type": "phone", "section": "contact", "order": 15},
+                {"field_name": "contact_person", "field_label": "Contact Person", "field_type": "text", "section": "contact", "order": 16}
+            ],
+            "list_display_fields": ["warehouse_code", "warehouse_name", "gstin", "state", "city", "is_active"]
+        }
+    
+    elif module == 'inventory' and entity == 'stock':
+        return {
+            "module": "inventory",
+            "entity": "stock",
+            "entity_label": "Stock Management",
+            "fields": [
+                {"field_name": "item_code", "field_label": "Item Code", "field_type": "select", "section": "display", "show_in_list": True, "order": 1},
+                {"field_name": "item_name", "field_label": "Item Name", "field_type": "text", "section": "display", "show_in_list": True, "is_readonly": True, "order": 2},
+                {"field_name": "warehouse", "field_label": "Warehouse", "field_type": "select", "section": "display", "show_in_list": True, "order": 3},
+                {"field_name": "batch_no", "field_label": "Batch No", "field_type": "text", "section": "display", "show_in_list": True, "order": 4},
+                {"field_name": "quantity", "field_label": "Quantity", "field_type": "number", "section": "display", "show_in_list": True, "order": 5},
+                {"field_name": "uom", "field_label": "UOM", "field_type": "text", "section": "display", "show_in_list": True, "order": 6},
+                {"field_name": "rack_location", "field_label": "Rack Location", "field_type": "text", "section": "form", "order": 7},
+                {"field_name": "expiry_date", "field_label": "Expiry Date", "field_type": "date", "section": "form", "order": 8},
+                {"field_name": "cost_price", "field_label": "Cost Price", "field_type": "currency", "section": "form", "order": 9},
+                {"field_name": "barcode", "field_label": "Barcode", "field_type": "text", "section": "form", "order": 10}
+            ],
+            "list_display_fields": ["item_code", "item_name", "warehouse", "batch_no", "quantity", "uom"]
+        }
+    
+    elif module == 'inventory' and entity == 'serial_numbers':
+        return {
+            "module": "inventory",
+            "entity": "serial_numbers",
+            "entity_label": "Serial Number Master",
+            "fields": [
+                {"field_name": "doc_type", "field_label": "Document Type", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "order": 1,
+                    "options": [
+                        {"value": "quotation", "label": "Quotation"},
+                        {"value": "sales_order", "label": "Sales Order"},
+                        {"value": "invoice", "label": "Sales Invoice"},
+                        {"value": "credit_note", "label": "Credit Note"},
+                        {"value": "purchase_order", "label": "Purchase Order"},
+                        {"value": "grn", "label": "GRN"},
+                        {"value": "purchase_invoice", "label": "Purchase Invoice"},
+                        {"value": "debit_note", "label": "Debit Note"},
+                        {"value": "stock_transfer", "label": "Stock Transfer"},
+                        {"value": "batch", "label": "Batch Number"},
+                        {"value": "sample", "label": "Sample"}
+                    ]
+                },
+                {"field_name": "warehouse", "field_label": "Warehouse", "field_type": "select", "section": "display", "show_in_list": True, "order": 2},
+                {"field_name": "prefix", "field_label": "Prefix", "field_type": "text", "section": "form", "order": 3, "help_text": "e.g., INV, QT, PO"},
+                {"field_name": "suffix", "field_label": "Suffix", "field_type": "text", "section": "form", "order": 4},
+                {"field_name": "separator", "field_label": "Separator", "field_type": "text", "section": "form", "default_value": "/", "order": 5},
+                {"field_name": "include_fy", "field_label": "Include Financial Year", "field_type": "checkbox", "section": "form", "default_value": True, "order": 6},
+                {"field_name": "fy_format", "field_label": "FY Format", "field_type": "select", "section": "form", "order": 7,
+                    "options": [
+                        {"value": "2425", "label": "2425 (Short)"},
+                        {"value": "24-25", "label": "24-25"},
+                        {"value": "2024-25", "label": "2024-25"}
+                    ]
+                },
+                {"field_name": "number_length", "field_label": "Number Length", "field_type": "number", "section": "form", "default_value": 4, "order": 8},
+                {"field_name": "current_number", "field_label": "Current Number", "field_type": "number", "section": "form", "order": 9},
+                {"field_name": "reset_on_fy", "field_label": "Reset on New FY", "field_type": "checkbox", "section": "form", "default_value": True, "order": 10},
+                {"field_name": "sample_format", "field_label": "Sample Format", "field_type": "text", "section": "display", "is_readonly": True, "show_in_list": True, "order": 11}
+            ],
+            "list_display_fields": ["doc_type", "warehouse", "prefix", "sample_format"]
+        }
+    
+    elif module == 'inventory' and entity == 'stock_transfers':
+        return {
+            "module": "inventory",
+            "entity": "stock_transfers",
+            "entity_label": "Stock Transfers",
+            "fields": [
+                {"field_name": "transfer_no", "field_label": "Transfer No", "field_type": "auto", "section": "display", "show_in_list": True, "is_readonly": True, "order": 1},
+                {"field_name": "transfer_date", "field_label": "Date", "field_type": "date", "section": "display", "show_in_list": True, "order": 2},
+                {"field_name": "from_warehouse", "field_label": "From Warehouse", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "order": 3},
+                {"field_name": "to_warehouse", "field_label": "To Warehouse", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "order": 4},
+                {"field_name": "status", "field_label": "Status", "field_type": "select", "section": "display", "show_in_list": True, "order": 5,
+                    "options": [
+                        {"value": "draft", "label": "Draft", "color": "slate"},
+                        {"value": "in_transit", "label": "In Transit", "color": "blue"},
+                        {"value": "received", "label": "Received", "color": "green"},
+                        {"value": "cancelled", "label": "Cancelled", "color": "red"}
+                    ]
+                },
+                {"field_name": "total_items", "field_label": "Total Items", "field_type": "number", "section": "display", "show_in_list": True, "is_readonly": True, "order": 6},
+                {"field_name": "vehicle_no", "field_label": "Vehicle No", "field_type": "text", "section": "form", "order": 7},
+                {"field_name": "driver_name", "field_label": "Driver Name", "field_type": "text", "section": "form", "order": 8},
+                {"field_name": "driver_phone", "field_label": "Driver Phone", "field_type": "phone", "section": "form", "order": 9},
+                {"field_name": "notes", "field_label": "Notes", "field_type": "textarea", "section": "form", "order": 10}
+            ],
+            "list_display_fields": ["transfer_no", "transfer_date", "from_warehouse", "to_warehouse", "status", "total_items"],
+            "transfer_item_fields": [
+                {"field_name": "item_code", "field_label": "Item Code", "field_type": "select", "order": 1},
+                {"field_name": "item_name", "field_label": "Item Name", "field_type": "text", "is_readonly": True, "order": 2},
+                {"field_name": "batch_no", "field_label": "Batch No", "field_type": "select", "order": 3},
+                {"field_name": "quantity", "field_label": "Quantity", "field_type": "number", "order": 4},
+                {"field_name": "uom", "field_label": "UOM", "field_type": "text", "is_readonly": True, "order": 5}
+            ]
+        }
+    
+    elif module == 'inventory' and entity == 'stock_adjustments':
+        return {
+            "module": "inventory",
+            "entity": "stock_adjustments",
+            "entity_label": "Stock Adjustments",
+            "fields": [
+                {"field_name": "adjustment_no", "field_label": "Adjustment No", "field_type": "auto", "section": "display", "show_in_list": True, "is_readonly": True, "order": 1},
+                {"field_name": "adjustment_date", "field_label": "Date", "field_type": "date", "section": "display", "show_in_list": True, "order": 2},
+                {"field_name": "warehouse", "field_label": "Warehouse", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "order": 3},
+                {"field_name": "adjustment_type", "field_label": "Type", "field_type": "select", "section": "display", "is_required": True, "show_in_list": True, "order": 4,
+                    "options": [
+                        {"value": "opening", "label": "Opening Stock"},
+                        {"value": "closing", "label": "Closing Stock"},
+                        {"value": "increase", "label": "Stock Increase"},
+                        {"value": "decrease", "label": "Stock Decrease"},
+                        {"value": "damage", "label": "Damage/Loss"},
+                        {"value": "expired", "label": "Expired"},
+                        {"value": "recount", "label": "Physical Recount"}
+                    ]
+                },
+                {"field_name": "status", "field_label": "Status", "field_type": "select", "section": "display", "show_in_list": True, "order": 5,
+                    "options": [
+                        {"value": "draft", "label": "Draft"},
+                        {"value": "approved", "label": "Approved"},
+                        {"value": "cancelled", "label": "Cancelled"}
+                    ]
+                },
+                {"field_name": "reason", "field_label": "Reason", "field_type": "textarea", "section": "form", "order": 6},
+                {"field_name": "reference", "field_label": "Reference Doc", "field_type": "text", "section": "form", "order": 7}
+            ],
+            "list_display_fields": ["adjustment_no", "adjustment_date", "warehouse", "adjustment_type", "status"],
+            "adjustment_item_fields": [
+                {"field_name": "item_code", "field_label": "Item Code", "field_type": "select", "order": 1},
+                {"field_name": "item_name", "field_label": "Item Name", "field_type": "text", "is_readonly": True, "order": 2},
+                {"field_name": "batch_no", "field_label": "Batch No", "field_type": "text", "order": 3},
+                {"field_name": "current_qty", "field_label": "Current Qty", "field_type": "number", "is_readonly": True, "order": 4},
+                {"field_name": "adjusted_qty", "field_label": "Adjusted Qty", "field_type": "number", "order": 5},
+                {"field_name": "difference", "field_label": "Difference", "field_type": "number", "is_readonly": True, "order": 6},
+                {"field_name": "uom", "field_label": "UOM", "field_type": "text", "is_readonly": True, "order": 7}
+            ]
+        }
+    
     # Default empty config
     return {
         "module": module,
