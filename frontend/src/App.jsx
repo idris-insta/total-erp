@@ -96,6 +96,7 @@ const AppRoutes = () => {
                 <Route path="/collector" element={<AutonomousCollector />} />
                 <Route path="/buying-dna" element={<BuyingDNA />} />
                 <Route path="/customer-health" element={<CustomerHealth />} />
+                <Route path="/field-registry" element={<FieldRegistry />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
