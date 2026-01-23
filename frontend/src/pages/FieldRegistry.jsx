@@ -493,8 +493,9 @@ const FieldListEditor = ({ fields, onUpdate, onAddField, onEditField, onDeleteFi
 // ==================== MAIN COMPONENT ====================
 const FieldRegistry = () => {
   const { user } = useAuth();
-  const [activeModule, setActiveModule] = useState('crm');
-  const [activeEntity, setActiveEntity] = useState('leads');
+  const [searchParams] = React.useState(() => new URLSearchParams(window.location.search));
+  const [activeModule, setActiveModule] = useState(searchParams.get('module') || 'crm');
+  const [activeEntity, setActiveEntity] = useState(searchParams.get('entity') || 'leads');
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
