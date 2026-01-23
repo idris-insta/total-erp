@@ -184,6 +184,7 @@ api_router.include_router(autonomous_collector.router, prefix="/collector", tags
 api_router.include_router(buying_dna.router, prefix="/buying-dna", tags=["Buying DNA Sales Hunter"])
 api_router.include_router(realtime_chat.router, prefix="/realtime-chat", tags=["Real-time Chat"])
 api_router.include_router(customer_health.router, prefix="/customer-health", tags=["Customer Health Score"])
+api_router.include_router(pdf_generator.router, prefix="/pdf", tags=["PDF Generator"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
