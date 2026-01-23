@@ -190,6 +190,7 @@ api_router.include_router(customer_health.router, prefix="/customer-health", tag
 api_router.include_router(pdf_generator.router, prefix="/pdf", tags=["PDF Generator"])
 api_router.include_router(pdf_all_modules.router, prefix="/pdf", tags=["PDF All Modules"])
 api_router.include_router(document_communication.router, prefix="/communicate", tags=["Document Communication"])
+api_router.include_router(field_registry.router, prefix="/field-registry", tags=["Field Registry - Command Center"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
