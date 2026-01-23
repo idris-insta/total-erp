@@ -622,7 +622,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
 };
 
 // ==================== ADVANCED FILTERS ====================
-const AdvancedFilters = ({ filters, onChange, onClear }) => {
+const AdvancedFilters = ({ filters, onChange, onClear, statusConfig = DEFAULT_STATUS_CONFIG, statuses = DEFAULT_STATUSES }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -644,7 +644,7 @@ const AdvancedFilters = ({ filters, onChange, onClear }) => {
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                {STATUSES.map(s => <SelectItem key={s} value={s}>{STATUS_CONFIG[s].label}</SelectItem>)}
+                {statuses.map(s => <SelectItem key={s} value={s}>{statusConfig[s]?.label || s}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
