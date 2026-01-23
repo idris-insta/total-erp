@@ -102,6 +102,16 @@ const AppRoutes = () => {
                 <Route path="/buying-dna" element={<BuyingDNA />} />
                 <Route path="/customer-health" element={<CustomerHealth />} />
                 <Route path="/field-registry" element={<FieldRegistry />} />
+                
+                {/* Warehouse & Inventory Management Routes */}
+                <Route path="/inventory/warehouses" element={<WarehouseDashboard />} />
+                <Route path="/inventory/warehouses/new" element={<WarehouseForm />} />
+                <Route path="/inventory/warehouses/:warehouseId" element={<WarehouseForm />} />
+                <Route path="/inventory/stock-register" element={<StockRegister />} />
+                <Route path="/inventory/stock-transfers" element={<StockTransferList />} />
+                <Route path="/inventory/stock-transfers/new" element={<StockTransferForm />} />
+                <Route path="/inventory/stock-adjustments" element={<StockAdjustmentList />} />
+                <Route path="/inventory/stock-adjustments/new" element={<StockAdjustmentForm />} />
               </Routes>
             </MainLayout>
           </PrivateRoute>
