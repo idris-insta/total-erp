@@ -179,6 +179,8 @@ api_router.include_router(drive.router, prefix="/drive", tags=["Drive Storage"])
 api_router.include_router(bulk_import.router, prefix="/bulk-import", tags=["Bulk Import"])
 api_router.include_router(einvoice.router, prefix="/einvoice", tags=["GST E-Invoice & E-Way Bill"])
 api_router.include_router(autonomous_collector.router, prefix="/collector", tags=["Autonomous Collector"])
+api_router.include_router(buying_dna.router, prefix="/buying-dna", tags=["Buying DNA Sales Hunter"])
+api_router.include_router(realtime_chat.router, prefix="/realtime-chat", tags=["Real-time Chat"])
 
 # ==================== DASHBOARD OVERVIEW ====================
 @api_router.get("/dashboard/overview")
