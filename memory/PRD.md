@@ -1134,3 +1134,71 @@ GET  /api/collector/quick-actions
 
 ---
 
+## Session Update - January 2026 (Priority Tasks Batch)
+
+### P2: Sidebar Search & Favorites ✅ COMPLETE
+**File:** `/app/frontend/src/components/layout/MainLayout.jsx`
+
+**Features:**
+- **Search Bar:** Real-time filter for navigation items
+- **Favorites:** Star/unstar menu items, stored in localStorage
+- **Favorites Section:** Appears at top of sidebar when items are starred
+- **Parent Group Display:** Shows parent group when searching nested items
+
+### P3: Buying DNA Sales Hunter ✅ COMPLETE
+**Backend:** `/app/backend/routes/buying_dna.py`
+**Frontend:** `/app/frontend/src/pages/BuyingDNA.jsx`
+
+**Features (From Grand Blueprint):**
+- **Purchase Rhythm Analysis:** Calculates average order interval per customer
+- **Urgency Scoring:** 
+  - URGENT_FOLLOWUP: Overdue > 50% of avg interval
+  - GENTLE_REMINDER: Any overdue
+  - PRE_EMPTIVE_CHECK: 80%+ of avg interval passed
+  - NO_ACTION: On track
+- **WhatsApp Draft Messages:** Pre-written messages with customer name, days overdue
+- **Follow-up Logging:** Track whatsapp_sent, call_made, email_sent actions
+- **Summary Dashboard:** 4 cards showing counts per urgency level
+
+**API Endpoints:**
+```
+GET  /api/buying-dna/patterns - All customer buying patterns
+GET  /api/buying-dna/patterns/{account_id} - Single account pattern
+GET  /api/buying-dna/dashboard - Dashboard summary
+POST /api/buying-dna/followup-log - Log follow-up action
+```
+
+### P3: Real-time Chat ✅ COMPLETE
+**Backend:** `/app/backend/routes/realtime_chat.py`
+**Frontend:** Uses existing `/app/frontend/src/pages/Chat.jsx`
+
+**Features:**
+- **WebSocket Support:** Real-time messaging via `/api/realtime-chat/ws/{user_id}`
+- **REST Fallback:** Full REST API for non-WebSocket clients
+- **Room Types:** direct, group, channel
+- **Typing Indicators:** Broadcast to room members
+- **Read Receipts:** Track which users have read messages
+- **Online Status:** Track and broadcast user online/offline status
+
+**API Endpoints:**
+```
+WS   /api/realtime-chat/ws/{user_id} - WebSocket connection
+GET  /api/realtime-chat/rooms - List user's chat rooms
+POST /api/realtime-chat/rooms - Create new room
+GET  /api/realtime-chat/rooms/{room_id}/messages - Get messages
+POST /api/realtime-chat/rooms/{room_id}/messages - Send message (REST)
+GET  /api/realtime-chat/online-users - List online users
+```
+
+### Test Results (Iteration 12)
+- **Test Report:** `/app/test_reports/iteration_12.json`
+- **Backend Tests:** 100% (9/9 tests passed)
+- **Frontend Tests:** 100% - All features verified
+
+### Navigation Updates
+- Added "Buying DNA" link with DNA icon in sidebar
+- Route `/buying-dna` mapped to BuyingDNA page
+
+---
+
+
