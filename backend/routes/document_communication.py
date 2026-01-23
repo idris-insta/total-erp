@@ -372,7 +372,8 @@ async def preview_whatsapp_message(
     if not phone.startswith("91") and len(phone) == 10:
         phone = "91" + phone
     
-    whatsapp_url = f"https://wa.me/{phone}?text={message.replace(' ', '%20').replace('\n', '%0A')}"
+    encoded_msg = message.replace(' ', '%20').replace('\n', '%0A')
+    whatsapp_url = f"https://wa.me/{phone}?text={encoded_msg}"
     
     return {
         "recipient_phone": phone,
