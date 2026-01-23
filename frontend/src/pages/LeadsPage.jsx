@@ -289,15 +289,16 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [stateOptions, setStateOptions] = useState([]);
   
-  // Dynamic fields from Power Settings
-  const { fields: customFields, loading: loadingCustomFields } = useCustomFields('crm_leads');
-  const [customFieldValues, setCustomFieldValues] = useState({});
-
-
-  const CUSTOMER_TYPES = [
-    'Manufacturer', 'Wholesaler', 'Retailer', 'Converter', 'End User',
-    'Competitor', 'Export', 'Merchant Exporter'
-  ];
+  // Field Registry integration - dynamic fields
+  const { 
+    formFields: registryFields, 
+    loading: registryLoading, 
+    getInitialValues,
+    sectionLabels 
+  } = useFieldRegistry('crm', 'leads');
+  
+  // Check if we have dynamic fields from registry
+  const useDynamicForm = registryFields && registryFields.length > 0;
 
   const [formData, setFormData] = useState({
     company_name: '', contact_person: '', email: '', phone: '', mobile: '',
