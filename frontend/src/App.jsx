@@ -37,6 +37,11 @@ import AutonomousCollector from './pages/AutonomousCollector';
 import BuyingDNA from './pages/BuyingDNA';
 import CustomerHealth from './pages/CustomerHealth';
 import FieldRegistry from './pages/FieldRegistry';
+import WarehouseDashboard from './pages/WarehouseDashboard';
+import WarehouseForm from './pages/WarehouseForm';
+import StockRegister from './pages/StockRegister';
+import { StockTransferList, StockTransferForm } from './pages/StockTransfer';
+import { StockAdjustmentList, StockAdjustmentForm } from './pages/StockAdjustment';
 
 
 const PrivateRoute = ({ children }) => {
