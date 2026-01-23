@@ -239,8 +239,8 @@ const LeadCard = ({ lead, index, onEdit, onView, onDelete, statusConfig }) => {
 };
 
 // ==================== KANBAN COLUMN COMPONENT ====================
-const KanbanColumn = ({ status, leads, onEdit, onView, onDelete }) => {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.new;
+const KanbanColumn = ({ status, leads, onEdit, onView, onDelete, statusConfig }) => {
+  const config = statusConfig[status] || { label: status, bg: 'bg-slate-50', border: 'border-slate-200', badge: 'bg-slate-100 text-slate-800', header: 'bg-slate-500' };
   
   return (
     <div className="flex-shrink-0 w-72">
@@ -267,6 +267,7 @@ const KanbanColumn = ({ status, leads, onEdit, onView, onDelete }) => {
                 onEdit={onEdit}
                 onView={onView}
                 onDelete={onDelete}
+                statusConfig={statusConfig}
               />
             ))}
             {provided.placeholder}
