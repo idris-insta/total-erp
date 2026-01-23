@@ -276,7 +276,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <span className="font-inter">{item.name}</span>
               </Link>
             );
-          })}
+          })
+          )}
         </nav>
 
         <div className="p-4 border-t border-slate-800">
