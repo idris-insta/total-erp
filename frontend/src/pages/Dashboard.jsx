@@ -257,6 +257,41 @@ const Dashboard = () => {
         />
       </div>
 
+      {/* Quick Actions Widget */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <QuickActionsWidget actions={quickActions} navigate={navigate} />
+        </div>
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-emerald-500" />
+              <CardTitle className="text-lg font-manrope">System Health</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between p-2 bg-emerald-50 rounded-lg">
+              <span className="text-sm text-emerald-700">All services operational</span>
+              <CheckCircle className="h-4 w-4 text-emerald-500" />
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2 bg-slate-50 rounded">
+                <p className="text-slate-500">Uptime</p>
+                <p className="font-bold text-slate-900">99.9%</p>
+              </div>
+              <div className="p-2 bg-slate-50 rounded">
+                <p className="text-slate-500">Response</p>
+                <p className="font-bold text-slate-900">&lt;100ms</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/director-center')}>
+              <Database className="h-4 w-4 mr-2" />
+              Director Command Center
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
       {aiInsights && (
         <AIInsightsCard loading={loadingInsights} insights={aiInsights} />
       )}
