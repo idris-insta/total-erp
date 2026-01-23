@@ -436,7 +436,20 @@ const LeadFormDialog = ({ open, onOpenChange, lead, onSuccess, statusConfig = DE
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-manrope">{lead ? 'Edit Lead' : 'Create New Lead'}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="font-manrope">{lead ? 'Edit Lead' : 'Create New Lead'}</DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open('/field-registry?module=crm&entity=leads', '_blank')}
+              className="text-slate-500 hover:text-accent"
+              title="Customize form fields"
+            >
+              <Settings className="h-4 w-4 mr-1" />
+              Customize Fields
+            </Button>
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-3 gap-4">
