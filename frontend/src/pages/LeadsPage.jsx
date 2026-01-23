@@ -867,6 +867,14 @@ const LeadsPage = () => {
             <RefreshCw className="h-4 w-4" />
           </Button>
           <Button 
+            onClick={() => navigate('/field-registry')} 
+            variant="outline" 
+            size="sm"
+            title="Configure Leads fields and stages"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          <Button 
             onClick={() => { setEditingLead(null); setFormOpen(true); }} 
             className="bg-accent hover:bg-accent/90"
             data-testid="add-lead-btn"
